@@ -28,6 +28,7 @@
 
   const STORAGE_KEY = 'lumina_family_hub_v3';
   const QUESTIONS_STORAGE_KEY = 'lumina_questions_cache_v3';
+  const LANGUAGE_PACKS_STORAGE_KEY = 'lumina_language_packs_cache_v1';
   const LOCAL_DAYS_TO_KEEP = 90;       // days of history cached on each device (Firebase keeps everything)
   const MAX_ACTIVITIES_PER_DAY = 100;
   const MAX_TELEMETRY_LOGS = 300;
@@ -269,6 +270,7 @@
       profiles: defaultProfiles(),
       questions: clean(DEFAULT_QUESTIONS),
       customKidCards: [],
+      languagePacks: {},
       lastCloudSync: null,
       cloudStatus: 'local',   // 'local' | 'syncing' | 'connected' | 'error'
       cloudMessage: ''
@@ -360,6 +362,10 @@
         if (!Array.isArray(this.state.questions) || this.state.questions.length === 0) {
           this.state.questions = clean(DEFAULT_QUESTIONS);
         }
+        const cachedPacks = localStorage.getItem(LANGUAGE_PACKS_STORAGE_KEY);
+        if (cachedPacks) {
+          try { this.state.languagePacks = JSON.parse(cachedPacks) || {}; } catch (e) {}
+        }
       } catch (e) {
         console.warn('LuminaDB local load warning:', e);
       }
@@ -417,6 +423,51 @@
       } catch (e) {
         console.warn('Could not cache full question bank to localStorage (will stream from Firebase):', e);
       }
+    },
+
+    saveLanguagePacksLocal: function () {
+      try {
+        if (this.state.languagePacks) {
+          localStorage.setItem(LANGUAGE_PACKS_STORAGE_KEY, JSON.stringify(this.state.languagePacks));
+        }
+      } catch (e) {
+        console.warn('Could not cache language packs to localStorage:', e);
+      }
+    },
+
+    getLanguagePack: function (lang) {
+      return (this.state.languagePacks && this.state.languagePacks[lang]) || null;
+    },
+
+    setLanguagePack: function (lang, pack) {
+      if (!this.state.languagePacks) this.state.languagePacks = {};
+      this.state.languagePacks[lang] = pack;
+      this.saveLanguagePacksLocal();
+      this.notify();
+    },
+
+    seedLanguagePacksToCloud: async function (packs) {
+      const ok = await this.readyPromise;
+      if (!ok || !this.db) return { ok: false, error: 'Database not connected' };
+      const db = this.db;
+      const ts = new Date().toISOString();
+      const pMap = packs || this.state.languagePacks || {};
+      const ops = [];
+      ['malayalam', 'hindi', 'spanish'].forEach(lang => {
+        if (pMap[lang]) {
+          ops.push(db.collection('language_packs').doc(lang).set(clean({
+            lang: lang,
+            updatedAt: ts,
+            words: pMap[lang].words || [],
+            sentences: pMap[lang].sentences || []
+          })));
+        }
+      });
+      await Promise.all(ops);
+      if (!this.state.languagePacks) this.state.languagePacks = {};
+      Object.assign(this.state.languagePacks, pMap);
+      this.saveLanguagePacksLocal();
+      return { ok: true, count: ops.length };
     },
 
     saveLocal: function () {
@@ -888,6 +939,22 @@
             }
           }
           if (!this.pending.meta && Array.isArray(meta.customKidCards)) this.state.customKidCards = meta.customKidCards;
+        }
+
+        // ---- Language packs (Malayalam, Hindi, Spanish in Cloud Firestore)
+        try {
+          const langSnap = await db.collection('language_packs').get();
+          if (!langSnap.empty) {
+            if (!this.state.languagePacks) this.state.languagePacks = {};
+            langSnap.forEach(d => {
+              this.state.languagePacks[d.id] = d.data();
+            });
+            this.saveLanguagePacksLocal();
+          } else if (window.EXPANDED_LANGUAGE_PACKS) {
+            await this.seedLanguagePacksToCloud(window.EXPANDED_LANGUAGE_PACKS);
+          }
+        } catch (lErr) {
+          console.warn('Language packs sync note:', lErr);
         }
 
         this.ensureDefaultProfiles();

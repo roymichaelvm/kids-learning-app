@@ -38,8 +38,8 @@
           boxShadow: {
             'bento': '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03)',
             'kids-btn': '0 6px 0 0 #d97706',
-            'kids-card': '0 8px 0 0 #e2e8f0',
-            'duolingo': '0 4px 0 0 #4338ca',
+            'kids-btn-active': '0 2px 0 0 #d97706',
+            'kids-card': '0 8px 0 0 rgba(0,0,0,0.06)',
           }
         }
       }
@@ -47,295 +47,302 @@
   </script>
 
   <style>
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-    .option-eliminated {
-      opacity: 0.42;
-      position: relative;
-      filter: grayscale(90%);
+    @keyframes subtle-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
     }
-    .option-eliminated .choice-content {
-      text-decoration: line-through;
-      text-decoration-thickness: 2px;
-      text-decoration-color: #ef4444;
+    .animate-subtle-bounce { animation: subtle-bounce 2s infinite ease-in-out; }
+    
+    .btn-tactile {
+      transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-tactile:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 0 rgba(0,0,0,0.1) !important;
     }
 
-    .flip-card { perspective: 1200px; }
+    .flip-card { perspective: 1000px; }
     .flip-card-inner {
-      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       transform-style: preserve-3d;
     }
-    .flip-card.flipped .flip-card-inner {
-      transform: rotateY(180deg);
-    }
+    .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
     .flip-card-front, .flip-card-back {
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
-    .flip-card-back {
-      transform: rotateY(180deg);
+    .flip-card-back { transform: rotateY(180deg); }
+
+    .sat-choice-strike {
+      text-decoration: line-through;
+      opacity: 0.45;
     }
 
-    .btn-tactile { transition: all 0.12s ease; }
-    .btn-tactile:active {
-      transform: translateY(4px);
-      box-shadow: 0 0px 0 0 transparent !important;
+    @keyframes tilePop {
+      0% { transform: scale(0.7); opacity: 0; }
+      70% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .tile-pop-anim {
+      animation: tilePop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes tileShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
     }
-    .animate-fade { animation: fadeIn 0.25s ease-out forwards; }
+    .tile-shake-anim {
+      animation: tileShake 0.4s ease-in-out;
+    }
   </style>
 </head>
-
-<body id="appBody" class="bg-[#F8FAFC] text-slate-900 min-h-screen flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-300">
+<body id="appBody" class="bg-[#F8FAFC] text-slate-900 min-h-screen flex flex-col font-sans transition-colors duration-300">
 
   <!-- =====================================================================
-       TOP GLOBAL NAVIGATION BAR (KID PROFILE SWITCHER & CLOUD STATUS)
+       TOP HEADER & MULTI-PROFILE COCKPIT
        ===================================================================== -->
-  <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200/80 transition-all">
-    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+  <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200/80 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
       
-      <!-- Brand Identity -->
-      <div class="flex items-center space-x-3">
-        <button onclick="showProfilePicker()" class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 transition-transform hover:scale-105" title="Switch Child Profile">
-          <i data-lucide="sparkles" class="w-5 h-5"></i>
-        </button>
+      <!-- Brand & Mode Pill -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-amber-400 flex items-center justify-center text-white font-extrabold text-xl shadow-md">
+          L
+        </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">Lumina</span>
+            <span class="font-extrabold text-lg tracking-tight text-slate-900">Lumina</span>
             <span id="activeModeBadge" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60">
-              13yo Teen Scholar
+              🎓 Teen Scholar
             </span>
           </div>
-          <p class="text-[11px] text-slate-500 hidden sm:block font-medium">SAT Bluebook • Malayalam • Hindi • Spanish • Daily Progress</p>
+          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Family Learning Hub • SAT Bluebook & 6+ Explorer</p>
         </div>
       </div>
 
-      <!-- Center: Dynamic Kid Profile Switcher -->
-      <div class="flex items-center gap-1.5">
-        <div id="profileSwitcher" class="bg-slate-100/90 p-1 rounded-2xl flex items-center border border-slate-200/80 shadow-inner overflow-x-auto max-w-[52vw]">
-          <!-- Populated dynamically from Firebase profiles -->
-        </div>
-        <button onclick="showProfilePicker()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition hidden sm:flex items-center gap-1" title="Switch or view all kid profiles">
-          <i data-lucide="users" class="w-3.5 h-3.5"></i>
-        </button>
-      </div>
-
-      <!-- Right: Active Kid Streak, XP, Cloud Status & Parent Admin Link -->
-      <div class="flex items-center space-x-2">
-        <!-- Day Streak Pill -->
-        <div class="flex items-center gap-1.5 bg-orange-50 border border-orange-200/80 text-orange-700 px-3 py-1.5 rounded-xl text-xs font-bold" title="Active Child's Consecutive Day Streak">
-          <span class="text-sm animate-bounce">🔥</span>
-          <span id="headerStreakCount" class="font-mono">0</span>
-          <span class="hidden md:inline">Days</span>
+      <!-- Live Gamification, Cloud Sync & Profile Cockpit -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        
+        <!-- Total Questions Bank Counter -->
+        <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs font-semibold text-slate-600" title="Total SAT & Language Questions in Question Bank">
+          <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-500"></i>
+          <span id="totalQuestionsCounter" class="font-bold text-slate-800">0</span>
+          <span class="text-slate-400">Questions</span>
         </div>
 
-        <!-- XP Counter Pill -->
-        <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 text-amber-800 px-3 py-1.5 rounded-xl text-xs font-bold" title="Active Child's Experience Points">
+        <!-- Streak Pill -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold shadow-xs" title="Daily study streak">
+          <span class="text-sm">🔥</span>
+          <span id="headerStreakCount">0</span>
+          <span class="hidden sm:inline font-semibold text-amber-700">days</span>
+        </div>
+
+        <!-- XP Pill -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-bold shadow-xs" title="Total experience points">
           <span class="text-sm">⚡</span>
-          <span id="headerXPCount" class="font-mono">0</span>
-          <span class="hidden md:inline">XP</span>
+          <span id="headerXPCount">0</span>
+          <span class="hidden sm:inline font-semibold text-indigo-700">XP</span>
         </div>
 
-        <!-- Firebase Cloud Sync Status -->
-        <button onclick="manualCloudSync()" id="cloudStatusPill" class="hidden lg:flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition" title="Click to sync now with Firebase">
+        <!-- Cloud Firestore Sync Status -->
+        <button onclick="manualCloudSync()" id="cloudStatusPill" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer" title="Cloud Firestore sync status. Tap to force cloud sync.">
           <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span id="cloudStatusText">Firebase Synced</span>
+          <span id="cloudStatusText" class="hidden sm:inline font-semibold">Firebase Connected</span>
         </button>
-      </div>
 
+        <!-- Profile Switcher Button -->
+        <button onclick="showProfilePicker()" class="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm btn-tactile">
+          <i data-lucide="users" class="w-3.5 h-3.5 text-amber-300"></i>
+          <span>Switch</span>
+        </button>
+
+      </div>
     </div>
   </header>
 
-  <!-- =====================================================================
-       SUB-NAVIGATION BAR (DYNAMIC PER PROFILE MODE)
-       ===================================================================== -->
-  <div id="subNavBar" class="bg-white/60 border-b border-slate-200/60">
-    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3">
-      <div id="subNavTabs" class="flex flex-wrap items-center gap-1.5">
-        <!-- Populated dynamically by JS -->
+  <!-- Profile Quick-Bar (Always visible horizontal switcher) -->
+  <section class="bg-white border-b border-slate-200/60 px-4 py-2">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
+      <div class="flex items-center gap-1.5 text-xs text-slate-500 font-semibold shrink-0">
+        <i data-lucide="user-check" class="w-3.5 h-3.5 text-indigo-500"></i>
+        <span>Active Learner:</span>
       </div>
-      <div class="flex items-center gap-3 text-xs font-semibold text-slate-500">
-        <span class="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
-          <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-600"></i>
-          <span>Question Bank: <strong id="totalQuestionsCounter" class="text-slate-900 font-mono">0</strong></span>
-        </span>
+      <div id="profileSwitcher" class="flex items-center gap-2"></div>
+    </div>
+  </section>
+
+  <!-- TODAY'S DAILY GOAL & STREAK STRIP -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 w-full">
+    <div id="todayProgressStrip"></div>
+  </section>
+
+  <!-- SUB-NAVIGATION BAR (Mode-specific tabs & Instant Dictionary button) -->
+  <nav id="subNavBar" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-1 w-full">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+      <div id="subNavTabs" class="flex flex-wrap items-center gap-2"></div>
+      
+      <div class="flex flex-wrap items-center gap-2.5 text-xs font-semibold text-slate-500">
+        <!-- Instant Dictionary & Tough Words Vault Button -->
+        <button onclick="openDictionaryModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold transition text-xs border border-indigo-200 shadow-xs" title="Instant Dictionary lookup & Tough Words Vault">
+          <span>📖</span>
+          <span>Dictionary &amp; Vault</span>
+        </button>
       </div>
     </div>
-  </div>
+  </nav>
 
   <!-- =====================================================================
-       MAIN APPLICATION WORKSPACE
+       MAIN LEARNING CONTENT AREA
        ===================================================================== -->
-  <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-
-    <!-- ACTIVE KID'S DAILY GOALS & 7-DAY PROGRESS STRIP -->
-    <div id="todayProgressStrip" class="mb-6"></div>
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
 
     <!-- ===================================================================
-         1. TEEN SCHOLAR: BENTO HOME, DAILY CALENDAR & ANALYTICS DASHBOARD
+         1. 13+ TEEN SCHOLAR: DASHBOARD, 14-DAY CALENDAR & DOMAIN MASTERY
          =================================================================== -->
-    <section id="section-teen-dashboard" class="hidden space-y-6 animate-fade">
+    <section id="section-teen-dashboard" class="space-y-8 animate-fade">
       
-      <!-- Top Hero Banner + Quick Launch -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-8 bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between">
-          <div class="relative z-10">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs text-indigo-200 text-xs font-semibold mb-4 border border-white/15">
-              <span>🎯 Digital SAT & Trilingual Mastery</span>
-              <span>•</span>
-              <span id="teenHeroQuestionCount">Loaded & Ready</span>
-            </div>
-            <h1 id="teenHeroGreeting" class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-              Welcome back! Ready to crush your SAT timing & language goals?
-            </h1>
-            <p class="text-indigo-200 text-sm mt-2 max-w-2xl">
-              Your first-click intuition accuracy is <strong id="heroFirstClickStat" class="text-emerald-300 font-mono">Ready</strong>. Every question and minute you practice is saved to your personal profile in Firebase.
-            </p>
+      <!-- Teen Hero Welcome & Progress -->
+      <div class="rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white p-6 sm:p-8 shadow-bento relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-semibold mb-3 backdrop-blur-sm">
+            <span>🎓 Digital SAT Bluebook & Trilingual Track</span>
+            <span class="w-1 h-1 rounded-full bg-indigo-300"></span>
+            <span id="teenHeroQuestionCount">0 Questions Active</span>
           </div>
-
-          <div class="relative z-10 mt-6 pt-6 border-t border-white/10 flex flex-wrap items-center gap-3">
-            <button onclick="openTeenTab('sat')" class="px-5 py-2.5 rounded-xl bg-white text-indigo-950 font-bold text-xs sm:text-sm shadow-md hover:bg-indigo-50 transition flex items-center gap-2">
-              <i data-lucide="play" class="w-4 h-4 fill-indigo-950"></i>
-              <span>Launch SAT Bluebook Simulator</span>
+          <h1 id="teenHeroGreeting" class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Welcome back! Ready to crush your SAT timing & language goals?
+          </h1>
+          <p class="text-indigo-200/90 text-sm mt-2 leading-relaxed">
+            Real SAT Bluebook simulation featuring precision timing telemetry, instinct vs second-guessing tracking, choice strike-out elimination, and deep trilingual study in Malayalam, Hindi, and Spanish.
+          </p>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <button onclick="openTeenTab('sat')" class="px-5 py-2.5 rounded-2xl bg-white text-indigo-950 font-bold text-xs hover:bg-indigo-50 transition shadow-md btn-tactile flex items-center gap-2">
+              <i data-lucide="play" class="w-3.5 h-3.5 text-indigo-600 fill-indigo-600"></i>
+              <span>Launch SAT Exam Simulator</span>
             </button>
-            <button onclick="openTeenTab('languages')" class="px-4 py-2.5 rounded-xl bg-indigo-800/80 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm border border-indigo-600/50 transition flex items-center gap-2">
-              <span>🌏 Practice Malayalam / Hindi / Spanish</span>
+            <button onclick="openTeenTab('languages')" class="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition backdrop-blur-sm flex items-center gap-2 border border-white/15">
+              <span>🌏</span>
+              <span>Trilingual Studio (100+ Words & Sentences)</span>
             </button>
-          </div>
-        </div>
-
-        <!-- Right Bento: First-Click vs Final Accuracy Diagnostic Card (Per-Child) -->
-        <div class="lg:col-span-4 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-bento flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">SAT Cognitive Telemetry</span>
-              <span class="px-2 py-0.5 text-[11px] font-bold bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200">Per-Profile</span>
-            </div>
-            <h3 class="text-base font-extrabold text-slate-900">First-Click vs. Final Answer</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Measures if second-guessing helps or hurts your score</p>
-
-            <div class="grid grid-cols-2 gap-3 mt-5">
-              <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60">
-                <span class="text-[11px] font-semibold text-slate-500 block">1st Click Accuracy</span>
-                <span id="bentoFirstClickAcc" class="text-2xl font-extrabold font-mono text-indigo-600 mt-1 block">—</span>
-              </div>
-              <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60">
-                <span class="text-[11px] font-semibold text-slate-500 block">Final Accuracy</span>
-                <span id="bentoFinalAcc" class="text-2xl font-extrabold font-mono text-emerald-600 mt-1 block">—</span>
-              </div>
-              <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60">
-                <span class="text-[11px] font-semibold text-slate-500 block">Avg Time / Question</span>
-                <span id="bentoAvgTime" class="text-2xl font-extrabold font-mono text-slate-900 mt-1 block">0s</span>
-              </div>
-              <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60">
-                <span class="text-[11px] font-semibold text-slate-500 block">Mind Changes</span>
-                <span id="bentoMindChanges" class="text-2xl font-extrabold font-mono text-amber-600 mt-1 block">0</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span id="secondGuessVerdict" class="text-slate-600 font-medium">Complete a question to see telemetry</span>
-            <button onclick="resetSatTelemetry()" class="text-rose-600 hover:underline font-semibold">Reset</button>
           </div>
         </div>
       </div>
 
-      <!-- Daily Activity Streak Calendar & Subject Mastery Breakdown -->
+      <!-- SAT Topic Quick-Launch Bento Grid -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-extrabold text-slate-900 tracking-tight">SAT Topic Master Tracks</h2>
+            <p class="text-xs text-slate-500">Pick any domain to start target drills immediately</p>
+          </div>
+        </div>
+        <div id="teenTopicsBentoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+      </div>
+
+      <!-- 14-Day Streak Calendar & Domain Mastery Breakdown -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Left 7 Cols: 14-Day Activity Calendar & Selected Day Feed -->
+        
+        <!-- Left: 14-Day Streak Calendar Grid -->
         <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 p-6 shadow-bento flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <i data-lucide="calendar-check" class="w-4 h-4 text-indigo-600"></i>
-                  <span>14-Day Daily Activity & Streak Calendar</span>
-                </h3>
-                <p class="text-xs text-slate-500">Click any day to inspect questions answered, time spent, and activity log</p>
+                <h3 class="font-extrabold text-slate-900 text-base">14-Day Study Consistency Calendar</h3>
+                <p class="text-xs text-slate-400">Tap any day to view detailed study records</p>
               </div>
-              <span id="selectedDayBadge" class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700">Today</span>
+              <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">Last 2 Weeks</span>
             </div>
-
-            <div id="teenStreakCalendarGrid" class="grid grid-cols-7 gap-2 mb-5">
-              <!-- Populated dynamically -->
-            </div>
-
-            <div id="teenDayDetailBox" class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70">
-              <!-- Populated dynamically for selected date -->
-            </div>
+            <div id="teenStreakCalendarGrid" class="grid grid-cols-7 gap-2 my-2"></div>
           </div>
+          
+          <div id="teenSelectedDayDetail" class="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-600"></div>
         </div>
 
-        <!-- Right 5 Cols: Subject & Domain Mastery Breakdown -->
+        <!-- Right: Domain Mastery & Accuracy Breakdown -->
         <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200/80 p-6 shadow-bento flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <i data-lucide="award" class="w-4 h-4 text-emerald-600"></i>
-                  <span>Subject & Domain Mastery</span>
-                </h3>
-                <p class="text-xs text-slate-500">Cumulative accuracy and time across SAT & languages</p>
+                <h3 class="font-extrabold text-slate-900 text-base">SAT Domain Mastery Rates</h3>
+                <p class="text-xs text-slate-400">Cumulative accuracy by topic</p>
               </div>
             </div>
-            <div id="teenDomainMasteryList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-              <!-- Populated dynamically -->
-            </div>
+            <div id="teenDomainMasteryList" class="space-y-3.5 my-2"></div>
           </div>
-        </div>
-      </div>
 
-      <!-- Subject & Custom Topic Bento Grid -->
-      <div>
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h2 class="text-lg font-extrabold text-slate-900">Your Learning Subjects & Custom Topics</h2>
-            <p class="text-xs text-slate-500">Click any topic card to jump into practice</p>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Target Mastery: 80%+ Accuracy</span>
+            <span class="font-semibold text-emerald-600">Adaptive Target</span>
           </div>
         </div>
 
-        <div id="teenTopicsBentoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Populated dynamically from topics database -->
-        </div>
       </div>
 
-      <!-- Detailed SAT Question-by-Question Telemetry Log Table -->
-      <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-bento">
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <!-- Real-Time Second-Guess & Timing Telemetry Live Analytics -->
+      <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-bento space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <i data-lucide="activity" class="w-4 h-4 text-indigo-600"></i>
-              <span>Question-by-Question Timing & First-Click Telemetry Log</span>
+            <h3 class="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+              <span>⏱️ Precision Timing & Second-Guess Telemetry</span>
+              <span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold uppercase">Bluebook Analytics</span>
             </h3>
-            <p class="text-xs text-slate-500">Tracks date, time to first click, total time spent, option switches, and domain mastery</p>
+            <p class="text-xs text-slate-500">Tracks how fast you answer, whether your first instinct was right, and when second-guessing helped or hurt.</p>
+          </div>
+          <button onclick="resetSatTelemetry()" class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline">
+            Reset Logs
+          </button>
+        </div>
+
+        <!-- 4 Bento Metric Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+          <div class="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100">
+            <span class="text-[11px] font-bold uppercase text-indigo-500 tracking-wider">1st Instinct Accuracy</span>
+            <p id="bentoFirstClickAcc" class="text-2xl font-extrabold text-indigo-950 mt-1">—</p>
+            <p class="text-[10px] text-indigo-600/80 mt-0.5">Correct on initial click</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100">
+            <span class="text-[11px] font-bold uppercase text-emerald-600 tracking-wider">Final Accuracy</span>
+            <p id="bentoFinalAcc" class="text-2xl font-extrabold text-emerald-950 mt-1">—</p>
+            <p class="text-[10px] text-emerald-600/80 mt-0.5">Accuracy upon submit</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-100">
+            <span class="text-[11px] font-bold uppercase text-amber-600 tracking-wider">Avg Time / Question</span>
+            <p id="bentoAvgTime" class="text-2xl font-extrabold text-amber-950 mt-1">0s</p>
+            <p class="text-[10px] text-amber-700/80 mt-0.5">SAT Target: ~71 seconds</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-purple-50/60 border border-purple-100">
+            <span class="text-[11px] font-bold uppercase text-purple-600 tracking-wider">Mind Changes</span>
+            <p id="bentoMindChanges" class="text-2xl font-extrabold text-purple-950 mt-1">0</p>
+            <p class="text-[10px] text-purple-700/80 mt-0.5">Answer revisions made</p>
           </div>
         </div>
 
-        <div class="overflow-x-auto max-h-96 overflow-y-auto">
-          <table class="w-full text-left border-collapse">
-            <thead class="sticky top-0 bg-white">
-              <tr class="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                <th class="py-3 px-3">Date</th>
-                <th class="py-3 px-3">Question ID</th>
-                <th class="py-3 px-3">Topic / Domain</th>
-                <th class="py-3 px-3">1st Click Time</th>
-                <th class="py-3 px-3">Total Time</th>
-                <th class="py-3 px-3">First Click</th>
-                <th class="py-3 px-3">Final Submitted</th>
-                <th class="py-3 px-3">Outcome</th>
-                <th class="py-3 px-3">Behavioral Diagnosis</th>
+        <!-- Second Guess Verdict Alert -->
+        <div id="secondGuessVerdict" class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700 font-medium">
+          Answer questions in the SAT Simulator to generate second-guess telemetry insights!
+        </div>
+
+        <!-- Telemetry Logs Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600 border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 text-[11px] font-bold uppercase text-slate-400">
+                <th class="py-2.5 px-3">Date</th>
+                <th class="py-2.5 px-3">Question ID</th>
+                <th class="py-2.5 px-3">Domain</th>
+                <th class="py-2.5 px-3">Time</th>
+                <th class="py-2.5 px-3">First Click</th>
+                <th class="py-2.5 px-3">Final Choice</th>
+                <th class="py-2.5 px-3">Correct</th>
+                <th class="py-2.5 px-3">Result</th>
+                <th class="py-2.5 px-3">Diagnosis</th>
               </tr>
             </thead>
-            <tbody id="telemetryTableBody" class="divide-y divide-slate-100 text-xs text-slate-700">
-              <!-- Populated dynamically -->
+            <tbody id="telemetryTableBody" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="9" class="py-6 text-center text-slate-400">No telemetry recorded yet. Launch the simulator to begin!</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -344,157 +351,160 @@
     </section>
 
     <!-- ===================================================================
-         2. DIGITAL SAT BLUEBOOK SIMULATOR & CUSTOM TOPIC QUIZ ENGINE (TEEN)
+         2. DIGITAL SAT BLUEBOOK EXAM SIMULATOR
          =================================================================== -->
-    <section id="section-teen-sat" class="hidden space-y-4 animate-fade">
+    <section id="section-teen-sat" class="hidden space-y-6 animate-fade">
       
-      <!-- Top Bluebook Exam Bar -->
-      <div class="bg-slate-900 text-white rounded-2xl px-5 py-3.5 shadow-md flex flex-wrap items-center justify-between gap-4">
-        
-        <!-- Left: Topic / Domain Filter Selector -->
+      <!-- Bluebook Toolbar (Domain selector, Precision Stopwatch, Eliminator, Flag) -->
+      <div class="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-bento flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3">
+          <button onclick="openTeenTab('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            <span>Dashboard</span>
+          </button>
+          
           <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-            <select id="satDomainFilter" onchange="onFilterSatQuestions()" class="bg-slate-800 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-400">
-              <option value="ALL">All SAT & Custom Topics</option>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Domain:</span>
+            <select id="satDomainFilter" onchange="onFilterSatQuestions()" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-indigo-500 cursor-pointer">
+              <option value="ALL">All Domains (Comprehensive Exam)</option>
             </select>
           </div>
 
-          <span id="satDifficultyPill" class="text-[11px] font-bold uppercase px-2.5 py-1 rounded-lg bg-slate-800 text-indigo-300 border border-slate-700">
+          <span id="satDifficultyPill" class="text-[11px] font-bold uppercase px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
             Medium
           </span>
 
-          <span class="text-xs text-slate-400 font-mono">
-            Q <strong id="satCurrNum" class="text-white">1</strong> / <span id="satTotalNum">0</span>
+          <span class="text-xs text-slate-500 font-mono">
+            Q <strong id="satCurrNum" class="text-slate-900">1</strong> / <span id="satTotalNum">0</span>
           </span>
         </div>
 
-        <!-- Center: Precision Stopwatch & Pace Bar -->
-        <div class="flex items-center gap-3 bg-slate-950/80 px-4 py-1.5 rounded-xl border border-slate-800">
-          <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i>
-          <div>
-            <span id="satStopwatch" class="font-mono text-sm font-bold tracking-wider text-white">00:00.0</span>
-            <span id="satPaceHint" class="text-[10px] text-emerald-400 ml-2 font-medium">Optimal Pace (&lt;75s)</span>
+        <div class="flex items-center gap-3">
+          <!-- Stopwatch with sub-second precision -->
+          <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-mono text-xs font-bold shadow-xs">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span id="satStopwatch">00:00.0</span>
+            <span id="satTimerDisplay" class="hidden">00:00.0</span>
           </div>
-        </div>
+          <span id="satPaceHint" class="hidden sm:inline text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">Pace: On Track</span>
 
-        <!-- Right: Bluebook Tools (Eliminator, Flag) -->
-        <div class="flex items-center gap-2">
-          <button id="btnFlagQuestion" onclick="toggleFlagSatQuestion()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
-            <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
-            <span>Flag</span>
+          <!-- Choice Eliminator Mode Toggle Button -->
+          <button id="btnEliminatorTool" onclick="toggleEliminatorMode()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold transition flex items-center gap-1.5" title="Eliminate choices with strike-through">
+            <span>✂️</span>
+            <span>Eliminator</span>
           </button>
 
-          <button id="btnEliminatorTool" onclick="toggleEliminatorMode()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5" title="Cross out wrong choices">
-            <span class="font-mono line-through text-rose-400">ABC</span>
-            <span>Eliminator</span>
+          <!-- Flag for review button -->
+          <button id="btnFlagQuestion" onclick="toggleFlagSatQuestion()" class="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition" title="Flag this question for review">
+            <i data-lucide="bookmark" class="w-4 h-4"></i>
           </button>
         </div>
       </div>
 
-      <!-- Split-Pane Bluebook Workspace -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch min-h-[500px]">
+      <!-- Eliminator Active Banner -->
+      <div id="eliminatorActiveHint" class="hidden p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center justify-between">
+        <span class="flex items-center gap-2">
+          <span>✂️ Eliminator Mode is Active:</span>
+          <span class="font-normal">Click the strike button next to any choice to cross it out!</span>
+        </span>
+        <button onclick="toggleEliminatorMode()" class="underline font-bold text-amber-800">Done</button>
+      </div>
+
+      <!-- Split Screen: Left = Passage & Visual Context, Right = Question & 4 Choices -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        <!-- Left Pane: Reading Passage & Visuals -->
-        <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-bento flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between pb-3 mb-5 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
-              <span id="satPassageHeaderLabel">Reading & Analysis Passage</span>
-              <span id="satQuestionIdBadge" class="font-mono text-slate-400">#ID</span>
-            </div>
-
-            <div id="satVisualContainer" class="hidden mb-5 p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-center"></div>
-
-            <div id="satPassageContent" class="font-serif text-slate-800 text-base sm:text-[17px] leading-[1.8] space-y-4 select-text"></div>
+        <!-- Left: Passage Card (Newsreader Font) -->
+        <div class="lg:col-span-6 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento">
+          <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600" id="satDomainLabel"><span id="satRightDomainTitle">Reading & Writing</span></span>
+            <span class="text-xs font-mono text-slate-400" id="satQuestionIdTag"><span id="satQuestionIdBadge">Q #1</span></span>
           </div>
+          
+          <div id="satPassageContent" class="font-serif text-slate-800 text-base sm:text-lg leading-relaxed space-y-4"></div>
 
+          <!-- Optional Visual / Graph Data Box -->
+          <div id="satVisualContainer" class="hidden mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-mono"></div>
+
+          <!-- First-Click Live Instinct Tracker -->
           <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
             <div class="flex items-center gap-2">
               <span class="inline-block w-2 h-2 rounded-full bg-indigo-500"></span>
-              <span>First-Click Tracker: <strong id="liveFirstClickLabel" class="text-indigo-700 font-mono">Waiting for first click...</strong></span>
+              <span>First-Click Instinct: <strong id="liveFirstClickLabel" class="text-indigo-700 font-mono">Waiting for first click...</strong></span>
             </div>
             <span id="liveFirstClickTimeLabel" class="font-mono text-[11px] text-slate-400"></span>
           </div>
         </div>
 
-        <!-- Right Pane: Question Prompt & Choices -->
-        <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-bento flex flex-col justify-between">
+        <!-- Right: Question Prompt & 4 Interactive Choices -->
+        <div class="lg:col-span-6 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
-              <span class="text-xs font-bold uppercase tracking-wider text-indigo-600" id="satRightDomainTitle">Domain</span>
-              <span id="eliminatorActiveHint" class="hidden text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md animate-pulse">
-                Eliminator Mode Active: Click any option to cross out
-              </span>
+            <div class="flex items-center justify-between mb-3 text-xs font-bold text-slate-400">
+              <span>Question Prompt</span>
+              <span id="satQuestionCounterText">1 of 10</span>
             </div>
 
-            <h2 id="satQuestionPrompt" class="text-slate-900 font-bold text-base sm:text-lg leading-snug mb-6"></h2>
+            <div id="satQuestionPrompt" class="text-slate-900 font-extrabold text-base sm:text-lg leading-snug mb-6"></div>
 
+            <!-- Choice Options A, B, C, D with Strike-out Tools -->
             <div id="satOptionsList" class="space-y-3"></div>
           </div>
 
-          <!-- Bottom Navigation & Submit Bar -->
-          <div class="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-            <button onclick="navigateSat(-1)" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center gap-1">
-              <i data-lucide="chevron-left" class="w-4 h-4"></i>
-              <span>Back</span>
-            </button>
-
+          <!-- Bottom Control Bar -->
+          <div class="mt-8 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
-              <button id="btnSubmitSat" onclick="submitSatAnswer()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-duolingo btn-tactile transition">
-                Submit & Analyze
+              <button onclick="navigateSat(-1)" id="btnSatPrev" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                ← Prev
               </button>
-              <button onclick="navigateSat(1)" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center gap-1">
-                <span>Next</span>
-                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              <button onclick="navigateSat(1)" id="btnSatNext" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                Next →
               </button>
             </div>
+
+            <button onclick="submitSatAnswer()" id="btnSatSubmit" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition shadow-md btn-tactile">
+              Submit Answer
+            </button>
           </div>
         </div>
 
       </div>
 
-      <!-- Post-Answer Explanation & Cognitive Feedback Drawer -->
-      <div id="satExplanationDrawer" class="hidden bg-white rounded-3xl border-2 border-indigo-500/30 p-6 shadow-lg animate-fade">
-        <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-100">
+      <!-- Comprehensive College Board Style Explanation Drawer -->
+      <div id="satExplanationDrawer" class="hidden bg-white rounded-3xl border-2 border-slate-200 p-6 sm:p-8 shadow-bento space-y-4 animate-fade">
+        <div class="flex items-start justify-between gap-4">
           <div class="flex items-center gap-3">
-            <div id="satResultIconBox" class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-bold">
-              ✓
-            </div>
+            <div id="satResultIconBox" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"></div>
             <div>
-              <h3 id="satFeedbackHeadline" class="text-lg font-extrabold text-slate-900">Correct Answer!</h3>
-              <p id="satFeedbackTelemetryLine" class="text-xs text-slate-600 font-medium mt-0.5"></p>
+              <div class="flex items-center gap-2">
+                <h3 id="satFeedbackHeadline" class="text-lg font-extrabold text-slate-900"></h3>
+                <span id="satOfficialKeyBadge" class="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 font-mono font-bold text-xs"></span>
+              </div>
+              <p id="satTimingFeedback" class="text-xs text-slate-500 font-mono mt-0.5"></p>
+              <p id="satFeedbackTelemetryLine" class="text-xs text-slate-500 font-mono mt-0.5"></p>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span id="satOfficialKeyBadge" class="px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-xs font-bold">
-              Correct Key: A
-            </span>
-          </div>
+          <button onclick="navigateSat(1)" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md">
+            Next Question →
+          </button>
         </div>
 
-        <div class="mt-4">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Official Explanation & Strategy</h4>
-          <p id="satExplanationText" class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/60"></p>
+        <div class="pt-4 border-t border-slate-100">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Rationale & Deep Explanation:</h4>
+          <p id="satExplanationText" class="text-sm text-slate-700 leading-relaxed font-serif"></p>
         </div>
       </div>
 
     </section>
 
     <!-- ===================================================================
-         3. MULTILINGUAL ACADEMY (MALAYALAM, HINDI, SPANISH)
+         3. TRILINGUAL LANGUAGE STUDIO (MALAYALAM, HINDI, SPANISH)
          =================================================================== -->
-    <section id="section-languages" class="hidden space-y-6 animate-fade">
+    <section id="section-languages" class="hidden space-y-8 animate-fade">
       
-      <!-- Language Switcher Bar -->
-      <div class="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-bento flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl">
-            🌏
-          </div>
-          <div>
-            <h2 class="text-lg font-extrabold text-slate-900">Trilingual Immersion Studio</h2>
-            <p class="text-xs text-slate-500">Native script, phonetics, voice synthesis & active recall challenges</p>
-          </div>
+      <!-- Language Pill Switcher & Sub-Navigation Header -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Trilingual Language Studio</h2>
+          <p class="text-xs text-slate-500">Native pronunciation, scripts, flashcards, and small sentences</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-2xl">
@@ -511,6 +521,13 @@
             <span>Spanish (Español)</span>
           </button>
         </div>
+      </div>
+
+      <!-- Teen Sub-Navigation: Letters vs Words vs Sentences -->
+      <div id="teenLangSubNav" class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl w-fit">
+        <button onclick="setTeenLangSubMode('letters')" id="btn-teen-sub-letters" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">🔤 Alphabet Letters</button>
+        <button onclick="setTeenLangSubMode('words')" id="btn-teen-sub-words" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs">📖 Core Words</button>
+        <button onclick="setTeenLangSubMode('sentences')" id="btn-teen-sub-sentences" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">💬 Small Sentences</button>
       </div>
 
       <!-- TEEN LANGUAGE VIEW -->
@@ -620,6 +637,13 @@
         </button>
       </div>
 
+      <!-- Kid Language Sub-Navigation: Letters vs Words vs Sentences (Visible for Malayalam/Hindi/Spanish) -->
+      <div id="kidLangSubNav" class="hidden flex items-center justify-center gap-2 bg-amber-100/60 p-2 rounded-2xl mx-auto w-fit">
+        <button onclick="setKidSubMode('letters')" id="btn-kid-sub-letters" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-amber-900 hover:bg-white/60">🔤 Alphabet Letters</button>
+        <button onclick="setKidSubMode('words')" id="btn-kid-sub-words" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-white text-slate-950 shadow-xs">📖 Words (100+)</button>
+        <button onclick="setKidSubMode('sentences')" id="btn-kid-sub-sentences" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-amber-900 hover:bg-white/60">💬 Small Sentences (100+)</button>
+      </div>
+
       <!-- Kid Interactive Dual Zone: Left = Talking Flashcard / Lesson Card, Right = Quiz & Story Game -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
@@ -655,15 +679,70 @@
         <div class="lg:col-span-7 bg-white rounded-[32px] border-4 border-sky-300 p-6 sm:p-8 shadow-xl flex flex-col justify-between">
           <div>
             <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-              <span id="kidQuizHeaderBadge" class="px-4 py-1.5 rounded-full bg-sky-100 text-sky-900 font-bold text-sm">
-                🎮 Interactive Challenge!
-              </span>
+              <div class="flex items-center gap-2">
+                <span id="kidQuizHeaderBadge" class="px-4 py-1.5 rounded-full bg-sky-100 text-sky-900 font-bold text-sm">
+                  🎮 Interactive Challenge!
+                </span>
+              </div>
               <div class="flex items-center gap-2">
                 <button onclick="speakKidQuizPrompt()" class="px-3.5 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-sm flex items-center gap-1 border border-sky-200">
                   🔊 Read Aloud
                 </button>
-                <button onclick="generateKidQuizRound()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">
+                <button onclick="handleKidNextQuizBtn()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">
                   Next Question ➡️
+                </button>
+              </div>
+            </div>
+
+            <!-- Mode Toggle for Spelling Bee: Tile Picker vs Multiple Choice Quiz -->
+            <div id="spellingModeToggle" class="hidden flex items-center gap-2 mb-4 bg-sky-100/70 p-1.5 rounded-2xl w-fit">
+              <button onclick="setSpellingSubMode('tiles')" id="btn-spelling-sub-tiles" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-sky-950 shadow-xs flex items-center gap-1.5">
+                <span>🧩</span>
+                <span>Build the Word (Letter Tiles)</span>
+              </button>
+              <button onclick="setSpellingSubMode('quiz')" id="btn-spelling-sub-quiz" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-sky-800 hover:text-sky-950 flex items-center gap-1.5">
+                <span>📝</span>
+                <span>Multiple Choice Quiz</span>
+              </button>
+            </div>
+
+            <!-- Interactive Spelling Bee Tile Picker Zone ("Build the Word") -->
+            <div id="spellingBuilderZone" class="hidden mb-5">
+              <div class="text-center py-4 px-5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl border-2 border-amber-200 mb-4 shadow-inner">
+                <div id="spellingClueEmoji" class="text-6xl mb-2">🤝</div>
+                <p id="spellingClueMeaning" class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">FRIEND • A pal to the END!</p>
+                <p class="text-xs font-bold text-amber-700 mt-1">Tap the scrambled letter tiles below to build the spelling!</p>
+              </div>
+
+              <!-- Target Word Slots -->
+              <div class="mb-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2 text-center">Spelling Target Slots</span>
+                <div id="spellingSlotsRow" class="flex flex-wrap items-center justify-center gap-2 min-h-[58px] p-2 bg-slate-50/80 rounded-2xl border-2 border-dashed border-slate-300"></div>
+              </div>
+
+              <!-- Scrambled Letter Tiles Tray -->
+              <div class="mb-4">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2 text-center">Scrambled Letter Tiles (Tap to Place)</span>
+                <div id="spellingTilesTray" class="flex flex-wrap items-center justify-center gap-2 min-h-[58px] p-2 bg-amber-50/60 rounded-2xl border border-amber-200"></div>
+              </div>
+
+              <!-- Action Controls: Undo, Clear, Hint, Hear -->
+              <div class="flex flex-wrap items-center justify-center gap-2">
+                <button onclick="undoSpellingLastSlot()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition">
+                  <span>⌫</span>
+                  <span>Backspace</span>
+                </button>
+                <button onclick="clearSpellingSlots()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition">
+                  <span>🔄</span>
+                  <span>Clear All</span>
+                </button>
+                <button onclick="giveSpellingHint()" class="px-3.5 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs flex items-center gap-1.5 border border-amber-300 transition">
+                  <span>💡</span>
+                  <span>Hint</span>
+                </button>
+                <button onclick="speakSpellingTargetWord()" class="px-3.5 py-2 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold text-xs flex items-center gap-1.5 border border-sky-300 transition">
+                  <span>🔊</span>
+                  <span>Pronounce Word</span>
                 </button>
               </div>
             </div>
@@ -671,7 +750,7 @@
             <!-- Story / Phonics Clue / Grammar Rule Box (shown for Spelling, Comprehension, Grammar) -->
             <div id="kidQuizPassageBox" class="hidden mb-4 p-5 rounded-3xl bg-amber-50/90 border-2 border-amber-200 text-slate-800 text-base sm:text-lg font-semibold leading-relaxed"></div>
 
-            <div class="text-center py-4 px-5 bg-sky-50/70 rounded-3xl border-2 border-sky-100 mb-5">
+            <div id="kidQuizPromptBox" class="text-center py-4 px-5 bg-sky-50/70 rounded-3xl border-2 border-sky-100 mb-5">
               <p id="kidQuizTopPrompt" class="text-xs font-bold text-sky-600 uppercase tracking-wider">Question:</p>
               <h3 id="kidQuizTargetLabel" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 leading-snug">പൂച്ച (Poocha)</h3>
               <p id="kidQuizSubHint" class="text-sm font-semibold text-slate-500 mt-1"></p>
@@ -714,1421 +793,66 @@
   </div>
 
   <!-- =====================================================================
-       APPLICATION LOGIC & MULTI-PROFILE TELEMETRY
+       INSTANT DICTIONARY & TOUGH WORDS MODAL OVERLAY
        ===================================================================== -->
-  <script>
-    const multiLangData = {
-      spelling: {
-        label: "6+ Spelling Bee",
-        cloudDomain: "6+ Spelling Bee",
-        langCode: "en-US",
-        kidItems: [
-          { emoji: "🤝", primary: "F - R - I - E - N - D", meaning: "FRIEND • A pal to the END! Someone you play and share with.", speech: "Friend. F, R, I, E, N, D. Friend!" },
-          { emoji: "🌈", primary: "R - A - I - N - B - O - W", meaning: "RAINBOW • RAIN + BOW = Colorful arch in the sky after rain!", speech: "Rainbow. R, A, I, N, B, O, W. Rainbow!" },
-          { emoji: "💡", primary: "B - E - C - A - U - S - E", meaning: "BECAUSE • Big Elephants Can Always Understand Small Elephants!", speech: "Because. B, E, C, A, U, S, E. Because!" },
-          { emoji: "🏫", primary: "S - C - H - O - O - L", meaning: "SCHOOL • Starts with SCH and has two O's in the middle!", speech: "School. S, C, H, O, O, L. School!" },
-          { emoji: "🦋", primary: "B - U - T - T - E - R - F - L - Y", meaning: "BUTTERFLY • BUTTER + FLY = Colorful garden insect!", speech: "Butterfly. B, U, T, T, E, R, F, L, Y. Butterfly!" },
-          { emoji: "✨", primary: "S - H - I - N - I - N - G", meaning: "SHINING • Drop the silent E in SHINE before adding -ING!", speech: "Shining. S, H, I, N, I, N, G. Shining!" },
-          { emoji: "🎂", primary: "B - I - R - T - H - D - A - Y", meaning: "BIRTHDAY • BIRTH + DAY = The special day you were born!", speech: "Birthday. B, I, R, T, H, D, A, Y. Birthday!" },
-          { emoji: "🐬", primary: "D - O - L - P - H - I - N", meaning: "DOLPHIN • Watch how 'PH' makes the /F/ sound!", speech: "Dolphin. D, O, L, P, H, I, N. Dolphin!" },
-          { emoji: "📚", primary: "L - I - B - R - A - R - Y", meaning: "LIBRARY • Don't forget both R's in LIB-RA-RY!", speech: "Library. L, I, B, R, A, R, Y. Library!" },
-          { emoji: "🤗", primary: "T - O - G - E - T - H - E - R", meaning: "TOGETHER • Break it into 3 tiny words: TO + GET + HER!", speech: "Together. T, O, G, E, T, H, E, R. Together!" },
-          { emoji: "🦒", primary: "G - I - R - A - F - F - E", meaning: "GIRAFFE • Soft G at the start and double F at the end!", speech: "Giraffe. G, I, R, A, F, F, E. Giraffe!" },
-          { emoji: "🚀", primary: "B - E - L - I - E - V - E", meaning: "BELIEVE • I before E except after C!", speech: "Believe. B, E, L, I, E, V, E. Believe!" }
-        ]
-      },
-      comprehension: {
-        label: "6+ Story Comprehension",
-        cloudDomain: "6+ Story Comprehension",
-        langCode: "en-US",
-        kidItems: [
-          { emoji: "🦁", primary: "Leo & Zara's Tall View", meaning: "When wind blew Leo the Lion's yellow hat into tall grass, Zara the Giraffe looked down from above the trees to spot it!", speech: "Leo the Little Lion loved wearing his bright yellow sun hat. When the wind blew it into the tall grass, Zara the tall Giraffe looked down from above the trees and spotted it right away!" },
-          { emoji: "🌱", primary: "Maya's Tomato Garden", meaning: "Seeds need two main things to sprout into plants: daily water and warm sunshine!", speech: "Every morning before school, Maya watered her tiny tomato seeds and made sure they got warm sunshine. Soon green sprouts popped up!" },
-          { emoji: "🐝", primary: "Buzzy the Helpful Bee", meaning: "Bees carry yellow pollen on their fuzzy legs from flower to flower, helping apple trees grow fruit!", speech: "Buzzy the Honeybee flew from flower to flower. Yellow pollen stuck to her fuzzy legs and helped the apple trees grow delicious apples!" },
-          { emoji: "🦉", primary: "Barnaby the Nocturnal Owl", meaning: "'Nocturnal' means an animal that sleeps during the bright day and wakes up at night!", speech: "Owls are nocturnal animals, which means they sleep during the bright day and stay awake at night to explore." },
-          { emoji: "🍞", primary: "Grandma's Banana Bread", meaning: "Story Sequence Words: FIRST mash bananas, NEXT stir flour & eggs, FINALLY bake in the oven!", speech: "First, Grandma mashed three ripe bananas. Next, Aarav stirred in flour and eggs. Finally, they baked the bread in the warm oven!" },
-          { emoji: "🐧", primary: "Pip's Super Flippers", meaning: "Main Lesson: Everyone has a special talent! Penguin wings are built to swim super fast underwater.", speech: "Pip the Penguin couldn't fly in the sky, but underwater his wings worked like super fast flippers!" },
-          { emoji: "🐢", primary: "Tilly the Steady Turtle", meaning: "Slow and steady wins the race! Tilly kept walking without giving up while Dash the Rabbit napped.", speech: "Dash the Rabbit ran fast at first but stopped to nap. Tilly the Turtle kept walking slowly and steadily and won the race!" },
-          { emoji: "🔭", primary: "Meera's Moon Telescope", meaning: "Through a telescope, the Moon isn't smooth—it has round craters and rocky mountains!", speech: "Through her telescope, Meera saw round craters and rocky mountains on the Moon." }
-        ]
-      },
-      grammar: {
-        label: "6+ Grammar & Sentences",
-        cloudDomain: "6+ Grammar & Sentences",
-        langCode: "en-US",
-        kidItems: [
-          { emoji: "🏃", primary: "Action Verbs", meaning: "An ACTION VERB tells what someone DOES: jump, run, sing, read, swim!", speech: "Action Verbs! An action verb tells what someone does, like jump, run, sing, or read." },
-          { emoji: "🏛️", primary: "Nouns (Person, Place, Thing)", meaning: "A NOUN names a person (teacher), a place (park), an animal (puppy), or a thing (book)!", speech: "Nouns! A noun names a person, place, animal, or thing." },
-          { emoji: "🎨", primary: "Adjectives (Describing Words)", meaning: "An ADJECTIVE describes how something looks, feels, or tastes: fluffy, yellow, sweet, tall!", speech: "Adjectives! An adjective describes a noun, like fluffy clouds or sweet strawberries." },
-          { emoji: "❓", primary: "End Punctuation (. ? !)", meaning: "Use a PERIOD (.) for a telling sentence, a QUESTION MARK (?) to ask, and an EXCLAMATION POINT (!) for big feelings!", speech: "Use a question mark when you ask a question, a period for a statement, and an exclamation point for excitement!" },
-          { emoji: "🔠", primary: "Capital Letters (Proper Nouns)", meaning: "Always capitalize the FIRST word of a sentence, peoples' names (Maya), days (Sunday), and cities!", speech: "Always start a sentence, a person's name, or a day of the week with a capital letter!" },
-          { emoji: "🐾", primary: "Irregular Plurals", meaning: "1 mouse → 2 MICE • 1 child → 3 CHILDREN • 1 tooth → 2 TEETH • 1 foot → 2 FEET!", speech: "One mouse, two mice! One child, three children! One tooth, two teeth!" },
-          { emoji: "⏳", primary: "Past Tense Verbs", meaning: "Happened YESTERDAY: walk → walked, go → WENT, eat → ATE, run → RAN!", speech: "Past tense tells what already happened yesterday: Today I go, yesterday I went!" },
-          { emoji: "🍎", primary: "Using 'A' vs. 'AN'", meaning: "Use 'AN' before vowel sounds (a, e, i, o, u): AN apple, AN elephant, AN orange, AN umbrella!", speech: "Use AN before vowel sounds: an apple, an elephant, an orange!" }
-        ]
-      },
-      malayalam: {
-        label: "Malayalam (മലയാളം)",
-        langCode: "ml-IN",
-        teenCards: [
-          { script: "നമസ്കാരം", translit: "Namaskaram", meaning: "Hello / Respectful Greeting", example: "മുതിർന്നവരെ കാണുമ്പോൾ നമസ്കാരം പറയണം (Greet elders with Namaskaram)." },
-          { script: "നന്ദി", translit: "Nandi", meaning: "Thank you", example: "നിങ്ങളുടെ സഹായത്തിന് വളരെ നന്ദി (Thank you very much for your help)." },
-          { script: "വിദ്യാലയം", translit: "Vidyalayam", meaning: "School", example: "ഞാൻ രാവിലെ വിദ്യാലയത്തിലേക്ക് പോകുന്നു (I go to school in the morning)." },
-          { script: "പുസ്തകം", translit: "Pusthakam", meaning: "Book", example: "ഇത് എന്റെ പ്രിയപ്പെട്ട പുസ്തകമാണ് (This is my favorite book)." },
-          { script: "വെള്ളം", translit: "Vellam", meaning: "Water", example: "ദയവായി കുറച്ചു വെള്ളം തരൂ (Please give me some water)." },
-          { script: "സ്നേഹം", translit: "Sneham", meaning: "Love / Kindness", example: "സ്നേഹം ലോകത്തെ മനോഹരമാക്കുന്നു (Love makes the world beautiful)." },
-          { script: "കുടുംബം", translit: "Kudumbam", meaning: "Family", example: "എന്റെ കുടുംബം വളരെ വലുതാണ് (My family is very big)." },
-          { script: "സൂര്യൻ", translit: "Sooryan", meaning: "Sun", example: "സൂര്യൻ കിഴക്ക് ഉദിക്കുന്നു (The sun rises in the east)." },
-          { script: "അറിവ്", translit: "Arivu", meaning: "Knowledge / Wisdom", example: "വായനയിലൂടെ അറിവ് വർദ്ധിക്കുന്നു (Knowledge grows through reading)." },
-          { script: "പ്രകൃതി", translit: "Prakruthi", meaning: "Nature", example: "പ്രകൃതിയെ സംരക്ഷിക്കേണ്ടത് നമ്മുടെ കടമയാണ് (Protecting nature is our duty)." },
-          { script: "സുഹൃത്ത്", translit: "Suhruthu", meaning: "Friend", example: "അവൻ എന്റെ ഏറ്റവും നല്ല സുഹൃത്താണ് (He is my best friend)." },
-          { script: "സന്തോഷം", translit: "Santhosham", meaning: "Happiness / Joy", example: "നിങ്ങളെ കണ്ടതിൽ വളരെ സന്തോഷം (Very happy to meet you)." }
-        ],
-        teenQuiz: [
-          { q: "How do you say 'School' in Malayalam?", choices: ["പുസ്തകം (Pusthakam)", "വിദ്യാലയം (Vidyalayam)", "കുടുംബം (Kudumbam)", "വെള്ളം (Vellam)"], answer: 1 },
-          { q: "What does 'നന്ദി (Nandi)' mean in English?", choices: ["Good morning", "Thank you", "See you later", "Friend"], answer: 1 },
-          { q: "Which Malayalam word means 'Family'?", choices: ["കുടുംബം (Kudumbam)", "സൂര്യൻ (Sooryan)", "സ്നേഹം (Sneham)", "മരം (Maram)"], answer: 0 },
-          { q: "What is the English meaning of 'അറിവ് (Arivu)'?", choices: ["Water", "Knowledge / Wisdom", "Happiness", "Nature"], answer: 1 },
-          { q: "How do you say 'Friend' in Malayalam?", choices: ["സുഹൃത്ത് (Suhruthu)", "പ്രകൃതി (Prakruthi)", "സന്തോഷം (Santhosham)", "പുസ്തകം (Pusthakam)"], answer: 0 },
-          { q: "What does 'സന്തോഷം (Santhosham)' mean?", choices: ["Morning", "Happiness / Joy", "Respect", "Star"], answer: 1 }
-        ],
-        kidItems: [
-          { emoji: "🐘", primary: "ആന (Aana)", meaning: "Elephant", speech: "Aana" },
-          { emoji: "🐱", primary: "പൂച്ച (Poocha)", meaning: "Cat", speech: "Poocha" },
-          { emoji: "🐶", primary: "പട്ടി (Patti)", meaning: "Dog", speech: "Patti" },
-          { emoji: "☀️", primary: "സൂര്യൻ (Sooryan)", meaning: "Sun", speech: "Sooryan" },
-          { emoji: "🌳", primary: "മരം (Maram)", meaning: "Tree", speech: "Maram" },
-          { emoji: "🐟", primary: "മീൻ (Meen)", meaning: "Fish", speech: "Meen" },
-          { emoji: "⭐", primary: "നക്ഷത്രം (Nakshatram)", meaning: "Star", speech: "Nakshatram" },
-          { emoji: "🍎", primary: "ആപ്പിൾ (Apple)", meaning: "Apple", speech: "Apple" },
-          { emoji: "🌙", primary: "ചന്ദ്രൻ (Chandran)", meaning: "Moon", speech: "Chandran" },
-          { emoji: "🌸", primary: "പൂവ് (Poovu)", meaning: "Flower", speech: "Poovu" },
-          { emoji: "🐦", primary: "പക്ഷി (Pakshi)", meaning: "Bird", speech: "Pakshi" },
-          { emoji: "🥛", primary: "പാൽ (Paal)", meaning: "Milk", speech: "Paal" }
-        ]
-      },
-      hindi: {
-        label: "Hindi (हिंदी)",
-        langCode: "hi-IN",
-        teenCards: [
-          { script: "नमस्ते", translit: "Namaste", meaning: "Hello / Respectful Greeting", example: "हम सबको आदर से नमस्ते कहते हैं।" },
-          { script: "धन्यवाद", translit: "Dhanyavaad", meaning: "Thank you", example: "आपकी सहायता के लिए बहुत धन्यवाद।" },
-          { script: "ज्ञान", translit: "Gyaan", meaning: "Knowledge / Wisdom", example: "ज्ञान से ही जीवन में प्रकाश आता है।" },
-          { script: "परिश्रम", translit: "Parishram", meaning: "Hard Work", example: "परिश्रम सफलता की कुंजी है (Hard work is the key to success)." },
-          { script: "पुस्तक", translit: "Pustak", meaning: "Book", example: "यह विज्ञान की पुस्तक बहुत रोचक है।" },
-          { script: "परिवार", translit: "Parivaar", meaning: "Family", example: "मेरा परिवार मेरे लिए सबसे महत्वपूर्ण है।" },
-          { script: "प्रकृति", translit: "Prakriti", meaning: "Nature", example: "हमें प्रकृति की रक्षा करनी चाहिए।" },
-          { script: "मित्रता", translit: "Mitrata", meaning: "Friendship", example: "सच्ची मित्रता अनमोल होती है।" },
-          { script: "विद्यालय", translit: "Vidyalay", meaning: "School", example: "हम प्रतिदिन विद्यालय जाते हैं।" },
-          { script: "आत्मविश्वास", translit: "Aatmavishwas", meaning: "Self-Confidence", example: "सफलता के लिए आत्मविश्वास आवश्यक है।" },
-          { script: "भविष्य", translit: "Bhavishya", meaning: "Future", example: "शिक्षा हमारे भविष्य को उज्ज्वल बनाती है।" },
-          { script: "सम्मान", translit: "Sammaan", meaning: "Respect / Honor", example: "बड़ों का सम्मान करना अच्छी आदत है।" }
-        ],
-        teenQuiz: [
-          { q: "What is the meaning of 'परिश्रम (Parishram)'?", choices: ["Nature", "Hard Work", "Family", "Peace"], answer: 1 },
-          { q: "Which Hindi word means 'Family'?", choices: ["पुस्तक (Pustak)", "परिवार (Parivaar)", "मित्रता (Mitrata)", "ज्ञान (Gyaan)"], answer: 1 },
-          { q: "How do you say 'Thank you' formally in Hindi?", choices: ["नमस्ते (Namaste)", "धन्यवाद (Dhanyavaad)", "कृपया (Kripaya)", "स्वागत (Swagat)"], answer: 1 },
-          { q: "What does 'आत्मविश्वास (Aatmavishwas)' mean?", choices: ["Self-Confidence", "Library", "Environment", "Kindness"], answer: 0 },
-          { q: "Which Hindi word means 'Future'?", choices: ["प्रकृति (Prakriti)", "भविष्य (Bhavishya)", "सम्मान (Sammaan)", "विद्यालय (Vidyalay)"], answer: 1 },
-          { q: "What does 'सम्मान (Sammaan)' mean in English?", choices: ["Respect / Honor", "Water", "Sun", "Homework"], answer: 0 }
-        ],
-        kidItems: [
-          { emoji: "🐘", primary: "हाथी (Haathi)", meaning: "Elephant", speech: "हाथी" },
-          { emoji: "🐱", primary: "बिल्ली (Billi)", meaning: "Cat", speech: "बिल्ली" },
-          { emoji: "🐶", primary: "कुत्ता (Kutta)", meaning: "Dog", speech: "कुत्ता" },
-          { emoji: "🦁", primary: "शेर (Sher)", meaning: "Lion", speech: "शेर" },
-          { emoji: "☀️", primary: "सूरज (Sooraj)", meaning: "Sun", speech: "सूरज" },
-          { emoji: "🌳", primary: "पेड़ (Ped)", meaning: "Tree", speech: "पेड़" },
-          { emoji: "🐟", primary: "मछली (Machhli)", meaning: "Fish", speech: "मछली" },
-          { emoji: "🍎", primary: "सेब (Seb)", meaning: "Apple", speech: "सेब" },
-          { emoji: "🌙", primary: "चाँद (Chaand)", meaning: "Moon", speech: "चाँद" },
-          { emoji: "🌸", primary: "फूल (Phool)", meaning: "Flower", speech: "फूल" },
-          { emoji: "💧", primary: "पानी (Paani)", meaning: "Water", speech: "पानी" },
-          { emoji: "🐦", primary: "चिड़िया (Chidiya)", meaning: "Bird", speech: "चिड़िया" }
-        ]
-      },
-      spanish: {
-        label: "Spanish (Español)",
-        langCode: "es-ES",
-        teenCards: [
-          { script: "¡Hola! ¿Cómo estás?", translit: "OH-lah KOH-moh ehs-TAHS", meaning: "Hello! How are you?", example: "¡Hola! ¿Cómo estás hoy en la escuela?" },
-          { script: "Muchas gracias", translit: "MOO-chahs GRAH-syahs", meaning: "Thank you very much", example: "Muchas gracias por explicarme el problema." },
-          { script: "El Conocimiento", translit: "ehl koh-noh-see-MYEHN-toh", meaning: "Knowledge", example: "El conocimiento científico transforma el mundo." },
-          { script: "La Biblioteca", translit: "lah bee-blyoh-TEH-kah", meaning: "The Library", example: "Voy a estudiar en la biblioteca esta tarde." },
-          { script: "El Esfuerzo", translit: "ehl ehs-FWEHR-soh", meaning: "Effort / Perseverance", example: "Cada gran logro requiere esfuerzo diario." },
-          { script: "La Familia", translit: "lah fah-MEE-lyah", meaning: "The Family", example: "Cenamos juntos con toda la familia." },
-          { script: "La Naturaleza", translit: "lah nah-too-rah-LEH-sah", meaning: "Nature", example: "Cuidar la naturaleza es nuestra responsabilidad." },
-          { script: "El Futuro", translit: "ehl foo-TOO-roh", meaning: "The Future", example: "Construimos el futuro paso a paso." },
-          { script: "La Ciencia", translit: "lah SYEHN-syah", meaning: "Science", example: "La ciencia nos ayuda a comprender el universo." },
-          { script: "La Amistad", translit: "lah ah-mees-TAHD", meaning: "Friendship", example: "La verdadera amistad dura toda la vida." },
-          { script: "Aprender", translit: "ah-prehn-DEHR", meaning: "To Learn", example: "Me encanta aprender nuevos idiomas cada día." },
-          { script: "La Esperanza", translit: "lah ehs-peh-RAHN-sah", meaning: "Hope", example: "Nunca debemos perder la esperanza." }
-        ],
-        teenQuiz: [
-          { q: "What does 'La Biblioteca' mean in English?", choices: ["The Bookstore", "The Library", "The Laboratory", "The Classroom"], answer: 1 },
-          { q: "Which Spanish noun means 'Effort / Perseverance'?", choices: ["El Futuro", "El Esfuerzo", "El Conocimiento", "La Familia"], answer: 1 },
-          { q: "How do you ask 'How are you?' in Spanish?", choices: ["¿Dónde estás?", "¿Cómo estás?", "¿Qué hora es?", "¿Quién es?"], answer: 1 },
-          { q: "What does the Spanish verb 'Aprender' mean?", choices: ["To Speak", "To Learn", "To Write", "To Travel"], answer: 1 },
-          { q: "Which Spanish word means 'Friendship'?", choices: ["La Ciencia", "La Amistad", "La Esperanza", "La Naturaleza"], answer: 1 },
-          { q: "What is the meaning of 'El Conocimiento'?", choices: ["Knowledge", "The Question", "The Neighbour", "The Morning"], answer: 0 }
-        ],
-        kidItems: [
-          { emoji: "🐘", primary: "El Elefante", meaning: "Elephant", speech: "El elefante" },
-          { emoji: "🐱", primary: "El Gato", meaning: "Cat", speech: "El gato" },
-          { emoji: "🐶", primary: "El Perro", meaning: "Dog", speech: "El perro" },
-          { emoji: "🦁", primary: "El León", meaning: "Lion", speech: "El león" },
-          { emoji: "☀️", primary: "El Sol", meaning: "Sun", speech: "El sol" },
-          { emoji: "🌳", primary: "El Árbol", meaning: "Tree", speech: "El árbol" },
-          { emoji: "🐟", primary: "El Pez", meaning: "Fish", speech: "El pez" },
-          { emoji: "🍎", primary: "La Manzana", meaning: "Apple", speech: "La manzana" },
-          { emoji: "🌙", primary: "La Luna", meaning: "Moon", speech: "La luna" },
-          { emoji: "🌸", primary: "La Flor", meaning: "Flower", speech: "La flor" },
-          { emoji: "💧", primary: "El Agua", meaning: "Water", speech: "El agua" },
-          { emoji: "🐦", primary: "El Pájaro", meaning: "Bird", speech: "El pájaro" }
-        ]
-      },
-      animals: {
-        label: "Animals Kingdom",
-        langCode: "en-US",
-        kidItems: [
-          { emoji: "🦁", primary: "Lion", meaning: "King of the Savanna (Roar!)", speech: "Lion! The Lion says Roar!" },
-          { emoji: "🐬", primary: "Dolphin", meaning: "Smart Ocean Mammal that Breathes Air", speech: "Dolphin! Dolphins are smart ocean mammals!" },
-          { emoji: "🦒", primary: "Giraffe", meaning: "Tallest Land Animal with a Long Neck", speech: "Giraffe! The tallest animal on land!" },
-          { emoji: "🐧", primary: "Penguin", meaning: "Antarctic Bird that Swims Instead of Flies", speech: "Penguin! Penguins swim super fast in icy water!" },
-          { emoji: "🦋", primary: "Butterfly", meaning: "Grows from a Caterpillar inside a Chrysalis", speech: "Butterfly! A caterpillar turns into a butterfly!" },
-          { emoji: "🦘", primary: "Kangaroo", meaning: "Hops High & Carries Baby Joey in a Pouch", speech: "Kangaroo! Carries its baby joey in a pouch!" },
-          { emoji: "🦉", primary: "Owl", meaning: "Nocturnal Bird that Sees in the Dark", speech: "Owl! Owls wake up at night!" },
-          { emoji: "🐢", primary: "Sea Turtle", meaning: "Carries a Protective Hard Shell on its Back", speech: "Sea Turtle! Protected by a hard shell!" },
-          { emoji: "🐝", primary: "Honeybee", meaning: "Makes Sweet Honey & Pollinates Flowers", speech: "Honeybee! Helps flowers grow into fruit!" },
-          { emoji: "🐘", primary: "Elephant", meaning: "Largest Land Animal with a Long Trunk", speech: "Elephant! Uses its trunk to drink and trumpet!" },
-          { emoji: "🐙", primary: "Octopus", meaning: "Ocean Creature with Eight Clever Arms", speech: "Octopus! An octopus has eight arms!" },
-          { emoji: "🐆", primary: "Cheetah", meaning: "Fastest Runner on Planet Earth", speech: "Cheetah! The fastest land animal!" }
-        ]
-      },
-      numbers: {
-        label: "Numbers & Fun Math",
-        langCode: "en-US",
-        kidItems: [
-          { emoji: "1️⃣", primary: "One • ഒന്ന് (Onnu) • एक (Ek) • Uno", meaning: "Number 1", speech: "One. Uno." },
-          { emoji: "2️⃣", primary: "Two • രണ്ട് (Randu) • दो (Do) • Dos", meaning: "Number 2", speech: "Two. Dos." },
-          { emoji: "3️⃣", primary: "Three • മൂന്ന് (Moonnu) • तीन (Teen) • Tres", meaning: "Number 3", speech: "Three. Tres." },
-          { emoji: "5️⃣", primary: "Five • അഞ്ച് (Anchu) • पाँच (Paanch) • Cinco", meaning: "Number 5", speech: "Five. Cinco." },
-          { emoji: "🔟", primary: "Ten • പത്ത് (Pathu) • दस (Das) • Diez", meaning: "Number 10", speech: "Ten. Diez." },
-          { emoji: "➕", primary: "2 + 3 = 5", meaning: "Five Stars! ⭐⭐⭐⭐⭐", speech: "Two plus three equals five!" },
-          { emoji: "🍎", primary: "4 + 4 = 8", meaning: "Double Four is Eight! 🍎🍎🍎🍎 + 🍎🍎🍎🍎", speech: "Four plus four equals eight!" },
-          { emoji: "🚀", primary: "6 + 4 = 10", meaning: "Number Bond to Ten! 6 and 4 make 10", speech: "Six plus four equals ten!" },
-          { emoji: "🎈", primary: "9 - 3 = 6", meaning: "Take Away 3 from 9 Leaves 6 Balloons!", speech: "Nine minus three equals six!" },
-          { emoji: "🍪", primary: "10 - 5 = 5", meaning: "Half of Ten is Five Cookies!", speech: "Ten minus five equals five!" },
-          { emoji: "🐸", primary: "2, 4, 6, 8, 10", meaning: "Skip Counting by Twos (Even Numbers!)", speech: "Two, four, six, eight, ten!" },
-          { emoji: "🖐️", primary: "5, 10, 15, 20", meaning: "Skip Counting by Fives!", speech: "Five, ten, fifteen, twenty!" }
-        ]
-      },
-      phonics: {
-        label: "Sight Words & Phonics",
-        langCode: "en-US",
-        kidItems: [
-          { emoji: "🚀", primary: "EXPLORE", meaning: "Ex-plore • To travel and discover new things!", speech: "Explore" },
-          { emoji: "🌈", primary: "RAINBOW", meaning: "Rain-bow • Colorful arc in the sky", speech: "Rainbow" },
-          { emoji: "🤝", primary: "FRIEND", meaning: "Friend • Someone you play and share with", speech: "Friend" },
-          { emoji: "🌟", primary: "BRIGHT", meaning: "Bright • Shining with lots of light (-IGH says long I)", speech: "Bright" },
-          { emoji: "📚", primary: "READ", meaning: "Read • Looking at words and stories (EA says long E)", speech: "Read" },
-          { emoji: "🚢", primary: "SH — SHIP & SHELL", meaning: "Digraph 'SH' makes the quiet /shh/ sound!", speech: "S H makes the shh sound, like ship and shell!" },
-          { emoji: "🚂", primary: "CH — CHOO & CHEESE", meaning: "Digraph 'CH' makes the train /ch/ sound!", speech: "C H makes the ch sound, like choo choo and cheese!" },
-          { emoji: "🐋", primary: "WH — WHALE & WHERE", meaning: "Digraph 'WH' starts question words and whale!", speech: "W H makes the wh sound, like whale and where!" },
-          { emoji: "🎂", primary: "SILENT E — CAKE & BIKE", meaning: "Magic Silent 'E' at the end makes the vowel say its own name!", speech: "Magic Silent E makes the vowel say its own name, like cake and bike!" },
-          { emoji: "☁️", primary: "CLOUD & PROUD", meaning: "Vowel team 'OU' makes the /ow/ sound!", speech: "O U makes the ow sound, like cloud and proud!" },
-          { emoji: "🌙", primary: "NIGHT & LIGHT", meaning: "Trigraph 'IGH' makes the long /I/ sound!", speech: "I G H makes the long I sound, like night and light!" },
-          { emoji: "🌱", primary: "GROW & SNOW", meaning: "Vowel team 'OW' at the end makes the long /O/ sound!", speech: "O W makes the long O sound, like grow and snow!" }
-        ]
-      }
-    };
-
-    /* ---------------------------------------------------------------------
-       STATE, KID PROFILES & FIREBASE PERSISTENCE (engine in firebase-db.js)
-       --------------------------------------------------------------------- */
-    LuminaDB.init();
-    const appData = LuminaDB.state;
-    let selectedCalendarDateKey = LuminaDB.getTodayDateKey();
-
-    function activeProfile() { return LuminaDB.getActiveProfile(); }
-    function isTeenProfile(p) { return (p || activeProfile()).ageGroup !== 'kid'; }
-    function getTeenQuestions() {
-      return appData.questions.filter(q => (q.targetProfile || 'teen') !== 'kid');
-    }
-    function getKidQuestionsByDomain(domainName) {
-      return appData.questions.filter(q => q.targetProfile === 'kid' && q.domain === domainName);
-    }
-    function saveState() { LuminaDB.saveLocal(); }
-
-    function escapeHtml(str) {
-      return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
-
-    function mergeCustomKidCards() {
-      (appData.customKidCards || []).forEach(card => {
-        const cat = card.category && multiLangData[card.category] ? card.category : 'phonics';
-        const exists = multiLangData[cat].kidItems.some(i => i.primary === card.primary);
-        if (!exists) multiLangData[cat].kidItems.push(card);
-      });
-    }
-
-    async function manualCloudSync() {
-      showToast("Syncing with Firebase Cloud Firestore...");
-      await LuminaDB.pushToCloud();
-      const res = await LuminaDB.pullFromCloud();
-      if (res.ok) {
-        showToast("Synced with Firebase kids-learning-714a2!");
-        applyActiveProfileView();
-      } else {
-        showToast(res.error || "Saved locally on this device.");
-      }
-    }
-
-    function refreshHeaderUI() {
-      const p = activeProfile();
-      document.getElementById('headerStreakCount').innerText = LuminaDB.getCurrentStreak(p);
-      document.getElementById('headerXPCount').innerText = p.xp || 0;
-      const qCount = getTeenQuestions().length;
-      document.getElementById('totalQuestionsCounter').innerText = qCount;
-      document.getElementById('teenHeroQuestionCount').innerText = `${qCount} Questions Active`;
-      document.getElementById('teenHeroGreeting').innerText = `Welcome back, ${p.name}! Ready to crush your SAT timing & language goals?`;
-      renderCloudStatus();
-      renderProfileSwitcher();
-      renderTodayStrip();
-    }
-
-    function renderCloudStatus() {
-      const map = {
-        connected: ['bg-emerald-400', 'Firebase Connected'],
-        syncing: ['bg-sky-400 animate-pulse', 'Syncing…'],
-        error: ['bg-rose-500', 'Sync Issue'],
-        local: ['bg-amber-400', 'Local Mode']
-      };
-      const [cls, label] = map[appData.cloudStatus] || map.local;
-      document.getElementById('cloudStatusDot').className = `w-2 h-2 rounded-full ${cls}`;
-      document.getElementById('cloudStatusText').innerText = label;
-      document.getElementById('cloudStatusPill').title = appData.cloudMessage || label;
-    }
-
-    function renderProfileSwitcher() {
-      const activeId = appData.activeProfileId;
-      document.getElementById('profileSwitcher').innerHTML = LuminaDB.getAllProfiles().map(p => {
-        const active = p.id === activeId;
-        const activeCls = p.ageGroup === 'kid' ? 'bg-amber-400 text-slate-950 shadow-xs' : 'bg-white text-indigo-950 shadow-xs';
-        return `
-          <button onclick="switchProfile('${p.id}')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${active ? activeCls : 'text-slate-600 hover:text-slate-900'}">
-            <span class="text-sm">${escapeHtml(p.avatar)}</span>
-            <span>${escapeHtml(p.name)}</span>
-          </button>`;
-      }).join('');
-    }
-
-    function renderTodayStrip() {
-      const p = activeProfile();
-      const days = LuminaDB.getLastNDaysSummary(p.id, 7);
-      const today = days[days.length - 1];
-      const mins = Math.floor((today.secondsSpent || 0) / 60);
-      const qPct = Math.min(100, Math.round((today.questionsAttempted / p.dailyGoalQuestions) * 100));
-      const mPct = Math.min(100, Math.round((mins / p.dailyGoalMinutes) * 100));
-      const acc = today.questionsAttempted ? Math.round((today.questionsCorrect / today.questionsAttempted) * 100) : null;
-      const goalMet = qPct >= 100 && mPct >= 100;
-      const kid = p.ageGroup === 'kid';
-      const maxQ = Math.max(1, ...days.map(d => d.questionsAttempted));
-
-      document.getElementById('todayProgressStrip').innerHTML = `
-        <div class="bg-white rounded-3xl border ${kid ? 'border-amber-200' : 'border-slate-200/80'} shadow-bento p-4 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-          <div class="md:col-span-4 flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl ${kid ? 'bg-amber-100' : 'bg-indigo-50'} flex items-center justify-center text-2xl shrink-0">${escapeHtml(p.avatar)}</div>
-            <div>
-              <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(p.name)}'s Daily Activity Goal</p>
-              <p class="font-extrabold text-slate-900 leading-tight">${goalMet ? '🏆 All daily goals completed!' : `Keep going, ${escapeHtml(p.name)}!`}</p>
-              <p class="text-[11px] text-slate-500 font-semibold">${acc === null ? 'No questions answered yet today' : `Accuracy today: ${acc}% (${today.questionsCorrect}/${today.questionsAttempted})`} • ⚡ +${today.xpEarned || 0} XP today</p>
-            </div>
-          </div>
-          <div class="md:col-span-3">
-            <div class="flex justify-between text-xs font-bold text-slate-600 mb-1"><span>📝 Questions Goal</span><span class="font-mono">${today.questionsAttempted} / ${p.dailyGoalQuestions}</span></div>
-            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-indigo-500 transition-all" style="width:${qPct}%"></div></div>
-          </div>
-          <div class="md:col-span-3">
-            <div class="flex justify-between text-xs font-bold text-slate-600 mb-1"><span>⏱️ Active Time Goal</span><span class="font-mono">${mins} / ${p.dailyGoalMinutes} min</span></div>
-            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-emerald-500 transition-all" style="width:${mPct}%"></div></div>
-          </div>
-          <div class="md:col-span-2 flex items-end justify-between gap-1 h-12" title="Questions answered over the last 7 days">
-            ${days.map(d => `
-              <div class="flex-1 flex flex-col items-center gap-0.5" title="${d.label}: ${d.questionsAttempted} questions">
-                <div class="w-full rounded-md ${d.isToday ? 'bg-indigo-600' : (d.questionsAttempted > 0 ? 'bg-indigo-300' : 'bg-slate-200')}" style="height:${Math.max(4, Math.round((d.questionsAttempted / maxQ) * 32))}px"></div>
-                <span class="text-[9px] font-bold text-slate-400">${d.shortDay.slice(0, 2)}</span>
-              </div>`).join('')}
-          </div>
-        </div>`;
-    }
-
-    function trackActivity(opts) {
-      const p = activeProfile();
-      const before = LuminaDB.getLastNDaysSummary(p.id, 1)[0].questionsAttempted;
-      LuminaDB.recordActivity(opts);
-      const after = LuminaDB.getLastNDaysSummary(p.id, 1)[0].questionsAttempted;
-      if (before < p.dailyGoalQuestions && after >= p.dailyGoalQuestions) {
-        setTimeout(() => {
-          confetti({ particleCount: 160, spread: 100, origin: { y: 0.5 } });
-          showToast(`🏆 Daily goal reached, ${p.name}! ${p.dailyGoalQuestions} questions done today!`);
-        }, 700);
-      }
-      refreshHeaderUI();
-    }
-
-    // Active study time heartbeat (adds 15s every 15s while child is actively interacting)
-    let lastInteractionAt = Date.now();
-    let pickerOpen = false;
-    ['click', 'keydown', 'touchstart', 'scroll'].forEach(evt =>
-      window.addEventListener(evt, () => { lastInteractionAt = Date.now(); }, { passive: true })
-    );
-    setInterval(() => {
-      const recentlyActive = Date.now() - lastInteractionAt < 90000 || satTimerHandle;
-      if (document.visibilityState === 'visible' && recentlyActive && !pickerOpen) {
-        LuminaDB.addStudySeconds(15);
-      }
-    }, 15000);
-
-    /* ---------------------------------------------------------------------
-       NAVIGATION & PROFILE SWITCHING
-       --------------------------------------------------------------------- */
-    function showProfilePicker() {
-      pickerOpen = true;
-      document.getElementById('profilePickerGrid').innerHTML = LuminaDB.getAllProfiles().map(p => {
-        const today = LuminaDB.getLastNDaysSummary(p.id, 1)[0];
-        return `
-          <button onclick="switchProfile('${p.id}')" class="p-6 rounded-3xl border-4 ${p.ageGroup === 'kid' ? 'border-amber-300 bg-amber-50 hover:bg-amber-100' : 'border-indigo-200 bg-indigo-50 hover:bg-indigo-100'} btn-tactile transition flex flex-col items-center gap-2">
-            <span class="text-6xl">${escapeHtml(p.avatar)}</span>
-            <span class="font-extrabold text-xl text-slate-900 font-kids">${escapeHtml(p.name)}</span>
-            <span class="text-xs font-bold text-slate-600">${escapeHtml(p.ageLabel || '')}</span>
-            <span class="text-xs font-bold px-3 py-1 rounded-full bg-white/80 text-slate-700 mt-1">
-              🔥 ${LuminaDB.getCurrentStreak(p)}d streak • 📝 ${today.questionsAttempted}/${p.dailyGoalQuestions} today
-            </span>
-          </button>
-        `;
-      }).join('');
-      document.getElementById('profilePickerOverlay').classList.remove('hidden');
-    }
-
-    function hideProfilePicker() {
-      pickerOpen = false;
-      document.getElementById('profilePickerOverlay').classList.add('hidden');
-    }
-
-    function switchProfile(profileId) {
-      LuminaDB.setActiveProfile(profileId);
-      selectedCalendarDateKey = LuminaDB.getTodayDateKey();
-      hideProfilePicker();
-      applyActiveProfileView();
-    }
-
-    function applyActiveProfileView() {
-      const p = activeProfile();
-      const badge = document.getElementById('activeModeBadge');
-
-      ['section-teen-dashboard', 'section-teen-sat', 'section-languages', 'section-kid-playground']
-        .forEach(id => document.getElementById(id).classList.add('hidden'));
-
-      if (isTeenProfile(p)) {
-        badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60";
-        badge.innerText = `${p.avatar} ${p.name} (${p.ageLabel || 'Teen Scholar'})`;
-        document.getElementById('appBody').className = "bg-[#F8FAFC] text-slate-900 min-h-screen flex flex-col font-sans transition-colors duration-300";
-        openTeenTab(appData.teenSubTab || 'dashboard');
-      } else {
-        stopSatTimer();
-        badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300";
-        badge.innerText = `${p.avatar} ${p.name} (${p.ageLabel || 'Little Explorer'})`;
-        document.getElementById('appBody').className = "bg-[#FFFBEB] text-slate-900 min-h-screen flex flex-col font-kids transition-colors duration-300";
-        document.getElementById('section-kid-playground').classList.remove('hidden');
-        renderSubNavForKid();
-        initKidPlayground();
-      }
-
-      refreshHeaderUI();
-      lucide.createIcons();
-    }
-
-    function openTeenTab(tabName) {
-      appData.teenSubTab = tabName;
-      document.getElementById('section-teen-dashboard').classList.add('hidden');
-      document.getElementById('section-teen-sat').classList.add('hidden');
-      document.getElementById('section-languages').classList.add('hidden');
-
-      renderSubNavForTeen(tabName);
-
-      if (tabName === 'dashboard') {
-        stopSatTimer();
-        document.getElementById('section-teen-dashboard').classList.remove('hidden');
-        renderTeenDashboard();
-      } else if (tabName === 'sat') {
-        document.getElementById('section-teen-sat').classList.remove('hidden');
-        populateDomainFilterDropdown();
-        loadSatQuestionByIndex(satCurrentIndex);
-      } else if (tabName === 'languages') {
-        stopSatTimer();
-        document.getElementById('section-languages').classList.remove('hidden');
-        renderTeenLanguageStudio();
-      }
-      lucide.createIcons();
-    }
-
-    function renderSubNavForTeen(activeTab) {
-      const container = document.getElementById('subNavTabs');
-      const tabs = [
-        { id: 'dashboard', label: '📊 Analytics, Streak Calendar & Topics' },
-        { id: 'sat', label: '📝 Digital SAT & Topic Simulator' },
-        { id: 'languages', label: '🌏 Trilingual Studio (Mal / Hin / Spa)' }
-      ];
-      container.innerHTML = tabs.map(t => `
-        <button onclick="openTeenTab('${t.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
-          activeTab === t.id
-            ? 'bg-indigo-600 text-white shadow-2xs'
-            : 'text-slate-600 hover:bg-slate-200/70'
-        }">${t.label}</button>
-      `).join('');
-    }
-
-    function renderSubNavForKid() {
-      const container = document.getElementById('subNavTabs');
-      container.innerHTML = `
-        <span class="text-xs font-bold text-amber-800 bg-amber-100/80 px-3 py-1 rounded-xl">
-          🎈 Hi ${escapeHtml(activeProfile().name)}! Tap any colorful button below to hear words and play matching games!
-        </span>
-      `;
-    }
-
-    /* ---------------------------------------------------------------------
-       TEEN DASHBOARD, 14-DAY CALENDAR & DOMAIN MASTERY
-       --------------------------------------------------------------------- */
-    function renderTeenDashboard() {
-      const p = activeProfile();
-      const teenQs = getTeenQuestions();
-
-      // 1. Group questions by domain
-      const domainCounts = {};
-      teenQs.forEach(q => {
-        const d = q.domain || 'General';
-        domainCounts[d] = (domainCounts[d] || 0) + 1;
-      });
-
-      const colors = [
-        { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
-        { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-        { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
-        { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-        { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-        { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' }
-      ];
-
-      const grid = document.getElementById('teenTopicsBentoGrid');
-      const entries = Object.entries(domainCounts);
-
-      grid.innerHTML = entries.map(([domain, count], idx) => {
-        const theme = colors[idx % colors.length];
-        const m = (p.domainMastery && p.domainMastery[domain]) || { attempted: 0, correct: 0 };
-        const acc = m.attempted > 0 ? `${Math.round((m.correct / m.attempted) * 100)}% accuracy (${m.correct}/${m.attempted})` : 'Not practiced yet';
-        return `
-          <div onclick="launchSatWithDomain('${domain.replace(/'/g, "\\'")}')" class="bg-white hover:bg-slate-50/80 rounded-3xl p-5 border border-slate-200/80 shadow-bento cursor-pointer transition group flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between mb-3">
-                <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${theme.bg} ${theme.text} border ${theme.border}">
-                  ${count} Questions
-                </span>
-                <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i>
-              </div>
-              <h4 class="font-extrabold text-slate-900 text-base group-hover:text-indigo-600 transition">${escapeHtml(domain)}</h4>
-              <p class="text-xs text-slate-500 mt-1">${acc}</p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-indigo-600">
-              <span>Start Timed Drill</span>
-              <span>→</span>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      renderTeenCalendarAndMastery(p);
-      updateTelemetryWidgets(p);
-      lucide.createIcons();
-    }
-
-    function selectCalendarDay(dateKey) {
-      selectedCalendarDateKey = dateKey;
-      renderTeenCalendarAndMastery(activeProfile());
-    }
-
-    function renderTeenCalendarAndMastery(p) {
-      const days = LuminaDB.getLastNDaysSummary(p.id, 14);
-      const calGrid = document.getElementById('teenStreakCalendarGrid');
-      calGrid.innerHTML = days.map(d => {
-        const isSelected = d.dateKey === selectedCalendarDateKey;
-        const active = d.questionsAttempted > 0 || (d.secondsSpent || 0) >= 60;
-        const metGoal = d.questionsAttempted >= p.dailyGoalQuestions;
-        let bg = 'bg-slate-50 border-slate-200 text-slate-500';
-        if (metGoal) bg = 'bg-emerald-500 border-emerald-600 text-white';
-        else if (active) bg = 'bg-indigo-100 border-indigo-300 text-indigo-900';
-
-        return `
-          <button onclick="selectCalendarDay('${d.dateKey}')" class="p-2 rounded-2xl border-2 ${bg} ${isSelected ? 'ring-2 ring-offset-1 ring-indigo-600' : ''} flex flex-col items-center justify-center transition text-center">
-            <span class="text-[10px] font-bold uppercase opacity-75">${d.shortDay}</span>
-            <span class="text-xs font-extrabold font-mono mt-0.5">${d.label.split(' ')[1] || d.label}</span>
-            <span class="text-[10px] font-mono mt-1">${d.questionsAttempted}Q</span>
-          </button>
-        `;
-      }).join('');
-
-      const selectedDay = days.find(d => d.dateKey === selectedCalendarDateKey) || days[days.length - 1];
-      document.getElementById('selectedDayBadge').innerText = selectedDay.isToday ? `Today (${selectedDay.label})` : selectedDay.label;
-
-      const mins = Math.floor((selectedDay.secondsSpent || 0) / 60);
-      const acc = selectedDay.questionsAttempted > 0
-        ? `${Math.round((selectedDay.questionsCorrect / selectedDay.questionsAttempted) * 100)}%`
-        : '—';
-      const acts = selectedDay.activities || [];
-
-      document.getElementById('teenDayDetailBox').innerHTML = `
-        <div class="grid grid-cols-4 gap-2 pb-3 mb-3 border-b border-slate-200/70 text-center">
-          <div>
-            <span class="text-[10px] uppercase font-bold text-slate-400 block">Questions</span>
-            <span class="text-sm font-extrabold font-mono text-slate-900">${selectedDay.questionsAttempted}</span>
+  <div id="dictionaryModalOverlay" onclick="if(event.target===this)closeDictionaryModal()" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-2xl">
+            📖
           </div>
           <div>
-            <span class="text-[10px] uppercase font-bold text-slate-400 block">Accuracy</span>
-            <span class="text-sm font-extrabold font-mono text-emerald-600">${acc}</span>
-          </div>
-          <div>
-            <span class="text-[10px] uppercase font-bold text-slate-400 block">Study Time</span>
-            <span class="text-sm font-extrabold font-mono text-indigo-600">${mins}m</span>
-          </div>
-          <div>
-            <span class="text-[10px] uppercase font-bold text-slate-400 block">XP Earned</span>
-            <span class="text-sm font-extrabold font-mono text-amber-600">+${selectedDay.xpEarned || 0}</span>
+            <h2 class="text-xl font-extrabold text-slate-900">Instant Dictionary &amp; Tough Word Reference</h2>
+            <p class="text-xs text-slate-500">Single-click any word inside an SAT passage, story, or question!</p>
           </div>
         </div>
-        <div class="space-y-1.5 max-h-36 overflow-y-auto text-xs">
-          ${acts.length === 0
-            ? `<p class="text-slate-400 text-center py-2">No activities recorded on ${selectedDay.label}.</p>`
-            : acts.slice(0, 12).map(a => `
-                <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-xl border border-slate-200/60">
-                  <div class="truncate pr-2">
-                    <span class="font-bold ${a.isCorrect ? 'text-emerald-600' : 'text-rose-600'}">${a.isCorrect ? '✓' : '✗'}</span>
-                    <span class="font-bold text-slate-800 ml-1">${escapeHtml(a.domain)}</span>
-                    <span class="text-slate-500 ml-1">${escapeHtml(a.detail || a.title)}</span>
-                  </div>
-                  <span class="font-mono text-[11px] text-slate-400 shrink-0">${a.durationSec ? a.durationSec + 's' : ''} +${a.xp}XP</span>
-                </div>
-              `).join('')
-          }
+        <button onclick="closeDictionaryModal()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-lg flex items-center justify-center">&times;</button>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="mt-5 flex gap-2">
+        <input id="dictSearchInput" type="text" onkeydown="if(event.key==='Enter')lookupDictionaryWord()" placeholder="Type any tough word (e.g., ubiquitous, ephemeral, nocturnal, chrysalis)..." class="flex-1 bg-slate-50 border-2 border-slate-200 focus:border-indigo-500 rounded-2xl px-4 py-2.5 text-sm font-semibold outline-none transition">
+        <button onclick="lookupDictionaryWord()" class="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition">
+          Lookup
+        </button>
+      </div>
+
+      <!-- Word Result Container -->
+      <div id="dictResultContainer" class="mt-5"></div>
+
+      <!-- Curated High-Frequency Tough Words Quick Chips -->
+      <div class="mt-5 pt-4 border-t border-slate-100 space-y-3">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 block mb-2">🎓 High-Frequency SAT Tough Words (Tap to View)</span>
+          <div id="dictSatQuickChips" class="flex flex-wrap gap-1.5"></div>
         </div>
-      `;
-
-      // Domain Mastery Breakdown
-      const masteryEl = document.getElementById('teenDomainMasteryList');
-      const masteryEntries = Object.entries(p.domainMastery || {});
-      if (masteryEntries.length === 0) {
-        masteryEl.innerHTML = `<p class="text-xs text-slate-400 py-8 text-center">Answer questions in the SAT Simulator or Language Studio to build your subject mastery profile!</p>`;
-      } else {
-        masteryEl.innerHTML = masteryEntries.map(([dom, stats]) => {
-          const pct = stats.attempted > 0 ? Math.round((stats.correct / stats.attempted) * 100) : 100;
-          const barColor = pct >= 80 ? 'bg-emerald-500' : (pct >= 60 ? 'bg-indigo-500' : 'bg-amber-500');
-          return `
-            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/60">
-              <div class="flex items-center justify-between text-xs font-bold mb-1">
-                <span class="text-slate-800 truncate">${escapeHtml(dom)}</span>
-                <span class="font-mono text-slate-600">${pct}% (${stats.correct}/${stats.attempted})</span>
-              </div>
-              <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
-                <div class="h-full rounded-full ${barColor}" style="width:${pct}%"></div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-    }
-
-    function launchSatWithDomain(domain) {
-      openTeenTab('sat');
-      const select = document.getElementById('satDomainFilter');
-      select.value = domain;
-      onFilterSatQuestions();
-    }
-
-    function updateTelemetryWidgets(p) {
-      const profile = p || activeProfile();
-      const logs = profile.telemetryLogs || [];
-      const tbody = document.getElementById('telemetryTableBody');
-
-      if (logs.length === 0) {
-        document.getElementById('bentoFirstClickAcc').innerText = '—';
-        document.getElementById('bentoFinalAcc').innerText = '—';
-        document.getElementById('bentoAvgTime').innerText = '0s';
-        document.getElementById('bentoMindChanges').innerText = '0';
-        document.getElementById('heroFirstClickStat').innerText = 'Ready';
-        document.getElementById('secondGuessVerdict').innerText = 'Complete a question to see telemetry';
-        tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-slate-400">No SAT questions answered yet by ${escapeHtml(profile.name)}. Launch the SAT Simulator to record timing and first-click telemetry!</td></tr>`;
-        return;
-      }
-
-      const firstClickCorrect = logs.filter(l => l.firstClick === l.correctKey).length;
-      const finalCorrect = logs.filter(l => l.isCorrect).length;
-      const totalTime = logs.reduce((acc, l) => acc + (Number(l.totalTime) || 0), 0);
-      const mindChanges = logs.filter(l => l.changedMind).length;
-
-      const fcPct = Math.round((firstClickCorrect / logs.length) * 100);
-      const fnPct = Math.round((finalCorrect / logs.length) * 100);
-      const avgT = (totalTime / logs.length).toFixed(1);
-
-      document.getElementById('bentoFirstClickAcc').innerText = `${fcPct}%`;
-      document.getElementById('bentoFinalAcc').innerText = `${fnPct}%`;
-      document.getElementById('bentoAvgTime').innerText = `${avgT}s`;
-      document.getElementById('bentoMindChanges').innerText = mindChanges;
-      document.getElementById('heroFirstClickStat').innerText = `${fcPct}%`;
-
-      const verdictEl = document.getElementById('secondGuessVerdict');
-      if (fcPct > fnPct) {
-        verdictEl.innerHTML = `<span class="text-amber-700 font-bold">⚠️ Insight: Your 1st instinct (${fcPct}%) beats revised answers (${fnPct}%). Trust your gut!</span>`;
-      } else if (fnPct > fcPct) {
-        verdictEl.innerHTML = `<span class="text-emerald-700 font-bold">✓ Insight: Revisions improved accuracy from ${fcPct}% to ${fnPct}%!</span>`;
-      } else {
-        verdictEl.innerHTML = `<span class="text-indigo-700 font-bold">🎯 Solid consistency between first click and final submission!</span>`;
-      }
-
-      tbody.innerHTML = logs.slice().reverse().map(l => {
-        let diag = `<span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold">Confident 1st Instinct</span>`;
-        if (l.changedMind && l.isCorrect) {
-          diag = `<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold">Smart Correction (${l.firstClick}→${l.finalChoice})</span>`;
-        } else if (l.changedMind && !l.isCorrect) {
-          diag = `<span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-semibold">Overthought (${l.firstClick}→${l.finalChoice})</span>`;
-        }
-
-        return `
-          <tr class="hover:bg-slate-50/90">
-            <td class="py-3 px-3 font-mono text-slate-400">${l.date || 'Today'}</td>
-            <td class="py-3 px-3 font-mono font-bold text-slate-900">${escapeHtml(l.id)}</td>
-            <td class="py-3 px-3 font-semibold">${escapeHtml(l.domain)}</td>
-            <td class="py-3 px-3 font-mono text-slate-500">${l.firstClickTime}s</td>
-            <td class="py-3 px-3 font-mono font-bold">${l.totalTime}s</td>
-            <td class="py-3 px-3 font-mono font-bold text-indigo-600">${l.firstClick}</td>
-            <td class="py-3 px-3 font-mono font-bold">${l.finalChoice}</td>
-            <td class="py-3 px-3 font-bold ${l.isCorrect ? 'text-emerald-600' : 'text-rose-600'}">${l.isCorrect ? '✓ Correct' : '✗ Missed'}</td>
-            <td class="py-3 px-3">${diag}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function resetSatTelemetry() {
-      if (!confirm(`Clear SAT telemetry history for ${activeProfile().name}?`)) return;
-      LuminaDB.clearTelemetry(activeProfile().id);
-      updateTelemetryWidgets();
-      showToast("SAT Telemetry logs cleared.");
-    }
-
-    /* ---------------------------------------------------------------------
-       DIGITAL SAT BLUEBOOK ENGINE (PRECISION STOPWATCH & FIRST-CLICK)
-       --------------------------------------------------------------------- */
-    let filteredSatQuestions = [];
-    let satCurrentIndex = 0;
-    let satTimerHandle = null;
-    let satStartTimestamp = 0;
-    let satElapsedSeconds = 0;
-    let currentFirstClickOption = null;
-    let currentFirstClickTime = null;
-    let currentSelectedOption = null;
-    let eliminatorMode = false;
-    let eliminatedSet = new Set();
-    let flaggedQuestions = new Set();
-    let satQuestionSubmitted = false;
-
-    function populateDomainFilterDropdown() {
-      const select = document.getElementById('satDomainFilter');
-      const currentVal = select.value || 'ALL';
-      const teenQs = getTeenQuestions();
-      const domains = Array.from(new Set(teenQs.map(q => q.domain || 'General')));
-
-      select.innerHTML = `<option value="ALL">All Topics & SAT Domains (${teenQs.length})</option>` +
-        domains.map(d => {
-          const count = teenQs.filter(q => (q.domain || 'General') === d).length;
-          return `<option value="${escapeHtml(d)}">${escapeHtml(d)} (${count})</option>`;
-        }).join('');
-
-      if (domains.includes(currentVal)) select.value = currentVal;
-      onFilterSatQuestions();
-    }
-
-    function onFilterSatQuestions() {
-      const domain = document.getElementById('satDomainFilter').value;
-      const teenQs = getTeenQuestions();
-      if (domain === 'ALL') {
-        filteredSatQuestions = [...teenQs];
-      } else {
-        filteredSatQuestions = teenQs.filter(q => (q.domain || 'General') === domain);
-      }
-      satCurrentIndex = 0;
-      loadSatQuestionByIndex(0);
-    }
-
-    function startSatTimer() {
-      stopSatTimer();
-      satStartTimestamp = performance.now();
-      satElapsedSeconds = 0;
-      satTimerHandle = setInterval(() => {
-        satElapsedSeconds = (performance.now() - satStartTimestamp) / 1000;
-        const mins = Math.floor(satElapsedSeconds / 60).toString().padStart(2, '0');
-        const secs = (satElapsedSeconds % 60).toFixed(1).padStart(4, '0');
-        document.getElementById('satStopwatch').innerText = `${mins}:${secs}`;
-
-        const paceHint = document.getElementById('satPaceHint');
-        if (satElapsedSeconds < 60) {
-          paceHint.className = "text-[10px] text-emerald-400 ml-2 font-medium";
-          paceHint.innerText = "Optimal Pace";
-        } else if (satElapsedSeconds < 95) {
-          paceHint.className = "text-[10px] text-amber-400 ml-2 font-medium";
-          paceHint.innerText = "Moderate Pace";
-        } else {
-          paceHint.className = "text-[10px] text-rose-400 ml-2 font-medium";
-          paceHint.innerText = "Over Target Time";
-        }
-      }, 100);
-    }
-
-    function stopSatTimer() {
-      if (satTimerHandle) {
-        clearInterval(satTimerHandle);
-        satTimerHandle = null;
-      }
-    }
-
-    function loadSatQuestionByIndex(idx) {
-      if (filteredSatQuestions.length === 0) return;
-      if (idx < 0) idx = 0;
-      if (idx >= filteredSatQuestions.length) idx = filteredSatQuestions.length - 1;
-      satCurrentIndex = idx;
-
-      const item = filteredSatQuestions[satCurrentIndex];
-      const qObj = item.question || {};
-
-      currentFirstClickOption = null;
-      currentFirstClickTime = null;
-      currentSelectedOption = null;
-      eliminatedSet.clear();
-      satQuestionSubmitted = false;
-
-      document.getElementById('satCurrNum').innerText = satCurrentIndex + 1;
-      document.getElementById('satTotalNum').innerText = filteredSatQuestions.length;
-      document.getElementById('satDifficultyPill').innerText = item.difficulty || 'Medium';
-      document.getElementById('satQuestionIdBadge').innerText = `#${item.id || 'Q' + (idx + 1)}`;
-      document.getElementById('satRightDomainTitle').innerText = item.domain || 'SAT Reading & Writing';
-
-      const rawPara = qObj.paragraph;
-      const passageEl = document.getElementById('satPassageContent');
-      if (rawPara && rawPara !== 'null' && rawPara.trim() !== '') {
-        passageEl.innerHTML = `<p>${escapeHtml(rawPara).replace(/\n/g, '</p><p class="mt-3">')}</p>`;
-      } else {
-        passageEl.innerHTML = `<p class="italic text-slate-400">Direct prompt question — read the stem on the right carefully and apply Standard English or subject conventions.</p>`;
-      }
-
-      const visContainer = document.getElementById('satVisualContainer');
-      if (item.visuals && item.visuals.svg_content && item.visuals.svg_content !== 'null') {
-        visContainer.classList.remove('hidden');
-        visContainer.innerHTML = item.visuals.svg_content;
-      } else {
-        visContainer.classList.add('hidden');
-        visContainer.innerHTML = '';
-      }
-
-      document.getElementById('satQuestionPrompt').innerText = qObj.question || 'Select the best answer.';
-      document.getElementById('liveFirstClickLabel').innerText = 'Waiting for first click...';
-      document.getElementById('liveFirstClickTimeLabel').innerText = '';
-      document.getElementById('satExplanationDrawer').classList.add('hidden');
-
-      renderSatOptions(qObj.choices || {});
-      startSatTimer();
-    }
-
-    function renderSatOptions(choices) {
-      const container = document.getElementById('satOptionsList');
-      container.innerHTML = '';
-
-      ['A', 'B', 'C', 'D'].forEach(letter => {
-        if (!choices[letter]) return;
-        const isEliminated = eliminatedSet.has(letter);
-        const isSelected = (currentSelectedOption === letter);
-
-        const wrapper = document.createElement('div');
-        wrapper.id = `sat-opt-wrap-${letter}`;
-        wrapper.className = `flex items-center gap-2 ${isEliminated ? 'option-eliminated' : ''}`;
-
-        const btn = document.createElement('button');
-        btn.id = `sat-opt-btn-${letter}`;
-        btn.onclick = () => handleSatOptionClick(letter);
-        btn.className = `flex-1 text-left p-4 rounded-2xl border-2 transition-all flex items-start gap-3.5 ${
-          isSelected
-            ? 'border-indigo-600 bg-indigo-50/70 shadow-xs'
-            : 'border-slate-200 hover:border-slate-300 bg-white'
-        }`;
-
-        btn.innerHTML = `
-          <span class="w-7 h-7 rounded-xl font-mono font-bold text-xs flex items-center justify-center shrink-0 border ${
-            isSelected
-              ? 'bg-indigo-600 text-white border-indigo-600'
-              : 'bg-slate-100 text-slate-700 border-slate-200'
-          }">${letter}</span>
-          <span class="choice-content text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">${escapeHtml(choices[letter])}</span>
-        `;
-
-        const strikeBtn = document.createElement('button');
-        strikeBtn.onclick = (e) => {
-          e.stopPropagation();
-          toggleOptionStrikeout(letter);
-        };
-        strikeBtn.title = "Cross out / restore option";
-        strikeBtn.className = "p-2.5 rounded-xl border border-slate-200 hover:bg-rose-50 hover:border-rose-200 text-slate-400 hover:text-rose-600 text-xs font-mono font-bold transition shrink-0";
-        strikeBtn.innerText = isEliminated ? 'Undo' : '̶A̶';
-
-        wrapper.appendChild(btn);
-        wrapper.appendChild(strikeBtn);
-        container.appendChild(wrapper);
-      });
-    }
-
-    function toggleEliminatorMode() {
-      eliminatorMode = !eliminatorMode;
-      const btn = document.getElementById('btnEliminatorTool');
-      const hint = document.getElementById('eliminatorActiveHint');
-      if (eliminatorMode) {
-        btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 text-white border border-rose-500 transition flex items-center gap-1.5";
-        hint.classList.remove('hidden');
-      } else {
-        btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5";
-        hint.classList.add('hidden');
-      }
-    }
-
-    function toggleOptionStrikeout(letter) {
-      if (satQuestionSubmitted) return;
-      if (eliminatedSet.has(letter)) {
-        eliminatedSet.delete(letter);
-      } else {
-        eliminatedSet.add(letter);
-        if (currentSelectedOption === letter) currentSelectedOption = null;
-      }
-      const item = filteredSatQuestions[satCurrentIndex];
-      renderSatOptions(item.question.choices);
-    }
-
-    function handleSatOptionClick(letter) {
-      if (satQuestionSubmitted) return;
-
-      if (eliminatorMode) {
-        toggleOptionStrikeout(letter);
-        return;
-      }
-
-      if (eliminatedSet.has(letter)) {
-        eliminatedSet.delete(letter);
-      }
-
-      if (!currentFirstClickOption) {
-        currentFirstClickOption = letter;
-        currentFirstClickTime = Number(satElapsedSeconds.toFixed(1));
-        document.getElementById('liveFirstClickLabel').innerText = `Choice ${letter}`;
-        document.getElementById('liveFirstClickTimeLabel').innerText = `(at ${currentFirstClickTime}s)`;
-      }
-
-      currentSelectedOption = letter;
-      const item = filteredSatQuestions[satCurrentIndex];
-      renderSatOptions(item.question.choices);
-    }
-
-    function submitSatAnswer() {
-      if (!currentSelectedOption) {
-        showToast("Please select an option (A, B, C, or D) first!");
-        return;
-      }
-      if (satQuestionSubmitted) return;
-
-      stopSatTimer();
-      satQuestionSubmitted = true;
-
-      const item = filteredSatQuestions[satCurrentIndex];
-      const qObj = item.question;
-      const correctKey = qObj.correct_answer;
-      const isCorrect = (currentSelectedOption === correctKey);
-      const totalSeconds = Number(satElapsedSeconds.toFixed(1));
-      const changedMind = (currentFirstClickOption !== currentSelectedOption);
-      const xpEarned = isCorrect ? 25 : 5;
-
-      // Record in active child's profile & sync to Firebase
-      trackActivity({
-        type: 'sat',
-        domain: item.domain || 'SAT',
-        title: qObj.question || item.id,
-        isCorrect: isCorrect,
-        xp: xpEarned,
-        durationSec: totalSeconds,
-        detail: `Q #${item.id} (${currentSelectedOption})`,
-        telemetry: {
-          id: item.id || `Q_${satCurrentIndex + 1}`,
-          domain: item.domain || 'SAT',
-          firstClickTime: currentFirstClickTime || totalSeconds,
-          totalTime: totalSeconds,
-          firstClick: currentFirstClickOption,
-          finalChoice: currentSelectedOption,
-          correctKey: correctKey,
-          isCorrect: isCorrect,
-          changedMind: changedMind
-        }
-      });
-
-      if (isCorrect) {
-        confetti({ particleCount: 55, spread: 60, origin: { y: 0.65 } });
-      }
-
-      ['A', 'B', 'C', 'D'].forEach(letter => {
-        const btn = document.getElementById(`sat-opt-btn-${letter}`);
-        if (!btn) return;
-        if (letter === correctKey) {
-          btn.className = "flex-1 text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 text-emerald-950 flex items-start gap-3.5 shadow-sm";
-        } else if (letter === currentSelectedOption && !isCorrect) {
-          btn.className = "flex-1 text-left p-4 rounded-2xl border-2 border-rose-500 bg-rose-50 text-rose-950 flex items-start gap-3.5";
-        }
-      });
-
-      const drawer = document.getElementById('satExplanationDrawer');
-      drawer.classList.remove('hidden');
-
-      const iconBox = document.getElementById('satResultIconBox');
-      const headline = document.getElementById('satFeedbackHeadline');
-      if (isCorrect) {
-        iconBox.className = "w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-bold";
-        iconBox.innerText = "✓";
-        headline.innerText = "Spot On! +25 XP";
-      } else {
-        iconBox.className = "w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl font-bold";
-        iconBox.innerText = "✗";
-        headline.innerText = `Not quite — Correct Answer is ${correctKey} (+5 XP for effort)`;
-      }
-
-      document.getElementById('satOfficialKeyBadge').innerText = `Official Key: ${correctKey}`;
-      document.getElementById('satFeedbackTelemetryLine').innerText =
-        `Total Time: ${totalSeconds}s • 1st Click: ${currentFirstClickOption} (${currentFirstClickTime}s) • ${
-          changedMind ? `Switched from ${currentFirstClickOption} to ${currentSelectedOption}` : 'Stuck with 1st instinct'
-        }`;
-      document.getElementById('satExplanationText').innerText = qObj.explanation || "Review the passage context and grammatical structure.";
-    }
-
-    function navigateSat(delta) {
-      const nextIdx = satCurrentIndex + delta;
-      if (nextIdx >= 0 && nextIdx < filteredSatQuestions.length) {
-        loadSatQuestionByIndex(nextIdx);
-      } else {
-        showToast("Reached the end of this question set!");
-      }
-    }
-
-    function toggleFlagSatQuestion() {
-      const item = filteredSatQuestions[satCurrentIndex];
-      if (!item) return;
-      if (flaggedQuestions.has(item.id)) {
-        flaggedQuestions.delete(item.id);
-        showToast("Removed flag from question.");
-      } else {
-        flaggedQuestions.add(item.id);
-        showToast("Question flagged for review.");
-      }
-    }
-
-    /* ---------------------------------------------------------------------
-       MULTILINGUAL STUDIO (TEEN) & 6YO EXPLORER PLAYGROUND
-       --------------------------------------------------------------------- */
-    let teenCardIdx = 0;
-    let teenQuizIdx = 0;
-    let kidCardIdx = 0;
-    let currentKidQuizAnswer = null;
-
-    function selectActiveLanguage(lang) {
-      appData.activeLanguage = lang;
-      ['malayalam', 'hindi', 'spanish'].forEach(l => {
-        const pill = document.getElementById(`pill-${l}`);
-        if (l === lang) {
-          pill.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs flex items-center gap-2";
-        } else {
-          pill.className = "px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-2";
-        }
-      });
-      teenCardIdx = 0;
-      teenQuizIdx = 0;
-      renderTeenLanguageStudio();
-    }
-
-    function renderTeenLanguageStudio() {
-      const pack = multiLangData[appData.activeLanguage];
-      const card = pack.teenCards[teenCardIdx];
-
-      document.getElementById('teenFlipCard').classList.remove('flipped');
-      document.getElementById('teenCardCounter').innerText = `${teenCardIdx + 1} / ${pack.teenCards.length}`;
-      document.getElementById('teenLangScript').innerText = card.script;
-      document.getElementById('teenLangTranslit').innerText = card.translit;
-      document.getElementById('teenLangMeaning').innerText = card.meaning;
-      document.getElementById('teenLangExample').innerText = card.example;
-
-      const quiz = pack.teenQuiz[teenQuizIdx % pack.teenQuiz.length];
-      document.getElementById('teenLangQuizQuestion').innerText = quiz.q;
-      document.getElementById('teenLangQuizBanner').classList.add('hidden');
-
-      const choicesEl = document.getElementById('teenLangQuizChoices');
-      choicesEl.innerHTML = quiz.choices.map((c, i) => `
-        <button onclick="checkTeenLangQuiz(${i}, ${quiz.answer})" class="p-4 rounded-2xl border-2 border-slate-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/40 text-left font-bold text-xs sm:text-sm text-slate-800 transition">
-          ${escapeHtml(c)}
-        </button>
-      `).join('');
-    }
-
-    function stepTeenLangCard(delta) {
-      const pack = multiLangData[appData.activeLanguage];
-      teenCardIdx = (teenCardIdx + delta + pack.teenCards.length) % pack.teenCards.length;
-      LuminaDB.recordActivity({
-        type: 'flashcard',
-        isQuestion: false,
-        domain: pack.label,
-        title: pack.teenCards[teenCardIdx].script,
-        xp: 2,
-        durationSec: 4
-      });
-      renderTeenLanguageStudio();
-    }
-
-    function speakCurrentTeenWord() {
-      const pack = multiLangData[appData.activeLanguage];
-      const card = pack.teenCards[teenCardIdx];
-      speakNativeAudio(card.script, pack.langCode);
-    }
-
-    function checkTeenLangQuiz(chosen, correct) {
-      const pack = multiLangData[appData.activeLanguage];
-      const quiz = pack.teenQuiz[teenQuizIdx % pack.teenQuiz.length];
-      const isCorrect = (chosen === correct);
-      const banner = document.getElementById('teenLangQuizBanner');
-      banner.classList.remove('hidden');
-
-      trackActivity({
-        type: 'language_quiz',
-        domain: pack.label,
-        title: quiz.q,
-        isCorrect: isCorrect,
-        xp: isCorrect ? 20 : 2,
-        durationSec: 8,
-        detail: quiz.choices[chosen] || ''
-      });
-
-      if (isCorrect) {
-        confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 } });
-        banner.className = "mt-5 p-4 rounded-2xl text-xs font-bold flex items-center justify-between bg-emerald-50 text-emerald-800 border border-emerald-200";
-        banner.innerHTML = `<span>🎉 Correct! +20 XP earned!</span> <button onclick="nextTeenLangQuizQuestion()" class="px-3 py-1 rounded-lg bg-emerald-600 text-white">Next Question →</button>`;
-      } else {
-        banner.className = "mt-5 p-4 rounded-2xl text-xs font-bold flex items-center justify-between bg-rose-50 text-rose-800 border border-rose-200";
-        banner.innerHTML = `<span>Not quite! Try another option or flip the study card.</span>`;
-      }
-    }
-
-    function nextTeenLangQuizQuestion() {
-      teenQuizIdx++;
-      renderTeenLanguageStudio();
-    }
-
-    /* ---------------------------------------------------------------------
-       6-YEAR-OLD LITTLE EXPLORER ENGINE (SPELLING, COMPREHENSION, GRAMMAR & MULTILINGUAL)
-       --------------------------------------------------------------------- */
-    let kidQuizIdx = 0;
-    let currentKidCloudQuestion = null;
-
-    const ALL_KID_CATEGORIES = [
-      { key: 'spelling', emoji: '🐝', name: 'Spelling Bee' },
-      { key: 'comprehension', emoji: '📖', name: 'Story Reading' },
-      { key: 'grammar', emoji: '✏️', name: 'Grammar' },
-      { key: 'numbers', emoji: '🔢', name: 'Numbers & Math' },
-      { key: 'phonics', emoji: '🔤', name: 'Sight Words' },
-      { key: 'animals', emoji: '🦁', name: 'Animals' },
-      { key: 'malayalam', emoji: '🌴', name: 'Malayalam' },
-      { key: 'hindi', emoji: '🪔', name: 'Hindi' },
-      { key: 'spanish', emoji: '🇪🇸', name: 'Spanish' }
-    ];
-
-    function initKidPlayground() {
-      const startCat = (appData.kidCategory && multiLangData[appData.kidCategory]) ? appData.kidCategory : 'spelling';
-      selectKidCategory(startCat);
-      renderKidProgressSummary();
-    }
-
-    function selectKidCategory(cat) {
-      if (!multiLangData[cat]) cat = 'spelling';
-      appData.kidCategory = cat;
-      kidCardIdx = 0;
-      kidQuizIdx = 0;
-
-      ALL_KID_CATEGORIES.forEach(c => {
-        const btn = document.getElementById(`kidCat-${c.key}`);
-        if (!btn) return;
-        if (c.key === cat) {
-          btn.className = "kid-cat-btn p-3.5 rounded-3xl bg-amber-400 text-slate-950 font-bold text-sm shadow-kids-btn btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-amber-500";
-        } else {
-          btn.className = "kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200";
-        }
-      });
-
-      renderKidFlashcard();
-      generateKidQuizRound();
-      renderKidProgressSummary();
-    }
-
-    function renderKidFlashcard() {
-      const pack = multiLangData[appData.kidCategory];
-      const items = pack.kidItems;
-      const item = items[kidCardIdx % items.length];
-
-      const badgeEl = document.getElementById('kidLeftBadgeText');
-      if (badgeEl) {
-        badgeEl.innerText = pack.cloudDomain ? `📚 ${pack.label} Study Card (Tap to Hear!)` : '🔊 Tap Picture to Hear!';
-      }
-      document.getElementById('kidCardProgressText').innerText = `Card ${(kidCardIdx % items.length) + 1} of ${items.length}`;
-      document.getElementById('kidCardEmoji').innerText = item.emoji;
-      document.getElementById('kidCardPrimaryText').innerText = item.primary;
-      document.getElementById('kidCardMeaningText').innerText = item.meaning;
-    }
-
-    function stepKidCard(delta) {
-      const pack = multiLangData[appData.kidCategory];
-      const items = pack.kidItems;
-      kidCardIdx = (kidCardIdx + delta + items.length) % items.length;
-      LuminaDB.recordActivity({
-        type: 'flashcard',
-        isQuestion: false,
-        domain: pack.label,
-        title: items[kidCardIdx].primary,
-        xp: 3,
-        durationSec: 4
-      });
-      renderKidFlashcard();
-      speakKidCurrentCard();
-      renderKidProgressSummary();
-    }
-
-    function speakKidCurrentCard() {
-      const pack = multiLangData[appData.kidCategory];
-      const item = pack.kidItems[kidCardIdx % pack.kidItems.length];
-      speakNativeAudio(item.speech || item.primary, pack.langCode);
-    }
-
-    function generateKidQuizRound() {
-      const pack = multiLangData[appData.kidCategory];
-      const passageBox = document.getElementById('kidQuizPassageBox');
-      const headerBadge = document.getElementById('kidQuizHeaderBadge');
-      const topPrompt = document.getElementById('kidQuizTopPrompt');
-      const subHint = document.getElementById('kidQuizSubHint');
-      const grid = document.getElementById('kidQuizOptionsGrid');
-      document.getElementById('kidQuizFeedbackToast').classList.add('hidden');
-
-      // Check if this category has structured 4-choice questions in Cloud Firestore (Spelling, Story Comprehension, Grammar)
-      const cloudQs = pack.cloudDomain ? getKidQuestionsByDomain(pack.cloudDomain) : [];
-      if (cloudQs.length > 0) {
-        currentKidQuizAnswer = null;
-        const qItem = cloudQs[kidQuizIdx % cloudQs.length];
-        kidQuizIdx++;
-        currentKidCloudQuestion = qItem;
-        const qObj = qItem.question || {};
-
-        if (headerBadge) {
-          headerBadge.innerText = `${pack.label} • Q ${((kidQuizIdx - 1) % cloudQs.length) + 1} of ${cloudQs.length}`;
-        }
-        if (qObj.paragraph && qObj.paragraph !== 'null') {
-          passageBox.classList.remove('hidden');
-          passageBox.innerText = qObj.paragraph;
-        } else {
-          passageBox.classList.add('hidden');
-          passageBox.innerText = '';
-        }
-
-        if (topPrompt) topPrompt.innerText = 'Read or Listen & Pick the Best Answer:';
-        document.getElementById('kidQuizTargetLabel').className = "text-xl sm:text-2xl font-extrabold text-slate-900 mt-1 leading-snug";
-        document.getElementById('kidQuizTargetLabel').innerText = qObj.question || '';
-        subHint.innerText = 'Tap A, B, C, or D below!';
-
-        const choices = qObj.choices || {};
-        grid.innerHTML = ['A', 'B', 'C', 'D'].filter(k => choices[k]).map(letter => `
-          <button id="kid-cloud-opt-${letter}" onclick="checkKidCloudQuizAnswer('${letter}')" class="p-4 sm:p-5 rounded-3xl bg-white hover:bg-sky-50 border-4 border-slate-200 hover:border-sky-400 shadow-kids-card btn-tactile flex items-center gap-3.5 text-left transition">
-            <span class="w-10 h-10 rounded-2xl bg-sky-100 text-sky-900 font-extrabold text-lg flex items-center justify-center shrink-0 border-2 border-sky-200">${letter}</span>
-            <span class="text-base sm:text-lg font-bold text-slate-800 leading-snug">${escapeHtml(choices[letter])}</span>
-          </button>
-        `).join('');
-        return;
-      }
-
-      // Otherwise: Picture & Voice Match Game (Malayalam, Hindi, Spanish, Animals, Numbers, Sight Words)
-      currentKidCloudQuestion = null;
-      passageBox.classList.add('hidden');
-      if (headerBadge) headerBadge.innerText = '🎮 Find the Match Game!';
-      if (topPrompt) topPrompt.innerText = 'Can you tap:';
-      document.getElementById('kidQuizTargetLabel').className = "text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1";
-
-      const items = pack.kidItems;
-      const target = items[Math.floor(Math.random() * items.length)];
-      currentKidQuizAnswer = target;
-
-      document.getElementById('kidQuizTargetLabel').innerText = target.primary;
-      subHint.innerText = `Hint: ${target.meaning}`;
-
-      let pool = [target];
-      while (pool.length < Math.min(4, items.length)) {
-        const candidate = items[Math.floor(Math.random() * items.length)];
-        if (!pool.some(p => p.primary === candidate.primary)) pool.push(candidate);
-      }
-      pool.sort(() => Math.random() - 0.5);
-
-      grid.innerHTML = pool.map((opt, idx) => `
-        <button onclick="checkKidQuizSelection(${idx})" data-primary="${escapeHtml(opt.primary)}" class="kid-pic-opt p-5 rounded-3xl bg-white hover:bg-sky-50 border-4 border-slate-200 hover:border-sky-400 shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-2 transition">
-          <span class="text-6xl">${opt.emoji}</span>
-          <span class="text-base font-bold text-slate-800 text-center">${escapeHtml(opt.meaning)}</span>
-        </button>
-      `).join('');
-      window._currentKidPool = pool;
-    }
-
-    function speakKidQuizPrompt() {
-      const pack = multiLangData[appData.kidCategory];
-      if (currentKidCloudQuestion && currentKidCloudQuestion.question) {
-        const qObj = currentKidCloudQuestion.question;
-        const p = (qObj.paragraph && qObj.paragraph !== 'null') ? (qObj.paragraph + '. ') : '';
-        const c = qObj.choices || {};
-        const optsText = ['A', 'B', 'C', 'D'].filter(k => c[k]).map(k => `Option ${k}: ${c[k]}`).join('. ');
-        speakNativeAudio(`${p}${qObj.question}. ${optsText}`, 'en-US');
-        return;
-      }
-      if (!currentKidQuizAnswer) return;
-      speakNativeAudio(currentKidQuizAnswer.speech || currentKidQuizAnswer.primary, pack.langCode);
-    }
-
-    function checkKidCloudQuizAnswer(chosenLetter) {
-      if (!currentKidCloudQuestion || !currentKidCloudQuestion.question) return;
-      const pack = multiLangData[appData.kidCategory];
-      const qObj = currentKidCloudQuestion.question;
-      const correctLetter = qObj.correct_answer;
-      const isCorrect = (chosenLetter === correctLetter);
-      const toast = document.getElementById('kidQuizFeedbackToast');
-      toast.classList.remove('hidden');
-
-      trackActivity({
-        type: 'kid_quiz',
-        domain: pack.label,
-        title: qObj.question || currentKidCloudQuestion.id,
-        isCorrect: isCorrect,
-        xp: isCorrect ? 20 : 5,
-        durationSec: 10,
-        detail: `Answered ${chosenLetter} (${(qObj.choices && qObj.choices[chosenLetter]) || ''})`
-      });
-      renderKidProgressSummary();
-
-      ['A', 'B', 'C', 'D'].forEach(letter => {
-        const btn = document.getElementById(`kid-cloud-opt-${letter}`);
-        if (!btn) return;
-        if (letter === correctLetter) {
-          btn.className = "p-4 sm:p-5 rounded-3xl bg-emerald-100 border-4 border-emerald-500 shadow-kids-card flex items-center gap-3.5 text-left transition";
-        } else if (letter === chosenLetter && !isCorrect) {
-          btn.className = "p-4 sm:p-5 rounded-3xl bg-amber-100 border-4 border-amber-400 shadow-kids-card flex items-center gap-3.5 text-left transition";
-        }
-      });
-
-      if (isCorrect) {
-        confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } });
-        toast.className = "mt-5 p-4 rounded-2xl text-left text-base sm:text-lg font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400";
-        toast.innerHTML = `<div class="flex items-center justify-between gap-2 mb-1"><span>🌟 SUPER STAR! +20 XP!</span><button onclick="generateKidQuizRound()" class="px-4 py-1.5 rounded-xl bg-emerald-600 text-white text-sm font-bold">Next Question ➡️</button></div><p class="text-sm font-semibold text-emerald-900">${escapeHtml(qObj.explanation || '')}</p>`;
-      } else {
-        toast.className = "mt-5 p-4 rounded-2xl text-left text-base sm:text-lg font-bold bg-amber-100 text-amber-950 border-2 border-amber-400";
-        toast.innerHTML = `<div>😊 Good try! The right answer is <strong>${escapeHtml(correctLetter)}: ${escapeHtml((qObj.choices && qObj.choices[correctLetter]) || '')}</strong> (+5 XP for trying!)</div><p class="text-sm font-semibold text-amber-900 mt-1">${escapeHtml(qObj.explanation || '')}</p>`;
-      }
-    }
-
-    function checkKidQuizSelection(poolIdx) {
-      const pack = multiLangData[appData.kidCategory];
-      const chosen = (window._currentKidPool && window._currentKidPool[poolIdx]) || null;
-      const chosenPrimary = chosen ? chosen.primary : '';
-      const isCorrect = (chosenPrimary === currentKidQuizAnswer.primary);
-      const toast = document.getElementById('kidQuizFeedbackToast');
-      toast.classList.remove('hidden');
-
-      trackActivity({
-        type: 'kid_quiz',
-        domain: pack.label,
-        title: currentKidQuizAnswer.primary,
-        isCorrect: isCorrect,
-        xp: isCorrect ? 15 : 3,
-        durationSec: 6,
-        detail: currentKidQuizAnswer.meaning
-      });
-      renderKidProgressSummary();
-
-      if (isCorrect) {
-        confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
-        toast.className = "mt-5 p-4 rounded-2xl text-center text-lg font-bold bg-emerald-100 text-emerald-900 border-2 border-emerald-400";
-        toast.innerText = "🌟 YAY! You got it right! +15 Stars!";
-        setTimeout(generateKidQuizRound, 1600);
-      } else {
-        toast.className = "mt-5 p-4 rounded-2xl text-center text-lg font-bold bg-amber-100 text-amber-900 border-2 border-amber-400";
-        toast.innerText = "😊 Almost! Try tapping another picture!";
-      }
-    }
-
-    function renderKidProgressSummary() {
-      const p = activeProfile();
-      const el = document.getElementById('kidProgressSummaryGrid');
-      if (!el) return;
-      el.innerHTML = ALL_KID_CATEGORIES.map(c => {
-        const label = multiLangData[c.key].label;
-        const m = (p.domainMastery && p.domainMastery[label]) || { attempted: 0, correct: 0, cardsViewed: 0 };
-        return `
-          <div onclick="selectKidCategory('${c.key}')" class="p-3.5 rounded-2xl bg-amber-50/70 hover:bg-amber-100/80 border-2 border-amber-200 text-center cursor-pointer transition">
-            <div class="text-2xl mb-1">${c.emoji}</div>
-            <div class="font-bold text-slate-900 text-xs">${c.name}</div>
-            <div class="text-[11px] font-bold text-amber-800 mt-1">⭐ ${m.correct || 0} • 🃏 ${m.cardsViewed || 0}</div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function speakNativeAudio(text, langCode) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = langCode || 'en-US';
-        u.rate = 0.88;
-        window.speechSynthesis.speak(u);
-      }
-    }
-
-    function showToast(message) {
-      const t = document.createElement('div');
-      t.className = "fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2.5 animate-fade";
-      t.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>${escapeHtml(message)}</span>`;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 3500);
-    }
-
-    /* ---------------------------------------------------------------------
-       INITIALIZE ON PAGE LOAD (local data first, then refresh from Firebase)
-       --------------------------------------------------------------------- */
-    LuminaDB.onChange(() => refreshHeaderUI());
-
-    window.addEventListener('DOMContentLoaded', async () => {
-      mergeCustomKidCards();
-      applyActiveProfileView();
-
-      const res = await LuminaDB.pullFromCloud();
-      if (res.ok) {
-        mergeCustomKidCards();
-        applyActiveProfileView();
-      }
-    });
-  </script>
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-2">🦋 6+ Explorer Science &amp; Story Words (Tap to View)</span>
+          <div id="dictKidQuickChips" class="flex flex-wrap gap-1.5"></div>
+        </div>
+      </div>
+
+      <!-- Saved Tough Words Vault for Active Profile -->
+      <div class="mt-6 pt-4 border-t border-slate-100">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-700">⭐ My Saved Tough Words Vault (<span id="dictSavedCount">0</span>)</span>
+        </div>
+        <div id="dictSavedWordsList" class="flex flex-wrap gap-1.5 min-h-[32px]"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       APPLICATION SCRIPTS (MODULAR ARCHITECTURE)
+       ===================================================================== -->
+  <script src="js/utils.js"></script>
+  <script src="js/seed-data.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/dictionary.js"></script>
+  <script src="js/spelling-builder.js"></script>
+  <script src="js/kid-playground.js"></script>
+  <script src="js/teen-studio.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
