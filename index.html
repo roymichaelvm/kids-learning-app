@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kids Learning Portal | SAT & Multilingual</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+  <!-- Confetti library for 6yo celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .kid-font {
+      font-family: 'Fredoka', cursive;
+    }
+    .strikeout-text {
+      text-decoration: line-through;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Profile Switcher -->
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2">
+          <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <span class="font-extrabold text-lg tracking-tight hidden sm:inline">LearnTrack</span>
+        </div>
+
+        <!-- Student Selector Tabs -->
+        <div class="flex bg-slate-100 p-1 rounded-xl">
+          <button id="btn-tab-teen" onclick="switchProfile('teen')" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-indigo-700 shadow-sm">
+            <i class="fa-solid fa-user-graduate mr-1.5"></i> 13yo (SAT & Languages)
+          </button>
+          <button id="btn-tab-junior" onclick="switchProfile('junior')" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-indigo-600">
+            <i class="fa-solid fa-shapes mr-1.5 text-amber-500"></i> 6yo (Junior Explorer)
+          </button>
+        </div>
+      </div>
+
+      <!-- Streak & Stats Bar -->
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1 rounded-full text-xs font-bold shadow-sm" title="Active Study Streak">
+          <i class="fa-solid fa-fire text-amber-500 mr-1.5 animate-bounce"></i>
+          <span id="streak-counter">3 Day Streak</span>
+        </div>
+        <div class="flex items-center bg-indigo-50 border border-indigo-200 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+          <i class="fa-solid fa-star text-indigo-500 mr-1.5"></i>
+          <span id="points-counter">120 pts</span>
+        </div>
+        <!-- Admin Link -->
+        <a href="admin.html" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2.5 py-1.5 rounded-lg transition" title="Parent Upload Studio">
+          <i class="fa-solid fa-gear mr-1"></i> Admin
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 13 YEAR OLD PROFILE VIEW                   -->
+  <!-- ========================================== -->
+  <main id="teen-container" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+    
+    <!-- Navigation Tabs for 13yo -->
+    <div class="flex border-b border-slate-200 mb-6 space-x-4">
+      <button onclick="switchTeenSection('sat')" id="tab-teen-sat" class="pb-3 px-2 border-b-2 border-indigo-600 text-indigo-700 font-bold text-sm flex items-center">
+        <i class="fa-solid fa-stopwatch mr-2"></i> Digital SAT Simulator
+      </button>
+      <button onclick="switchTeenSection('lang')" id="tab-teen-lang" class="pb-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-semibold text-sm flex items-center">
+        <i class="fa-solid fa-language mr-2"></i> Language Mastery (Malayalam / Hindi / Spanish)
+      </button>
+      <button onclick="switchTeenSection('analytics')" id="tab-teen-analytics" class="pb-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-semibold text-sm flex items-center">
+        <i class="fa-solid fa-chart-line mr-2"></i> Timing & Decision Analytics
+      </button>
+    </div>
+
+    <!-- SAT PRACTICE SECTION -->
+    <div id="teen-sat-section" class="space-y-6">
+      <!-- Toolbar & Timer Bar -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-3">
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-md" id="sat-domain-badge">Information and Ideas</span>
+          <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-1 rounded-md" id="sat-difficulty-badge">Medium</span>
+          <span class="text-xs text-slate-500">Question <strong id="sat-q-number" class="text-slate-800">1</strong> of <span id="sat-q-total">10</span></span>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <!-- Strikeout Mode Toggle -->
+          <button id="btn-strikeout" onclick="toggleStrikeoutMode()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center">
+            <i class="fa-solid fa-strikethrough mr-1.5"></i> Strikeout Mode: <span id="strikeout-status" class="ml-1 text-red-500">OFF</span>
+          </button>
+
+          <!-- Per-Question Live Timer -->
+          <div class="flex items-center bg-slate-900 text-white font-mono px-3.5 py-1.5 rounded-xl shadow-inner text-sm font-semibold">
+            <i class="fa-regular fa-clock text-indigo-400 mr-2"></i>
+            <span id="question-timer">00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAT Split Screen (Passage vs Question & Choices) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Left: Reading Passage -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[340px] flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center">
+              <i class="fa-solid fa-book-open mr-2 text-indigo-500"></i> Reading Passage / Context
+            </div>
+            <div id="sat-passage-text" class="text-slate-700 leading-relaxed text-base space-y-3 font-serif">
+              Loading passage...
+            </div>
+          </div>
+          <div class="mt-4 text-xs text-slate-400 italic border-t border-slate-100 pt-3">
+            Digital SAT Format • First response selection is measured
+          </div>
+        </div>
+
+        <!-- Right: Prompt, Options & Submission -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div>
+            <h3 id="sat-question-prompt" class="font-bold text-slate-900 text-base mb-5 leading-snug">
+              Question Prompt...
+            </h3>
+
+            <!-- Choices Container -->
+            <div id="sat-choices-list" class="space-y-3">
+              <!-- Choices rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+            <button onclick="prevQuestion()" id="btn-prev-q" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+              <i class="fa-solid fa-arrow-left mr-1"></i> Prev
+            </button>
+            <div class="flex items-center space-x-2">
+              <button onclick="checkCurrentAnswer()" id="btn-submit-q" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow transition">
+                Check Answer
+              </button>
+              <button onclick="nextQuestion()" id="btn-next-q" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                Next <i class="fa-solid fa-arrow-right ml-1"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Feedback & Explanation Box -->
+      <div id="sat-explanation-box" class="hidden bg-slate-900 text-slate-100 p-6 rounded-2xl shadow-lg border border-slate-800 transition-all">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-2">
+            <span id="feedback-icon"></span>
+            <h4 id="feedback-title" class="font-bold text-lg"></h4>
+          </div>
+          <span id="response-metric-badge" class="text-xs bg-slate-800 text-indigo-300 font-mono px-3 py-1 rounded-full border border-slate-700"></span>
+        </div>
+        <p id="feedback-explanation" class="text-slate-300 text-sm leading-relaxed mt-2"></p>
+      </div>
+    </div>
+
+    <!-- 13YO LANGUAGE MASTERY SECTION -->
+    <div id="teen-lang-section" class="hidden space-y-6">
+      <div class="flex items-center justify-between

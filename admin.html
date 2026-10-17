@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Content & Database Studio</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+  <!-- TOP ADMIN BAR -->
+  <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-indigo-500 text-white flex items-center justify-center font-bold text-lg shadow">
+          <i class="fa-solid fa-database"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base tracking-tight text-white">Parent Content & DB Studio</h1>
+          <p class="text-xs text-slate-400">Firebase: <span class="text-emerald-400 font-mono">kids-learning-714a2</span></p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="px-3.5 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold transition">
+          <i class="fa-solid fa-arrow-left mr-1.5"></i> Back to Kids App
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN STUDIO CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- UPLOAD & IMPORT CARDS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <!-- Box 1: Drop & Upload SAT.json -->
+      <div class="bg-slate-800 border border-slate-700 rounded-3xl p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-lg text-white flex items-center">
+            <i class="fa-solid fa-file-import text-indigo-400 mr-2"></i> Import JSON File
+          </h2>
+          <span class="text-xs bg-indigo-900/60 text-indigo-300 font-semibold px-2.5 py-1 rounded-md border border-indigo-700">SAT.json / Custom</span>
+        </div>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Select or drag-and-drop your <code class="text-indigo-300 bg-slate-900 px-1 py-0.5 rounded">SAT.json</code> question file. The studio will parse every question and prepare it for local test play or Firebase cloud sync.
+        </p>
+
+        <!-- Dropzone -->
+        <label for="json-input" class="border-2 border-dashed border-slate-600 hover:border-indigo-400 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition bg-slate-900/50 group">
+          <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-500 group-hover:text-indigo-400 mb-3 transition"></i>
+          <span class="text-sm font-semibold text-slate-300 group-hover:text-white">Click or drag & drop SAT.json here</span>
+          <span class="text-xs text-slate-500 mt-1">Accepts standard SAT array format</span>
+          <input type="file" id="json-input" accept=".json" class="hidden" onchange="handleFileSelect(event)" />
+        </label>
+
+        <!-- File status indicator -->
+        <div id="upload-status" class="hidden p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-300 flex items-center justify-between">
+          <span id="upload-filename">No file selected</span>
+          <span id="upload-count" class="font-bold text-indigo-400">0 questions loaded</span>
+        </div>
+
+        <!-- Sync Button -->
+        <button onclick="saveBankToStorage()" id="btn-save-bank" disabled class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl transition shadow flex items-center justify-center gap-2">
+          <i class="fa-solid fa-bolt"></i> Activate Questions in Kids Portal
+        </button>
+      </div>
+
+      <!-- Box 2: Manual Topic / Question Creator -->
+      <div class="bg-slate-800 border border-slate-700 rounded-3xl p-6 shadow-xl space-y-4">
+        <h2 class="font-bold text-lg text-white flex items-center">
+          <i class="fa-solid fa-plus-circle text-emerald-400 mr-2"></i> Quick Create Question / Topic
+        </h2>
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block text-slate-400 font-semibold mb-1">Target Profile</label>
+            <select id="new-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
+              <option value="13yo">13yo Teen Scholar (SAT / Lang)</option>
+              <option value="6yo">6yo Junior Explorer</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 font-semibold mb-1">Subject / Domain</label>
+            <input id="new-domain" type="text" placeholder="e.g., SAT Math, Malayalam, Science" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200" />
+          </div>
+        </div>
+
+        <div class="text-xs space-y-1">
+          <label class="block text-slate-400 font-semibold">Question Prompt</label>
+          <textarea id="new-prompt" rows="2" placeholder="Enter question or challenge..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <input id="choice-a" type="text" placeholder="Choice A" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200" />
+          <input id="choice-b" type="text" placeholder="Choice B" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200" />
+          <input id="choice-c" type="text" placeholder="Choice C" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200" />
+          <input id="choice-d" type="text" placeholder="Choice D" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200" />
+        </div>
+
+        <div class="flex items-center gap-3 text-xs">
+          <label class="text-slate-400 font-semibold">Correct Answer:</label>
+          <select id="new-correct" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+          <button onclick="addSingleQuestion()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition">
+            Add to Database
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CURRENT QUESTION INVENTORY -->
+    <div class="bg-slate-800 border border-slate-700 rounded-3xl p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-base text-white">Active Question Bank</h3>
+          <p class="text-xs text-slate-400">Questions currently available in the learning app</p>
+        </div>
+        <button onclick="clearAllQuestions()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold">
+          <i class="fa-solid fa-trash mr-1"></i> Reset Bank
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-900/60 text-slate-400 uppercase font-semibold border-b border-slate-700">
+            <tr>
+              <th class="py-3 px-4">#</th>
+              <th class="py-3 px-4">Domain</th>
+              <th class="py-3 px-4">Question Excerpt</th>
+              <th class="py-3 px-4">Answer</th>
+              <th class="py-3 px-4 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="bank-table-body" class="divide-y divide-slate-700/60">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let activeQuestions = [];
+
+    // Load existing items on boot
+    window.addEventListener('DOMContentLoaded', () => {
+      const stored = localStorage.getItem('custom_sat_bank');
+      if (stored) {
+        try {
+          activeQuestions = JSON.parse(stored);
+        } catch (e) {
+          activeQuestions = [];
+        }
+      }
+      renderTable();
+    });
+
+    function handleFileSelect(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (Array.isArray(parsed)) {
+            activeQuestions = parsed;
+            document.getElementById('upload-status').classList.remove('hidden');
+            document.getElementById('upload-filename').innerText = file.name;
+            document.getElementById('upload-count').innerText = `${parsed.length} questions loaded`;
+            document.getElementById('btn-save-bank').disabled = false;
+            renderTable();
+          } else {
+            alert("The uploaded JSON file should contain an array of questions.");
+          }
+        } catch (err) {
+          alert("Error parsing JSON file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function saveBankToStorage() {
+      localStorage.setItem('custom_sat_bank', JSON.stringify(activeQuestions));
+      alert(`Success! ${activeQuestions.length} questions activated. Your kids' app will now use these questions!`);
+    }
+
+    function addSingleQuestion() {
+      const domain = document.getElementById('new-domain').value || 'General';
+      const prompt = document.getElementById('new-prompt').value;
+      const cA = document.getElementById('choice-a').value;
+      const cB = document.getElementById('choice-b').value;
+      const cC = document.getElementById('choice-c').value;
+      const cD = document.getElementById('choice-d').value;
+      const correct = document.getElementById('new-correct').value;
+
+      if (!prompt || !cA || !cB) {
+        alert("Please provide at least the prompt and two choices.");
+        return;
+      }
+
+      const newQ = {
+        id: "custom_" + Date.now(),
+        domain: domain,
+        difficulty: "Medium",
+        question: {
+          paragraph: "Read the context carefully.",
+          question: prompt,
+          choices: { A: cA, B: cB, C: cC || "N/A", D: cD || "N/A" },
+          correct_answer: correct,
+          explanation: "Teacher/Parent added question."
+        }
+      };
+
+      activeQuestions.unshift(newQ);
+      localStorage.setItem('custom_sat_bank', JSON.stringify(activeQuestions));
+      renderTable();
+      alert("Question added to active bank!");
+    }
+
+    function deleteQuestion(index) {
+      activeQuestions.splice(index, 1);
+      localStorage.setItem('custom_sat_bank', JSON.stringify(activeQuestions));
+      renderTable();
+    }
+
+    function clearAllQuestions() {
+      if (confirm("Reset question bank to default?")) {
+        localStorage.removeItem('custom_sat_bank');
+        activeQuestions = [];
+        renderTable();
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('bank-table-body');
+      if (activeQuestions.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">No custom questions in storage. Upload a SAT.json file above.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = activeQuestions.map((q, idx) => `
+        <tr class="hover:bg-slate-700/30">
+          <td class="py-3 px-4 font-mono text-slate-400">${idx + 1}</td>
+          <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-700 text-indigo-300">${q.domain || 'Standard'}</span></td>
+          <td class="py-3 px-4 text-slate-200 max-w-md truncate">${q.question ? q.question.question : 'No text'}</td>
+          <td class="py-3 px-4 font-bold text-emerald-400">${q.question ? q.question.correct_answer : '-'}</td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="deleteQuestion(${idx})" class="text-rose-400 hover:text-rose-300">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
