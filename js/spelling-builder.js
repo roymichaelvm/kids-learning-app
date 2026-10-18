@@ -12,9 +12,243 @@
   let currentSpellingSlots = []; // array of { char, trayIdx } or null
   let currentSpellingTray = [];  // array of { char, origIdx, used }
   let isSpellingResolving = false;
+  let hasFailedFirstAttempt = false;
+  let spellingHintRevealed = false;
+  let spellingLengthFilter = '3'; // '3' | '4' | '5' | '6' | 'big' (7+) | 'all'
+
+  // Expanded 120+ spelling words across 3, 4, 5, 6, and 7+ letters: [WORD, emoji, kid-friendly clue]
+  const SHORT_SPELLING_WORDS = [
+    // 3 letters (30 words)
+    ['CAT', '🐱', 'A furry pet that says meow!'], ['DOG', '🐶', 'A friendly pet that barks and wags its tail!'],
+    ['SUN', '☀️', 'The big bright star that gives us daylight!'], ['HAT', '🎩', 'You wear it on your head!'],
+    ['BUS', '🚌', 'A big vehicle that takes kids to school!'], ['PIG', '🐷', 'A pink farm animal that says oink!'],
+    ['CUP', '☕', 'You drink from it!'], ['BED', '🛏️', 'Where you sleep at night!'],
+    ['BAT', '🦇', 'An animal that flies at night!'], ['COW', '🐄', 'A farm animal that gives us milk!'],
+    ['FOX', '🦊', 'A clever orange animal with a bushy tail!'], ['BEE', '🐝', 'A buzzing insect that makes honey!'],
+    ['EGG', '🥚', 'Hens lay it, and chicks hatch from it!'], ['KEY', '🔑', 'It opens a lock!'],
+    ['MAP', '🗺️', 'It shows you where places are!'], ['PEN', '🖊️', 'You write with ink using it!'],
+    ['BOX', '📦', 'You can pack things inside it!'], ['ANT', '🐜', 'A tiny insect that works very hard!'],
+    ['OWL', '🦉', 'A wise bird that hoots at night!'], ['CAR', '🚗', 'It has four wheels and you ride in it!'],
+    ['BUG', '🐞', 'A little crawling or flying insect!'], ['JAM', '🍓', 'Sweet fruit spread you put on toast!'],
+    ['NET', '🥅', 'Used to catch fish or score a goal!'], ['RUG', '🧶', 'A soft mat on the floor!'],
+    ['TOP', '陀', 'A toy that spins round and round!'], ['VAN', '🚐', 'A boxy vehicle that carries people or cargo!'],
+    ['WEB', '🕸️', 'What a spider spins to catch flies!'], ['ZIP', '🤐', 'To close up a jacket fast!'],
+    ['JET', '✈️', 'A super fast airplane in the sky!'], ['FAN', '🪭', 'It blows cool air on a warm day!'],
+    // 4 letters (30 words)
+    ['FISH', '🐟', 'It swims in water and has fins!'], ['BIRD', '🐦', 'It has feathers and can fly!'],
+    ['CAKE', '🎂', 'A sweet treat for birthdays!'], ['BOOK', '📖', 'You read stories in it!'],
+    ['TREE', '🌳', 'A tall plant with leaves and branches!'], ['MOON', '🌙', 'It shines in the night sky!'],
+    ['STAR', '⭐', 'It twinkles in the night sky!'], ['FROG', '🐸', 'A green animal that hops and says ribbit!'],
+    ['DUCK', '🦆', 'A bird that swims and says quack!'], ['BEAR', '🐻', 'A big furry animal that loves honey!'],
+    ['LION', '🦁', 'The king of the jungle that roars!'], ['BALL', '⚽', 'You kick it or throw it to play!'],
+    ['MILK', '🥛', 'A white drink that makes bones strong!'], ['SHIP', '🚢', 'A huge boat that sails the sea!'],
+    ['KITE', '🪁', 'It flies high in the wind on a string!'], ['RAIN', '🌧️', 'Water drops falling from clouds!'],
+    ['CORN', '🌽', 'A yellow vegetable on a cob!'], ['DRUM', '🥁', 'You bang it to make music!'],
+    ['HAND', '✋', 'It has five fingers!'], ['BOAT', '⛵', 'It floats on water!'],
+    ['BELL', '🔔', 'It rings with a ding-dong sound!'], ['COAT', '🧥', 'You wear it to stay warm outside!'],
+    ['DEER', '🦌', 'A gentle forest animal with antlers!'], ['FIRE', '🔥', 'It is hot and gives light and warmth!'],
+    ['GOAT', '🐐', 'A farm animal with horns that climbs hills!'], ['KING', '🤴', 'A royal ruler who wears a crown!'],
+    ['LEAF', '🍃', 'A green part that grows on a tree branch!'], ['NEST', '🪺', 'A cozy home a bird builds for its eggs!'],
+    ['RING', '💍', 'A little circle of metal worn on a finger!'], ['SNOW', '❄️', 'Soft white flakes that fall in winter!'],
+    // 5 letters (30 words)
+    ['APPLE', '🍎', 'A crunchy red or green fruit!'], ['HOUSE', '🏠', 'The place where a family lives!'],
+    ['TRAIN', '🚆', 'It runs on tracks and goes choo-choo!'], ['HORSE', '🐴', 'An animal you can ride that says neigh!'],
+    ['MOUSE', '🐭', 'A tiny animal that squeaks!'], ['TIGER', '🐯', 'A big orange cat with black stripes!'],
+    ['ZEBRA', '🦓', 'A horse-like animal with black and white stripes!'], ['SNAKE', '🐍', 'A long animal with no legs that hisses!'],
+    ['CLOUD', '☁️', 'A fluffy white shape in the sky!'], ['PIZZA', '🍕', 'A cheesy round food cut into slices!'],
+    ['LEMON', '🍋', 'A sour yellow fruit!'], ['GRAPE', '🍇', 'A small round fruit that grows in bunches!'],
+    ['CHAIR', '🪑', 'You sit on it!'], ['CLOCK', '⏰', 'It tells you the time!'],
+    ['PLANT', '🪴', 'It grows in soil and needs water!'], ['WATER', '💧', 'You drink it when you are thirsty!'],
+    ['BREAD', '🍞', 'You make sandwiches with it!'], ['SHEEP', '🐑', 'A woolly farm animal that says baa!'],
+    ['TRUCK', '🚚', 'A big vehicle that carries heavy things!'], ['SMILE', '😊', 'What your face does when you are happy!'],
+    ['BEACH', '🏖️', 'A sandy shore right by the ocean!'], ['BRUSH', '🪥', 'You use it to clean your teeth or paint!'],
+    ['CROWN', '👑', 'A golden hat worn by a king or queen!'], ['EARTH', '🌍', 'The blue and green planet we live on!'],
+    ['HEART', '❤️', 'It beats inside your chest and means love!'], ['KOALA', '🐨', 'A cute Australian animal that hugs eucalyptus trees!'],
+    ['PANDA', '🐼', 'A black and white bear that munches bamboo!'], ['QUEEN', '👸', 'A royal lady who wears a crown!'],
+    ['SHARK', '🦈', 'A big ocean fish with sharp teeth!'], ['WHALE', '🐋', 'The biggest animal in the ocean!'],
+    // 6 letters (30 words)
+    ['ORANGE', '🍊', 'A round juicy fruit, and also a color!'], ['RABBIT', '🐰', 'A fluffy animal with long ears that hops!'],
+    ['MONKEY', '🐒', 'A playful animal that swings in trees!'], ['TURTLE', '🐢', 'A slow animal that carries its shell!'],
+    ['PENCIL', '✏️', 'You write and draw with it, and can erase!'], ['FLOWER', '🌸', 'A pretty, colorful part of a plant!'],
+    ['BANANA', '🍌', 'A long yellow fruit monkeys love!'], ['CARROT', '🥕', 'An orange vegetable bunnies love!'],
+    ['ROCKET', '🚀', 'It blasts off into space!'], ['CASTLE', '🏰', 'A big stone home for kings and queens!'],
+    ['SPIDER', '🕷️', 'It has eight legs and spins a web!'], ['PURPLE', '🟣', 'The color you get mixing red and blue!'],
+    ['CHEESE', '🧀', 'A yellow food made from milk!'], ['BUTTON', '🔘', 'It keeps your shirt closed!'],
+    ['GARDEN', '🌻', 'A place where flowers and vegetables grow!'], ['WINDOW', '🪟', 'You look outside through it!'],
+    ['BRIDGE', '🌉', 'It helps you cross over a river!'], ['PARROT', '🦜', 'A colorful bird that can talk!'],
+    ['TOMATO', '🍅', 'A red juicy fruit used in ketchup!'], ['COOKIE', '🍪', 'A sweet round baked treat!'],
+    ['BASKET', '🧺', 'A woven container for carrying picnic food!'], ['CANDLE', '🕯️', 'A wax stick with a wick that glows when lit!'],
+    ['DOCTOR', '🩺', 'A helper who takes care of you when you are sick!'], ['DRAGON', '🐉', 'A fairy-tale creature with wings that breathes fire!'],
+    ['FINGER', '☝️', 'One of the five parts on your hand!'], ['GUITAR', '🎸', 'A musical instrument with strings you strum!'],
+    ['JACKET', '🧥', 'A short coat you wear in cool weather!'], ['PLANET', '🪐', 'A large world that orbits around a star!'],
+    ['TROPHY', '🏆', 'A shiny cup you win for doing your best!'], ['YELLOW', '💛', 'The bright color of lemons and the sun!'],
+    // 7+ letters (extra big words to pair with built-in pack)
+    ['TEACHER', '👩‍🏫', 'Someone who helps students learn at school!'],
+    ['AIRPLANE', '🛩️', 'A flying machine with wings that carries passengers!'],
+    ['SANDWICH', '🥪', 'Two slices of bread with yummy filling in between!'],
+    ['BACKPACK', '🎒', 'A bag you wear on your back to carry books!'],
+    ['SNOWFLAKE', '❄️', 'A six-sided ice crystal falling from winter clouds!'],
+    ['PINEAPPLE', '🍍', 'A tropical fruit with a spiky crown and sweet yellow inside!'],
+    ['STRAWBERRY', '🍓', 'A sweet red berry with tiny seeds on the outside!'],
+    ['WATERMELON', '🍉', 'A giant green fruit that is pink and juicy inside!'],
+    ['CATERPILLAR', '🐛', 'A hungry little larva that turns into a butterfly!'],
+    ['FIRETRUCK', '🚒', 'A bright red truck that firefighters drive!']
+  ].map(([w, emoji, clue]) => ({
+    emoji,
+    primary: w.split('').join(' - '),
+    meaning: `${w} • ${clue}`,
+    speech: `${w.charAt(0) + w.slice(1).toLowerCase()}. ${w.split('').join(', ')}.`
+  }));
+
+  function spellingWordOf(item) {
+    return (item.primary || '').replace(/[^A-Za-z]/g, '').toUpperCase();
+  }
+
+  function makeMisspellings(word) {
+    const w = word.toUpperCase();
+    const out = new Set();
+    const vowels = ['A', 'E', 'I', 'O', 'U'];
+    // 1. Swap first vowel with another vowel
+    for (let i = 0; i < w.length; i++) {
+      if (vowels.includes(w[i])) {
+        vowels.forEach(v => {
+          if (v !== w[i]) out.add(w.slice(0, i) + v + w.slice(i + 1));
+        });
+      }
+    }
+    // 2. Transpose two adjacent distinct letters
+    for (let i = 0; i < w.length - 1; i++) {
+      if (w[i] !== w[i + 1]) {
+        out.add(w.slice(0, i) + w[i + 1] + w[i] + w.slice(i + 2));
+      }
+    }
+    // 3. Double a consonant or drop a letter
+    if (w.length >= 3) {
+      out.add(w + w[w.length - 1]);
+      out.add(w.slice(0, -1) + (w[w.length - 1] === 'E' ? 'A' : 'E'));
+    }
+    out.delete(w);
+    return Array.from(out).slice(0, 3);
+  }
+
+  function getAllSpellingItems() {
+    const pack = window.multiLangData && window.multiLangData.spelling;
+    const base = (pack && pack.kidItems) || [];
+    const seen = new Set(base.map(spellingWordOf));
+    SHORT_SPELLING_WORDS.forEach(item => {
+      const w = spellingWordOf(item);
+      if (!seen.has(w)) {
+        seen.add(w);
+        base.push(item);
+      }
+    });
+    return base;
+  }
+
+  function getGeneratedSpellingQuizQuestions() {
+    const items = getAllSpellingItems();
+    const letters = ['A', 'B', 'C', 'D'];
+    return items.map((item, idx) => {
+      const w = spellingWordOf(item);
+      const cluePart = (item.meaning || '').split('•').slice(1).join('•').trim() || item.meaning || '';
+      const wrongs = makeMisspellings(w);
+      while (wrongs.length < 3) {
+        wrongs.push(w + letters[wrongs.length]);
+      }
+      const correctPos = idx % 4;
+      const opts = wrongs.slice(0, 3);
+      opts.splice(correctPos, 0, w);
+      const choices = { A: opts[0], B: opts[1], C: opts[2], D: opts[3] };
+      return {
+        id: 'kid_spell_auto_' + w.toLowerCase(),
+        targetProfile: 'kid',
+        domain: '6+ Spelling Bee',
+        wordLength: w.length,
+        difficulty: w.length <= 4 ? 'Easy' : (w.length <= 6 ? 'Medium' : 'Hard'),
+        question: {
+          paragraph: `${item.emoji || '🐝'} Spelling Clue (${w.length} letters): ${cluePart}`,
+          question: `Which is the correct spelling for this ${w.length}-letter word?`,
+          choices: choices,
+          correct_answer: letters[correctPos],
+          explanation: `The correct spelling is ${w.split('').join(' - ')} (${w}): ${cluePart}`
+        }
+      };
+    });
+  }
+
+  function matchesLengthFilter(item) {
+    const n = spellingWordOf(item).length;
+    if (spellingLengthFilter === 'all') return true;
+    if (spellingLengthFilter === 'big') return n >= 7;
+    return n === Number(spellingLengthFilter);
+  }
+
+  function ensureSpellingLevelBar() {
+    const toggle = document.getElementById('spellingModeToggle');
+    const zone = document.getElementById('spellingBuilderZone');
+    const host = (toggle && toggle.parentNode) ? toggle.parentNode : zone;
+    if (!host) return;
+    let bar = document.getElementById('spellingLevelBar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'spellingLevelBar';
+      bar.className = 'flex flex-wrap items-center justify-center gap-2 mb-3';
+      if (toggle && toggle.nextSibling) {
+        host.insertBefore(bar, toggle.nextSibling);
+      } else {
+        host.insertBefore(bar, host.firstChild);
+      }
+    }
+    const isSpelling = !!(window.appData && window.appData.kidCategory === 'spelling');
+    bar.classList.toggle('hidden', !isSpelling);
+    const all = getAllSpellingItems();
+    const levels = [['3', '3 Letters'], ['4', '4 Letters'], ['5', '5 Letters'], ['6', '6 Letters'], ['big', 'Big Words'], ['all', 'All']];
+    bar.innerHTML = levels.map(([key, label]) => {
+      const saved = spellingLengthFilter;
+      spellingLengthFilter = key;
+      const count = all.filter(matchesLengthFilter).length;
+      spellingLengthFilter = saved;
+      const active = key === spellingLengthFilter;
+      const cls = active
+        ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-sm'
+        : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50';
+      return `<button id="spelling-level-${key}" onclick="setSpellingLengthFilter('${key}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition ${cls}">${label} <span class="opacity-60">(${count})</span></button>`;
+    }).join('');
+  }
+
+  function setSpellingLengthFilter(key) {
+    spellingLengthFilter = key;
+    window.spellingLengthFilter = key;
+    ensureSpellingLevelBar();
+    if (typeof window.renderKidFlashcard === 'function') {
+      window.renderKidFlashcard();
+    }
+    if (spellingSubMode === 'tiles') {
+      generateSpellingTileRound();
+    } else if (typeof window.generateKidQuizRound === 'function') {
+      window.generateKidQuizRound();
+    }
+  }
+
+  function setSpellingBuilderContentVisible(visible) {
+    const zone = document.getElementById('spellingBuilderZone');
+    if (!zone) return;
+    Array.from(zone.children).forEach(ch => {
+      if (ch.id === 'spellingLevelBar' || ch.id === 'spellingCompleteBox') return;
+      ch.classList.toggle('hidden', !visible);
+    });
+    let box = document.getElementById('spellingCompleteBox');
+    if (!visible && !box) {
+      box = document.createElement('div');
+      box.id = 'spellingCompleteBox';
+      zone.appendChild(box);
+    }
+    if (box) box.classList.toggle('hidden', visible);
+  }
 
   function setSpellingSubMode(mode) {
     spellingSubMode = mode;
+    window.spellingSubMode = mode;
     const btnTiles = document.getElementById('btn-spelling-sub-tiles');
     const btnQuiz = document.getElementById('btn-spelling-sub-quiz');
     if (btnTiles && btnQuiz) {
@@ -39,20 +273,71 @@
     }
   }
 
+  function resetCompletedSpellingWords() {
+    const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+      ? window.LuminaDB.getActiveProfile()
+      : ((typeof window.activeProfile === 'function') ? window.activeProfile() : null);
+    if (p && window.LuminaDB) {
+      const levelItems = getAllSpellingItems().filter(matchesLengthFilter);
+      if (spellingLengthFilter === 'all' && typeof window.LuminaDB.resetCompletedQuestions === 'function') {
+        window.LuminaDB.resetCompletedQuestions(p.id, 'spelling');
+      } else if (typeof window.LuminaDB.unmarkQuestionCompleted === 'function') {
+        levelItems.forEach(i => window.LuminaDB.unmarkQuestionCompleted(p.id, 'spelling_' + spellingWordOf(i)));
+      }
+    }
+    if (typeof window.showToast === 'function') window.showToast("Spelling Bee words reset! Ready to play again.");
+    generateSpellingTileRound();
+  }
+
   function generateSpellingTileRound() {
     isSpellingResolving = false;
-    const pack = window.multiLangData && window.multiLangData.spelling;
-    if (!pack) return;
-    const items = pack.kidItems || [];
-    if (items.length === 0) return;
+    hasFailedFirstAttempt = false;
+    spellingHintRevealed = false;
+
+    const btnHint = document.getElementById('btnSpellingHint');
+    if (btnHint) btnHint.classList.add('hidden');
+
+    const allItems = getAllSpellingItems().filter(matchesLengthFilter);
+    ensureSpellingLevelBar();
+    if (allItems.length === 0) return;
+
+    // Filter out words that are already completed for this profile
+    const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+      ? window.LuminaDB.getActiveProfile()
+      : ((typeof window.activeProfile === 'function') ? window.activeProfile() : null);
+    const completed = new Set((p && p.completedQuestionIds) || []);
+
+    const uncompletedItems = allItems.filter(i => !completed.has('spelling_' + spellingWordOf(i)));
+
+    const levelName = spellingLengthFilter === 'all' ? 'every' : (spellingLengthFilter === 'big' ? 'every big' : `every ${spellingLengthFilter}-letter`);
+    if (uncompletedItems.length === 0) {
+      setSpellingBuilderContentVisible(false);
+      const box = document.getElementById('spellingCompleteBox');
+      if (box) {
+        box.innerHTML = `
+          <div class="text-center py-8 px-6 bg-gradient-to-r from-amber-50 to-emerald-50 rounded-3xl border-4 border-amber-300 shadow-xl space-y-4 animate-fade">
+            <div class="text-6xl animate-bounce">🏆</div>
+            <h3 class="text-2xl font-black text-slate-900">Spelling Bee Champion!</h3>
+            <p class="text-base font-bold text-slate-700">You built ${levelName} spelling word in the hive! Try another level above.</p>
+            <div class="pt-2">
+              <button onclick="resetCompletedSpellingWords()" class="px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-sm border-2 border-amber-500 shadow-kids-btn btn-tactile">
+                🔄 Reset &amp; Practice These Words Again
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      return;
+    }
+    setSpellingBuilderContentVisible(true);
 
     // Zero-repeat non-repeating deck queue
     const item = (typeof window.getNextFromDeck === 'function')
-      ? window.getNextFromDeck('spelling_tiles_deck', items, i => i.primary)
-      : items[Math.floor(Math.random() * items.length)];
+      ? window.getNextFromDeck('spelling_tiles_deck_' + (p ? p.id : 'default') + '_' + spellingLengthFilter, uncompletedItems, i => i.primary)
+      : uncompletedItems[Math.floor(Math.random() * uncompletedItems.length)];
 
     currentSpellingItem = item;
-    const target = (item.primary || '').replace(/[^A-Za-z]/g, '').toUpperCase();
+    const target = spellingWordOf(item);
     currentSpellingWord = target;
     currentSpellingSlots = new Array(target.length).fill(null);
 
@@ -73,7 +358,7 @@
 
     const headerBadge = document.getElementById('kidQuizHeaderBadge');
     if (headerBadge) {
-      headerBadge.innerText = `🔤 Spelling Bee • Build the Word`;
+      headerBadge.innerText = `🔤 Spelling Bee • Build the Word (${uncompletedItems.length} left)`;
     }
     // Pronounce clue word
     if (typeof window.speakNativeAudio === 'function') {
@@ -90,7 +375,13 @@
     if (toast && !isSpellingResolving) toast.classList.add('hidden');
 
     if (clueEmoji && currentSpellingItem) clueEmoji.innerText = currentSpellingItem.emoji || '🐝';
-    if (clueMeaning && currentSpellingItem) clueMeaning.innerText = currentSpellingItem.meaning || `Spell "${currentSpellingWord}"`;
+    if (clueMeaning && currentSpellingItem) {
+      if (spellingHintRevealed) {
+        clueMeaning.innerText = currentSpellingItem.meaning || `Spell "${currentSpellingWord}"`;
+      } else {
+        clueMeaning.innerText = "Spell this word! Tap the scrambled letter tiles below.";
+      }
+    }
 
     // Render slots
     if (slotsRow) {
@@ -259,6 +550,12 @@
           durationSec: 10
         });
       }
+      const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+        ? window.LuminaDB.getActiveProfile()
+        : ((typeof window.activeProfile === 'function') ? window.activeProfile() : null);
+      if (p && window.LuminaDB && typeof window.LuminaDB.markQuestionCompleted === 'function') {
+        window.LuminaDB.markQuestionCompleted(p.id, 'spelling_' + target);
+      }
       if (typeof window.refreshHeaderUI === 'function') {
         window.refreshHeaderUI();
       }
@@ -267,6 +564,12 @@
         generateSpellingTileRound();
       }, 1900);
     } else {
+      if (!hasFailedFirstAttempt) {
+        hasFailedFirstAttempt = true;
+        const btnHint = document.getElementById('btnSpellingHint');
+        if (btnHint) btnHint.classList.remove('hidden');
+      }
+
       if (slotsRow) {
         slotsRow.classList.remove('animate-tile-shake');
         void slotsRow.offsetWidth;
@@ -277,7 +580,7 @@
       }
       if (toast) {
         toast.className = "mt-5 p-4 rounded-2xl text-center text-base sm:text-lg font-bold bg-rose-100 text-rose-950 border-2 border-rose-300";
-        toast.innerHTML = `🤔 Almost! That spells <em>${assembled}</em>. Tap a letter to fix it or tap <strong>💡 Hint</strong>!`;
+        toast.innerHTML = `🤔 Almost! That spells <em>${assembled}</em>. Tap a letter to fix it or tap <strong>💡 Show Hint</strong>!`;
         toast.classList.remove('hidden');
       }
       if (typeof window.speakNativeAudio === 'function') {
@@ -286,8 +589,29 @@
     }
   }
 
+  function handleSpellingHintClick() {
+    if (isSpellingResolving) return;
+    spellingHintRevealed = true;
+    const clueMeaning = document.getElementById('spellingClueMeaning');
+    if (clueMeaning && currentSpellingItem) {
+      clueMeaning.innerText = currentSpellingItem.meaning || `Spell "${currentSpellingWord}"`;
+    }
+    const btnHint = document.getElementById('btnSpellingHint');
+    if (btnHint) btnHint.classList.add('hidden');
+    giveSpellingHint();
+    if (typeof window.speakNativeAudio === 'function') {
+      const clueText = currentSpellingItem ? currentSpellingItem.meaning : currentSpellingWord;
+      window.speakNativeAudio(`Hint: ${clueText}`, 'en-US');
+    }
+  }
+
   window.spellingSubMode = spellingSubMode;
+  window.spellingLengthFilter = spellingLengthFilter;
   window.setSpellingSubMode = setSpellingSubMode;
+  window.setSpellingLengthFilter = setSpellingLengthFilter;
+  window.ensureSpellingLevelBar = ensureSpellingLevelBar;
+  window.getAllSpellingItems = getAllSpellingItems;
+  window.getGeneratedSpellingQuizQuestions = getGeneratedSpellingQuizQuestions;
   window.handleKidNextQuizBtn = handleKidNextQuizBtn;
   window.generateSpellingTileRound = generateSpellingTileRound;
   window.renderSpellingBuilderUI = renderSpellingBuilderUI;
@@ -296,6 +620,10 @@
   window.undoSpellingLastSlot = undoSpellingLastSlot;
   window.clearSpellingSlots = clearSpellingSlots;
   window.giveSpellingHint = giveSpellingHint;
+  window.handleSpellingHintClick = handleSpellingHintClick;
+  window.resetCompletedSpellingWords = resetCompletedSpellingWords;
   window.speakSpellingTargetWord = speakSpellingTargetWord;
+  window.getCurrentSpellingWord = function () { return currentSpellingWord; };
+  window.getCurrentSpellingItem = function () { return currentSpellingItem; };
   window.checkSpellingCompletion = checkSpellingCompletion;
 })(window);

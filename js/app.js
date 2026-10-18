@@ -553,12 +553,64 @@
     return (p || activeProfile()).ageGroup !== 'kid';
   }
 
-  function getTeenQuestions() {
-    return dedupeQuestionsList((appData.questions || []).filter(q => (q.targetProfile || 'teen') !== 'kid'));
+  function getQuestionSignature(item) {
+    if (!item) return '';
+    if (item.id) return item.id;
+    if (!item.question) return '';
+    const p = String(item.question.paragraph || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const q = String(item.question.question || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    return `${item.domain || ''}::${p}::${q}`;
   }
 
-  function getKidQuestionsByDomain(domainName) {
-    return dedupeQuestionsList((appData.questions || []).filter(q => q.targetProfile === 'kid' && q.domain === domainName));
+  function getTeenQuestions(includeCompleted = false) {
+    const p = activeProfile();
+    const completed = new Set((p && p.completedQuestionIds) || []);
+    const all = dedupeQuestionsList((appData.questions || []).filter(q => (q.targetProfile || 'teen') !== 'kid'));
+    if (includeCompleted) return all;
+    return all.filter(q => !completed.has(q.id) && !completed.has(getQuestionSignature(q)));
+  }
+
+  function getKidQuestionsByDomain(domainName, includeCompleted = false) {
+    const p = activeProfile();
+    const completed = new Set((p && p.completedQuestionIds) || []);
+    let combined = (appData.questions || []).filter(q => q.targetProfile === 'kid' && q.domain === domainName);
+
+    if (domainName === '6+ Spelling Bee' && typeof window.getGeneratedSpellingQuizQuestions === 'function') {
+      combined = combined.concat(window.getGeneratedSpellingQuizQuestions());
+    }
+    if (domainName === '6+ Numbers & Math' && typeof window.getGeneratedMathQuestions === 'function') {
+      combined = combined.concat(window.getGeneratedMathQuestions('all'));
+    }
+
+    let all = dedupeQuestionsList(combined);
+
+    // Apply active Spelling Bee word-length filter in Multiple Choice Quiz mode too
+    if (domainName === '6+ Spelling Bee' && window.spellingLengthFilter && window.spellingLengthFilter !== 'all') {
+      const f = window.spellingLengthFilter;
+      all = all.filter(q => {
+        const correctChoice = q.question && q.question.choices && q.question.choices[q.question.correct_answer];
+        const len = q.wordLength || (correctChoice ? String(correctChoice).replace(/[^A-Za-z]/g, '').length : 0);
+        if (f === 'big') return len >= 7;
+        return len === Number(f);
+      });
+    }
+
+    // Apply active Numbers & Math operation filter (addition, subtraction, multiplication, division)
+    if (domainName === '6+ Numbers & Math' && window.mathOpFilter && window.mathOpFilter !== 'all') {
+      const op = window.mathOpFilter;
+      all = all.filter(q => {
+        if (q.mathOp) return q.mathOp === op;
+        const txt = ((q.question && q.question.question) || '') + ' ' + ((q.question && q.question.paragraph) || '');
+        if (op === 'addition') return txt.includes('+') || /add|more|sum|total|altogether/i.test(txt);
+        if (op === 'subtraction') return txt.includes('-') || /minus|left|take away|flew away/i.test(txt);
+        if (op === 'multiplication') return txt.includes('×') || /times|groups of/i.test(txt);
+        if (op === 'division') return txt.includes('÷') || /divide|share.*equally/i.test(txt);
+        return false;
+      });
+    }
+
+    if (includeCompleted) return all;
+    return all.filter(q => !completed.has(q.id) && !completed.has(getQuestionSignature(q)));
   }
 
   function saveState() {
@@ -737,7 +789,7 @@
       await window.LuminaDB.pushToCloud();
       const res = await window.LuminaDB.pullFromCloud();
       if (res.ok) {
-        showToast("Synced with Firebase kids-learning-714a2!");
+        showToast("Cloud sync complete!");
         mergeLanguagePacksFromDB();
         applyActiveProfileView();
       } else {
@@ -767,6 +819,7 @@
     renderCloudStatus();
     renderProfileSwitcher();
     renderTodayStrip();
+    updateFamilyAuthUI();
   }
 
   function renderCloudStatus() {
@@ -846,6 +899,9 @@
     const p = activeProfile();
     const before = window.LuminaDB.getLastNDaysSummary(p.id, 1)[0].questionsAttempted;
     window.LuminaDB.recordActivity(opts);
+    if (opts.questionId && opts.isCorrect && window.LuminaDB && typeof window.LuminaDB.markQuestionCompleted === 'function') {
+      window.LuminaDB.markQuestionCompleted(p.id, opts.questionId);
+    }
     const after = window.LuminaDB.getLastNDaysSummary(p.id, 1)[0].questionsAttempted;
     if (before < (p.dailyGoalQuestions || 10) && after >= (p.dailyGoalQuestions || 10)) {
       setTimeout(() => {
@@ -872,6 +928,10 @@
   }, 15000);
 
   function showProfilePicker() {
+    if (!window.LuminaDB || !window.LuminaDB.getCurrentUser || !window.LuminaDB.getCurrentUser()) {
+      updateFamilyAuthUI();
+      return;
+    }
     pickerOpen = true;
     const grid = document.getElementById('profilePickerGrid');
     if (!grid || !window.LuminaDB) return;
@@ -902,9 +962,26 @@
       window.LuminaDB.setActiveProfile(profileId);
       selectedCalendarDateKey = window.LuminaDB.getTodayDateKey();
     }
+    Object.keys(_shuffledDecks).forEach(k => delete _shuffledDecks[k]);
     hideProfilePicker();
     applyActiveProfileView();
   }
+
+  function resetTopicQuestions(domain) {
+    const p = activeProfile();
+    if (p && window.LuminaDB && typeof window.LuminaDB.resetCompletedQuestions === 'function') {
+      window.LuminaDB.resetCompletedQuestions(p.id, domain);
+    }
+    Object.keys(_shuffledDecks).forEach(k => delete _shuffledDecks[k]);
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Reset questions for ${domain === 'ALL' ? 'all topics' : domain}!`);
+    }
+    if (typeof window.populateDomainFilterDropdown === 'function') {
+      window.populateDomainFilterDropdown();
+    }
+    refreshHeaderUI();
+  }
+  window.resetTopicQuestions = resetTopicQuestions;
 
   function applyActiveProfileView() {
     const p = activeProfile();
@@ -958,6 +1035,148 @@
     `;
   }
 
+  let authModalManuallyOpened = false;
+
+  function setProtectedContentVisible(isVisible) {
+    ['mainAppContent', 'profileQuickBar', 'todayGoalSection', 'subNavBar'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('hidden', !isVisible);
+    });
+    const mainFallback = document.querySelector('main');
+    if (mainFallback) mainFallback.classList.toggle('hidden', !isVisible);
+    if (!isVisible) {
+      hideProfilePicker();
+      if (typeof window.stopSatTimer === 'function') window.stopSatTimer();
+    }
+  }
+
+  function updateFamilyAuthUI() {
+    const user = (window.LuminaDB && typeof window.LuminaDB.getCurrentUser === 'function')
+      ? window.LuminaDB.getCurrentUser()
+      : null;
+    const textEl = document.getElementById('familyAuthText');
+    const iconEl = document.getElementById('familyAuthIcon');
+    const pill = document.getElementById('familyAuthPill');
+    const userEmailEl = document.getElementById('familyAuthUserEmail');
+    const loggedInView = document.getElementById('familyLoggedInView');
+    const loginForm = document.getElementById('familyLoginForm');
+    const modal = document.getElementById('familyAuthModal');
+    const titleEl = document.getElementById('familyAuthTitle');
+
+    if (user) {
+      setProtectedContentVisible(true);
+      if (modal && !authModalManuallyOpened) {
+        modal.classList.add('hidden');
+      }
+      if (titleEl) titleEl.innerText = 'Account Status';
+      if (textEl) textEl.innerText = user.email ? (user.email.split('@')[0]) : 'Signed In';
+      if (iconEl) iconEl.setAttribute('data-lucide', 'shield-check');
+      if (pill) {
+        pill.className = "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition border border-emerald-200 cursor-pointer";
+        pill.title = `Signed in as ${user.email}. Click to view or sign out.`;
+      }
+      if (userEmailEl) userEmailEl.innerText = user.email || 'Authenticated User';
+      if (loggedInView) loggedInView.classList.remove('hidden');
+      if (loginForm) loginForm.classList.add('hidden');
+    } else {
+      authModalManuallyOpened = false;
+      setProtectedContentVisible(false);
+      if (modal) modal.classList.remove('hidden');
+      if (titleEl) titleEl.innerText = 'Sign In Required';
+      if (textEl) textEl.innerText = 'Sign In';
+      if (iconEl) iconEl.setAttribute('data-lucide', 'lock');
+      if (pill) {
+        pill.className = "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer";
+        pill.title = "Sign in required to access Lumina Learning Hub";
+      }
+      if (loggedInView) loggedInView.classList.add('hidden');
+      if (loginForm) loginForm.classList.remove('hidden');
+    }
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  function toggleFamilyAuthModal() {
+    const modal = document.getElementById('familyAuthModal');
+    if (!modal) return;
+    const user = (window.LuminaDB && typeof window.LuminaDB.getCurrentUser === 'function')
+      ? window.LuminaDB.getCurrentUser()
+      : null;
+    if (!user) {
+      updateFamilyAuthUI();
+      modal.classList.remove('hidden');
+      return;
+    }
+    const willOpen = modal.classList.contains('hidden');
+    authModalManuallyOpened = willOpen;
+    updateFamilyAuthUI();
+    modal.classList.toggle('hidden', !willOpen);
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  async function handleFamilyLoginSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const emailEl = document.getElementById('familyEmailInput');
+    const passEl = document.getElementById('familyPasswordInput');
+    const errBox = document.getElementById('familyAuthError');
+    const btn = document.getElementById('btnFamilySignIn');
+
+    const email = (emailEl && emailEl.value || '').trim();
+    const pass = (passEl && passEl.value || '');
+    if (!email || !pass) {
+      if (errBox) {
+        errBox.innerText = 'Please enter both email and password.';
+        errBox.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = 'Signing in...';
+    }
+    if (errBox) errBox.classList.add('hidden');
+
+    if (window.LuminaDB && typeof window.LuminaDB.signIn === 'function') {
+      const res = await window.LuminaDB.signIn(email, pass);
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = 'Sign In to Unlock Hub';
+      }
+      if (res && res.ok) {
+        authModalManuallyOpened = false;
+        updateFamilyAuthUI();
+        applyActiveProfileView();
+        if (typeof showToast === 'function') showToast(`Signed in as ${email}!`);
+        if (typeof window.LuminaDB.pullFromCloud === 'function') {
+          const pullRes = await window.LuminaDB.pullFromCloud();
+          if (pullRes && pullRes.ok) {
+            mergeLanguagePacksFromDB();
+            mergeCustomKidCards();
+            applyActiveProfileView();
+          }
+        }
+      } else {
+        if (errBox) {
+          errBox.innerText = (res && res.error) || 'Failed to sign in. Please verify your credentials.';
+          errBox.classList.remove('hidden');
+        }
+      }
+    }
+  }
+
+  async function handleFamilySignOut() {
+    if (window.LuminaDB && typeof window.LuminaDB.signOut === 'function') {
+      await window.LuminaDB.signOut();
+      authModalManuallyOpened = false;
+      updateFamilyAuthUI();
+      if (typeof showToast === 'function') showToast('Signed out. Sign in to access Lumina Learning Hub.');
+    }
+  }
+
   /* =====================================================================
      WINDOW EXPORTS & BOOTSTRAP
      ===================================================================== */
@@ -987,6 +1206,10 @@
   window.switchProfile = switchProfile;
   window.applyActiveProfileView = applyActiveProfileView;
   window.renderSubNavForKid = renderSubNavForKid;
+  window.toggleFamilyAuthModal = toggleFamilyAuthModal;
+  window.handleFamilyLoginSubmit = handleFamilyLoginSubmit;
+  window.handleFamilySignOut = handleFamilySignOut;
+  window.updateFamilyAuthUI = updateFamilyAuthUI;
 
   if (window.LuminaDB && typeof window.LuminaDB.onChange === 'function') {
     window.LuminaDB.onChange(() => refreshHeaderUI());

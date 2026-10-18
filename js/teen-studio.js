@@ -76,13 +76,19 @@
   function renderTeenDashboard() {
     const p = (typeof window.activeProfile === 'function') ? window.activeProfile() : null;
     if (!p) return;
-    const teenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions() : [];
+    const teenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions(false) : [];
+    const allTeenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions(true) : [];
 
-    // 1. Group questions by domain
-    const domainCounts = {};
+    // Group questions by domain
+    const allDomainCounts = {};
+    const uncompletedCounts = {};
+    allTeenQs.forEach(q => {
+      const d = q.domain || 'General';
+      allDomainCounts[d] = (allDomainCounts[d] || 0) + 1;
+    });
     teenQs.forEach(q => {
       const d = q.domain || 'General';
-      domainCounts[d] = (domainCounts[d] || 0) + 1;
+      uncompletedCounts[d] = (uncompletedCounts[d] || 0) + 1;
     });
 
     const colors = [
@@ -96,17 +102,20 @@
 
     const grid = document.getElementById('teenTopicsBentoGrid');
     if (grid) {
-      const entries = Object.entries(domainCounts);
-      grid.innerHTML = entries.map(([domain, count], idx) => {
+      const entries = Object.entries(allDomainCounts);
+      grid.innerHTML = entries.map(([domain, totalCount], idx) => {
         const theme = colors[idx % colors.length];
+        const leftCount = uncompletedCounts[domain] || 0;
         const m = (p.domainMastery && p.domainMastery[domain]) || { attempted: 0, correct: 0 };
         const acc = m.attempted > 0 ? `${Math.round((m.correct / m.attempted) * 100)}% accuracy (${m.correct}/${m.attempted})` : 'Not practiced yet';
+        const badgeLabel = leftCount === 0 ? '✓ Mastered' : `${leftCount} Left of ${totalCount}`;
+        const badgeStyle = leftCount === 0 ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : `${theme.bg} ${theme.text} ${theme.border}`;
         return `
           <div onclick="launchSatWithDomain('${domain.replace(/'/g, "\\'")}')" class="bg-white hover:bg-slate-50/80 rounded-3xl p-5 border border-slate-200/80 shadow-bento cursor-pointer transition group flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-3">
-                <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${theme.bg} ${theme.text} border ${theme.border}">
-                  ${count} Questions
+                <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${badgeStyle} border">
+                  ${badgeLabel}
                 </span>
                 <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i>
               </div>
@@ -114,7 +123,7 @@
               <p class="text-xs text-slate-500 mt-1">${acc}</p>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-indigo-600">
-              <span>Start Timed Drill</span>
+              <span>${leftCount === 0 ? 'Review & Practice Again' : 'Start Timed Drill'}</span>
               <span>→</span>
             </div>
           </div>
@@ -294,23 +303,25 @@
     const select = document.getElementById('satDomainFilter');
     if (!select) return;
     const currentVal = select.value || 'ALL';
-    const teenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions() : [];
-    const domains = Array.from(new Set(teenQs.map(q => q.domain || 'General')));
+    const teenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions(false) : [];
+    const allTeenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions(true) : [];
+    const domains = Array.from(new Set(allTeenQs.map(q => q.domain || 'General')));
 
-    select.innerHTML = `<option value="ALL">All Topics & SAT Domains (${teenQs.length})</option>` +
+    select.innerHTML = `<option value="ALL">All Topics &amp; SAT Domains (${teenQs.length} left of ${allTeenQs.length})</option>` +
       domains.map(d => {
-        const count = teenQs.filter(q => (q.domain || 'General') === d).length;
-        return `<option value="${escapeHtml(d)}">${escapeHtml(d)} (${count})</option>`;
+        const leftCount = teenQs.filter(q => (q.domain || 'General') === d).length;
+        const totalCount = allTeenQs.filter(q => (q.domain || 'General') === d).length;
+        return `<option value="${escapeHtml(d)}">${escapeHtml(d)} (${leftCount} left of ${totalCount})</option>`;
       }).join('');
 
-    if (domains.includes(currentVal)) select.value = currentVal;
+    if (domains.includes(currentVal) || currentVal === 'ALL') select.value = currentVal;
     onFilterSatQuestions();
   }
 
   function onFilterSatQuestions() {
     const filterEl = document.getElementById('satDomainFilter');
     const domain = filterEl ? filterEl.value : 'ALL';
-    const teenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions() : [];
+    const teenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions(false) : [];
     if (domain === 'ALL') {
       filteredSatQuestions = [...teenQs];
     } else {
@@ -355,7 +366,46 @@
   }
 
   function loadSatQuestionByIndex(idx) {
-    if (!filteredSatQuestions || filteredSatQuestions.length === 0) return;
+    const filterEl = document.getElementById('satDomainFilter');
+    const selectedDomain = filterEl ? filterEl.value : 'ALL';
+
+    if (!filteredSatQuestions || filteredSatQuestions.length === 0) {
+      stopSatTimer();
+      const currNumEl = document.getElementById('satCurrNum');
+      if (currNumEl) currNumEl.innerText = 0;
+      const totalNumEl = document.getElementById('satTotalNum');
+      if (totalNumEl) totalNumEl.innerText = 0;
+      const counterTextEl = document.getElementById('satQuestionCounterText');
+      if (counterTextEl) counterTextEl.innerText = '0 of 0';
+
+      const passageEl = document.getElementById('satPassageContent');
+      const promptEl = document.getElementById('satQuestionPrompt');
+      const optionsContainer = document.getElementById('satOptionsList');
+      const drawerEl = document.getElementById('satExplanationDrawer');
+      if (drawerEl) drawerEl.classList.add('hidden');
+
+      if (passageEl) {
+        passageEl.innerHTML = `
+          <div class="p-8 text-center bg-indigo-50/70 rounded-3xl border-2 border-indigo-200 space-y-3 animate-fade">
+            <span class="text-6xl">🏆</span>
+            <h3 class="text-xl font-black text-slate-900">All Questions Completed!</h3>
+            <p class="text-sm font-semibold text-slate-600">Great work! You have finished every question in <strong>${escapeHtml(selectedDomain === 'ALL' ? 'all SAT topics' : selectedDomain)}</strong>.</p>
+            <div class="pt-3 flex flex-wrap gap-2.5 justify-center">
+              <button onclick="window.resetTopicQuestions('${selectedDomain.replace(/'/g, "\\'")}')" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow transition">
+                🔄 Replay This Topic (Reset)
+              </button>
+              <button onclick="openTeenTab('dashboard')" class="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs border border-slate-300 shadow-sm transition">
+                📊 View Analytics &amp; Topics
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      if (promptEl) promptEl.innerText = "No remaining uncompleted questions in this topic.";
+      if (optionsContainer) optionsContainer.innerHTML = '';
+      return;
+    }
+
     if (idx < 0) idx = 0;
     if (idx >= filteredSatQuestions.length) idx = filteredSatQuestions.length - 1;
     satCurrentIndex = idx;
@@ -547,11 +597,20 @@
     const xpEarned = isCorrect ? 25 : 5;
 
     // Record in active child's profile & sync to Firebase
+    const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+      ? window.LuminaDB.getActiveProfile()
+      : ((typeof window.activeProfile === 'function') ? window.activeProfile() : null);
+
+    if (isCorrect && p && window.LuminaDB && typeof window.LuminaDB.markQuestionCompleted === 'function') {
+      window.LuminaDB.markQuestionCompleted(p.id, item.id);
+    }
+
     if (typeof window.trackActivity === 'function') {
       window.trackActivity({
         type: 'sat',
         domain: item.domain || 'SAT',
         title: qObj.question || item.id,
+        questionId: item.id,
         isCorrect: isCorrect,
         xp: xpEarned,
         durationSec: totalSeconds,
@@ -616,6 +675,22 @@
   }
 
   function navigateSat(delta) {
+    if (satQuestionSubmitted) {
+      // Re-filter so completed question is removed
+      const filterEl = document.getElementById('satDomainFilter');
+      const domain = filterEl ? filterEl.value : 'ALL';
+      const teenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions(false) : [];
+      filteredSatQuestions = (domain === 'ALL') ? [...teenQs] : teenQs.filter(q => (q.domain || 'General') === domain);
+      if (filteredSatQuestions.length === 0) {
+        loadSatQuestionByIndex(0);
+        return;
+      }
+      if (satCurrentIndex >= filteredSatQuestions.length) {
+        satCurrentIndex = 0;
+      }
+      loadSatQuestionByIndex(satCurrentIndex);
+      return;
+    }
     const nextIdx = satCurrentIndex + delta;
     if (nextIdx >= 0 && nextIdx < filteredSatQuestions.length) {
       loadSatQuestionByIndex(nextIdx);

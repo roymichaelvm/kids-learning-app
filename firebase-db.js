@@ -14,9 +14,11 @@
   'use strict';
 
   /* =========================================================================
-     FIREBASE WEB APP CONFIG (Auto-configured for kids-learning-714a2)
+     FIREBASE WEB APP CONFIG
+     May be loaded externally via 'firebase-config.js' (ignored by git),
+     or falls back to default project settings.
      ========================================================================= */
-  const FIREBASE_CONFIG = {
+  const DEFAULT_CONFIG = {
     apiKey: "AIzaSyBQk1RPwmFn8mIotcN-JeLWGiPCRKNQPL8",
     authDomain: "kids-learning-714a2.firebaseapp.com",
     projectId: "kids-learning-714a2",
@@ -25,6 +27,7 @@
     appId: "1:1027042382883:web:568461c9a630099fc14d96",
     measurementId: "G-FWKTR21DEZ"
   };
+  const FIREBASE_CONFIG = window.LUMINA_FIREBASE_CONFIG || DEFAULT_CONFIG;
 
   const STORAGE_KEY = 'lumina_family_hub_v3';
   const QUESTIONS_STORAGE_KEY = 'lumina_questions_cache_v3';
@@ -211,6 +214,15 @@
     return { date: key, questionsAttempted: 0, questionsCorrect: 0, xpEarned: 0, secondsSpent: 0, cardsViewed: 0, subjects: {}, activities: [] };
   }
 
+  function ensureProfileFields(p) {
+    if (!p) return p;
+    if (!Array.isArray(p.completedQuestionIds)) p.completedQuestionIds = [];
+    if (!p.dailyActivity) p.dailyActivity = {};
+    if (!p.domainMastery) p.domainMastery = {};
+    if (!Array.isArray(p.telemetryLogs)) p.telemetryLogs = [];
+    return p;
+  }
+
   function newProfile(fields) {
     const ageGroup = fields.ageGroup === 'kid' ? 'kid' : 'teen';
     return {
@@ -227,7 +239,8 @@
       createdAt: new Date().toISOString(),
       dailyActivity: {},
       domainMastery: {},
-      telemetryLogs: []
+      telemetryLogs: [],
+      completedQuestionIds: Array.isArray(fields.completedQuestionIds) ? fields.completedQuestionIds : []
     };
   }
 
@@ -301,10 +314,26 @@
     },
 
     isAdmin: false,
+    user: null,
+
+    checkIfAdmin: function (user) {
+      if (!user) return false;
+      const em = (user.email || '').toLowerCase().trim();
+      const uid = user.uid || '';
+      return (
+        em === 'admin@lumina.local' ||
+        em === 'admin@lumina.com' ||
+        em === 'parent-admin@kids-learning-714a2.local' ||
+        em.startsWith('parent-admin@') ||
+        em.startsWith('admin@') ||
+        uid === 'PhoXVNDqH0SsQhlejoY7ko3zvee2' ||
+        uid === 'yc14OBS0vKWh2tjfTf6H3ez41P23'
+      );
+    },
 
     connect: async function () {
       if (!this.isConfigured()) {
-        this.setStatus('local', 'Firebase is not set up yet. Paste your web config into firebase-db.js (see README).');
+        this.setStatus('local', 'Firebase is not set up yet. Paste your web config into firebase-config.js (see README).');
         return false;
       }
       if (!window.firebase || !window.firebase.firestore) {
@@ -313,23 +342,84 @@
       }
       try {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-        if (window.LUMINA_ADMIN_AUTH && firebase.auth) {
-          await firebase.auth().signInWithEmailAndPassword(
-            window.LUMINA_ADMIN_AUTH.email,
-            window.LUMINA_ADMIN_AUTH.password
-          );
-          this.isAdmin = true;
-        }
         this.db = firebase.firestore();
-        this.setStatus('connected', this.isAdmin
-          ? 'Authenticated as Parent Admin (Write Access Enabled)'
-          : 'Connected to Firebase (Questions Read-Only)');
+
+        if (firebase.auth) {
+          firebase.auth().onAuthStateChanged(user => {
+            this.user = user;
+            this.isAdmin = this.checkIfAdmin(user);
+            if (user) {
+              this.setStatus('connected', this.isAdmin
+                ? 'Authenticated as Parent Admin (Full Write Access)'
+                : `Signed in as ${user.email || 'Family Account'}`);
+              this.pullFromCloud();
+            } else {
+              this.setStatus('connected', 'Sign in required to access Lumina Learning Hub');
+            }
+            this.notify();
+          });
+          this.user = firebase.auth().currentUser;
+          if (this.user) {
+            this.isAdmin = this.checkIfAdmin(this.user);
+          }
+        }
+
+        this.setStatus('connected', this.user
+          ? (this.isAdmin ? 'Authenticated as Parent Admin (Full Write Access)' : `Signed in as ${this.user.email || 'Family'}`)
+          : 'Connected to Firebase (Sign in for Cloud Access)');
         return true;
       } catch (e) {
         console.warn('Firebase connect error:', e);
         this.setStatus('error', friendlyError(e));
         return false;
       }
+    },
+
+    signIn: async function (email, password) {
+      if (!window.firebase || !firebase.auth) {
+        return { ok: false, error: 'Firebase Auth is not available' };
+      }
+      try {
+        const res = await firebase.auth().signInWithEmailAndPassword(email.trim(), password);
+        this.user = res.user;
+        this.isAdmin = this.checkIfAdmin(res.user);
+        this.notify();
+        return { ok: true, user: res.user, isAdmin: this.isAdmin };
+      } catch (err) {
+        return { ok: false, error: (err && err.message) || String(err) };
+      }
+    },
+
+    signUp: async function (email, password) {
+      if (!window.firebase || !firebase.auth) {
+        return { ok: false, error: 'Firebase Auth is not available' };
+      }
+      try {
+        const res = await firebase.auth().createUserWithEmailAndPassword(email.trim(), password);
+        this.user = res.user;
+        this.notify();
+        return { ok: true, user: res.user };
+      } catch (err) {
+        return { ok: false, error: (err && err.message) || String(err) };
+      }
+    },
+
+    signOut: async function () {
+      if (!window.firebase || !firebase.auth) return { ok: true };
+      try {
+        await firebase.auth().signOut();
+        this.user = null;
+        this.isAdmin = false;
+        this.setStatus('connected', 'Signed out of Firebase.');
+        this.notify();
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, error: (err && err.message) || String(err) };
+      }
+    },
+
+    getCurrentUser: function () {
+      return (window.firebase && firebase.auth && firebase.auth().currentUser) || this.user || null;
     },
 
     /* ------------------------------------------------ local persistence */
@@ -400,6 +490,7 @@
         if (!p.dailyActivity) p.dailyActivity = {};
         if (!p.domainMastery) p.domainMastery = {};
         if (!Array.isArray(p.telemetryLogs)) p.telemetryLogs = [];
+        if (!Array.isArray(p.completedQuestionIds)) p.completedQuestionIds = [];
         if (!p.dailyGoalQuestions) p.dailyGoalQuestions = p.ageGroup === 'kid' ? 10 : 12;
         if (!p.dailyGoalMinutes) p.dailyGoalMinutes = p.ageGroup === 'kid' ? 15 : 20;
       });
@@ -509,17 +600,98 @@
 
     /* ------------------------------------------------ profiles */
     getActiveProfile: function () {
-      return this.state.profiles[this.state.activeProfileId] || Object.values(this.state.profiles)[0];
+      const p = this.state.profiles[this.state.activeProfileId] || Object.values(this.state.profiles)[0];
+      return ensureProfileFields(p);
     },
-    getProfileById: function (id) { return this.state.profiles[id] || null; },
+    getProfileById: function (id) {
+      return ensureProfileFields(this.state.profiles[id] || null);
+    },
     getAllProfiles: function () {
-      return Object.values(this.state.profiles).sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
+      return Object.values(this.state.profiles)
+        .map(p => ensureProfileFields(p))
+        .sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
     },
     setActiveProfile: function (id) {
       if (this.state.profiles[id]) {
         this.state.activeProfileId = id;
         this.saveLocal();
       }
+    },
+
+    isQuestionCompleted: function (pid, qId) {
+      const p = this.getProfileById(pid || this.state.activeProfileId);
+      if (!p || !Array.isArray(p.completedQuestionIds)) return false;
+      return p.completedQuestionIds.includes(qId);
+    },
+
+    markQuestionCompleted: function (pid, qId) {
+      if (!qId) return;
+      const p = this.getProfileById(pid || this.state.activeProfileId);
+      if (!p) return;
+      if (!Array.isArray(p.completedQuestionIds)) p.completedQuestionIds = [];
+      if (!p.completedQuestionIds.includes(qId)) {
+        p.completedQuestionIds.push(qId);
+        this.markProfile(p.id);
+        this.saveLocal();
+        this.scheduleCloudSync();
+        this.notify();
+      }
+    },
+
+    unmarkQuestionCompleted: function (pid, qId) {
+      if (!qId) return;
+      const p = this.getProfileById(pid || this.state.activeProfileId);
+      if (!p || !Array.isArray(p.completedQuestionIds)) return;
+      const idx = p.completedQuestionIds.indexOf(qId);
+      if (idx !== -1) {
+        p.completedQuestionIds.splice(idx, 1);
+        this.markProfile(p.id);
+        this.saveLocal();
+        this.scheduleCloudSync();
+        this.notify();
+      }
+    },
+
+    resetCompletedQuestions: function (pid, domainOrCategory) {
+      const p = this.getProfileById(pid || this.state.activeProfileId);
+      if (!p || !Array.isArray(p.completedQuestionIds)) return 0;
+      let count = 0;
+      if (!domainOrCategory || domainOrCategory === 'ALL') {
+        count = p.completedQuestionIds.length;
+        p.completedQuestionIds = [];
+      } else {
+        const initialLen = p.completedQuestionIds.length;
+        const qIdsInDomain = new Set(
+          (this.state.questions || [])
+            .filter(q => (q.domain || '') === domainOrCategory)
+            .map(q => q.id)
+        );
+        p.completedQuestionIds = p.completedQuestionIds.filter(id => {
+          if (qIdsInDomain.has(id)) return false;
+          if (id.startsWith('item_' + domainOrCategory + '_') || id.startsWith('kid_match_' + domainOrCategory + '_')) return false;
+          if ((domainOrCategory === 'spelling' || domainOrCategory === '6+ Spelling Bee') && (id.startsWith('spelling_') || id.startsWith('kid_spell_'))) return false;
+          if ((domainOrCategory === 'numbers' || domainOrCategory === '6+ Numbers & Math') && id.startsWith('kid_math_')) return false;
+          return true;
+        });
+        count = initialLen - p.completedQuestionIds.length;
+      }
+      this.markProfile(p.id);
+      this.saveLocal();
+      this.scheduleCloudSync();
+      this.notify();
+      return count;
+    },
+
+    getCompletedQuestionsCount: function (pid, domain) {
+      const p = this.getProfileById(pid || this.state.activeProfileId);
+      if (!p || !Array.isArray(p.completedQuestionIds)) return 0;
+      if (!domain || domain === 'ALL') return p.completedQuestionIds.length;
+      const qIdsInDomain = new Set(
+        (this.state.questions || [])
+          .filter(q => (q.domain || '') === domain)
+          .map(q => q.id)
+      );
+      return p.completedQuestionIds.filter(id => qIdsInDomain.has(id)).length;
     },
 
     upsertProfile: function (fields) {
@@ -635,6 +807,13 @@
       if (isQuestion) {
         m.attempted = (m.attempted || 0) + 1;
         if (isCorrect) m.correct = (m.correct || 0) + 1;
+      }
+
+      if (opts.questionId && isCorrect) {
+        if (!Array.isArray(p.completedQuestionIds)) p.completedQuestionIds = [];
+        if (!p.completedQuestionIds.includes(opts.questionId)) {
+          p.completedQuestionIds.push(opts.questionId);
+        }
       }
 
       if (opts.telemetry) {
