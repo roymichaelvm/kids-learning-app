@@ -35,6 +35,8 @@
     document.getElementById('section-teen-dashboard').classList.add('hidden');
     document.getElementById('section-teen-sat').classList.add('hidden');
     document.getElementById('section-languages').classList.add('hidden');
+    const adminSec = document.getElementById('section-parent-admin');
+    if (adminSec) adminSec.classList.add('hidden');
 
     renderSubNavForTeen(tabName);
 

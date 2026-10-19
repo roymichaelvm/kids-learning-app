@@ -671,6 +671,10 @@
           if (id.startsWith('item_' + domainOrCategory + '_') || id.startsWith('kid_match_' + domainOrCategory + '_')) return false;
           if ((domainOrCategory === 'spelling' || domainOrCategory === '6+ Spelling Bee') && (id.startsWith('spelling_') || id.startsWith('kid_spell_'))) return false;
           if ((domainOrCategory === 'numbers' || domainOrCategory === '6+ Numbers & Math') && id.startsWith('kid_math_')) return false;
+          if (domainOrCategory === 'math_addition' && id.startsWith('kid_math_addition_')) return false;
+          if (domainOrCategory === 'math_subtraction' && id.startsWith('kid_math_subtraction_')) return false;
+          if (domainOrCategory === 'math_multiplication' && id.startsWith('kid_math_multiplication_')) return false;
+          if (domainOrCategory === 'math_division' && id.startsWith('kid_math_division_')) return false;
           return true;
         });
         count = initialLen - p.completedQuestionIds.length;

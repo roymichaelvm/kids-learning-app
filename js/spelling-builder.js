@@ -18,7 +18,7 @@
 
   // Expanded 120+ spelling words across 3, 4, 5, 6, and 7+ letters: [WORD, emoji, kid-friendly clue]
   const SHORT_SPELLING_WORDS = [
-    // 3 letters (30 words)
+    // 3 letters (45 words)
     ['CAT', '🐱', 'A furry pet that says meow!'], ['DOG', '🐶', 'A friendly pet that barks and wags its tail!'],
     ['SUN', '☀️', 'The big bright star that gives us daylight!'], ['HAT', '🎩', 'You wear it on your head!'],
     ['BUS', '🚌', 'A big vehicle that takes kids to school!'], ['PIG', '🐷', 'A pink farm animal that says oink!'],
@@ -34,7 +34,15 @@
     ['TOP', '陀', 'A toy that spins round and round!'], ['VAN', '🚐', 'A boxy vehicle that carries people or cargo!'],
     ['WEB', '🕸️', 'What a spider spins to catch flies!'], ['ZIP', '🤐', 'To close up a jacket fast!'],
     ['JET', '✈️', 'A super fast airplane in the sky!'], ['FAN', '🪭', 'It blows cool air on a warm day!'],
-    // 4 letters (30 words)
+    ['MOP', '🧹', 'Used to clean spills off the floor!'], ['POT', '🍲', 'Used for cooking yummy soup on the stove!'],
+    ['PIN', '🧷', 'A small metal fastener!'], ['LID', '🫙', 'The cover that closes a jar or pot!'],
+    ['LOG', '🪵', 'A thick cut piece of wood from a tree!'], ['HEN', '🐔', 'A mother chicken that clucks and lays eggs!'],
+    ['TUB', '🛁', 'Where you take a bubbly warm bath!'], ['NUT', '🥜', 'A crunchy little snack squirrels love!'],
+    ['CUB', '🐻', 'A cute little baby bear or tiger!'], ['MUG', '☕', 'A cup with a handle for hot cocoa!'],
+    ['PAN', '🍳', 'You fry eggs and pancakes in it!'], ['LIP', '👄', 'One of the soft edges of your mouth!'],
+    ['DOT', '🔴', 'A small round spot!'], ['BOW', '🎀', 'A pretty knot of ribbon!'],
+    ['FOG', '🌫️', 'A thick low cloud that makes it hard to see!'],
+    // 4 letters (45 words)
     ['FISH', '🐟', 'It swims in water and has fins!'], ['BIRD', '🐦', 'It has feathers and can fly!'],
     ['CAKE', '🎂', 'A sweet treat for birthdays!'], ['BOOK', '📖', 'You read stories in it!'],
     ['TREE', '🌳', 'A tall plant with leaves and branches!'], ['MOON', '🌙', 'It shines in the night sky!'],
@@ -50,7 +58,15 @@
     ['GOAT', '🐐', 'A farm animal with horns that climbs hills!'], ['KING', '🤴', 'A royal ruler who wears a crown!'],
     ['LEAF', '🍃', 'A green part that grows on a tree branch!'], ['NEST', '🪺', 'A cozy home a bird builds for its eggs!'],
     ['RING', '💍', 'A little circle of metal worn on a finger!'], ['SNOW', '❄️', 'Soft white flakes that fall in winter!'],
-    // 5 letters (30 words)
+    ['DOOR', '🚪', 'You open it to walk into a room!'], ['WIND', '💨', 'Moving air you feel outside!'],
+    ['SAND', '🏖️', 'Tiny soft grains on the beach!'], ['PARK', '🏞️', 'A green place where kids play on swings!'],
+    ['SEAL', '🦭', 'A playful sea animal that claps its flippers!'], ['LAMB', '🐑', 'A gentle baby sheep with white wool!'],
+    ['CRAB', '🦀', 'A sea creature with pincers that walks sideways!'], ['PEAR', '🍐', 'A sweet and juicy green fruit!'],
+    ['GOLD', '🪙', 'A shiny yellow precious metal!'], ['ROSE', '🌹', 'A pretty red flower with a sweet smell!'],
+    ['BABY', '👶', 'A tiny newborn person!'], ['WOLF', '🐺', 'A wild dog that howls at the full moon!'],
+    ['SOUP', '🥣', 'A warm bowl of broth and veggies!'], ['SOCK', '🧦', 'You wear it on your foot inside your shoe!'],
+    ['TENT', '⛺', 'A portable shelter you sleep in while camping!'],
+    // 5 letters (45 words)
     ['APPLE', '🍎', 'A crunchy red or green fruit!'], ['HOUSE', '🏠', 'The place where a family lives!'],
     ['TRAIN', '🚆', 'It runs on tracks and goes choo-choo!'], ['HORSE', '🐴', 'An animal you can ride that says neigh!'],
     ['MOUSE', '🐭', 'A tiny animal that squeaks!'], ['TIGER', '🐯', 'A big orange cat with black stripes!'],
@@ -66,7 +82,15 @@
     ['HEART', '❤️', 'It beats inside your chest and means love!'], ['KOALA', '🐨', 'A cute Australian animal that hugs eucalyptus trees!'],
     ['PANDA', '🐼', 'A black and white bear that munches bamboo!'], ['QUEEN', '👸', 'A royal lady who wears a crown!'],
     ['SHARK', '🦈', 'A big ocean fish with sharp teeth!'], ['WHALE', '🐋', 'The biggest animal in the ocean!'],
-    // 6 letters (30 words)
+    ['RIVER', '🏞️', 'A wide stream of fresh water flowing to the sea!'], ['GRASS', '🌱', 'The green plant carpet covering lawns and meadows!'],
+    ['CHEST', '📦', 'A treasure box or the front of your body!'], ['GHOST', '👻', 'A spooky, friendly sheet that says boo!'],
+    ['FLUTE', '🪈', 'A long thin musical pipe you blow into!'], ['PIANO', '🎹', 'An instrument with black and white keys!'],
+    ['BERRY', '🫐', 'A small sweet juicy fruit like a blueberry!'], ['CHICK', '🐥', 'A fluffy yellow baby bird!'],
+    ['STAMP', '📮', 'A little sticker you put on a letter to mail it!'], ['SPOON', '🥄', 'You eat soup and cereal with it!'],
+    ['STORM', '⛈️', 'Thunder, lightning, and heavy rain!'], ['TOWEL', '🧖', 'Used to dry yourself after a swim or bath!'],
+    ['SKATE', '🛼', 'A boot with wheels or a blade on the bottom!'], ['IGLOO', '🧊', 'A dome house built of snow blocks!'],
+    ['CANDY', '🍬', 'A sweet sugary treat!'],
+    // 6 letters (45 words)
     ['ORANGE', '🍊', 'A round juicy fruit, and also a color!'], ['RABBIT', '🐰', 'A fluffy animal with long ears that hops!'],
     ['MONKEY', '🐒', 'A playful animal that swings in trees!'], ['TURTLE', '🐢', 'A slow animal that carries its shell!'],
     ['PENCIL', '✏️', 'You write and draw with it, and can erase!'], ['FLOWER', '🌸', 'A pretty, colorful part of a plant!'],
@@ -82,7 +106,15 @@
     ['FINGER', '☝️', 'One of the five parts on your hand!'], ['GUITAR', '🎸', 'A musical instrument with strings you strum!'],
     ['JACKET', '🧥', 'A short coat you wear in cool weather!'], ['PLANET', '🪐', 'A large world that orbits around a star!'],
     ['TROPHY', '🏆', 'A shiny cup you win for doing your best!'], ['YELLOW', '💛', 'The bright color of lemons and the sun!'],
-    // 7+ letters (extra big words to pair with built-in pack)
+    ['SILVER', '🥈', 'A shiny grayish-white metal second to gold!'], ['FOREST', '🌲', 'A large area dense with tall trees!'],
+    ['PIGEON', '🐦', 'A friendly city bird that pecks at bread crumbs!'], ['CHERRY', '🍒', 'A small round bright red fruit with a stem!'],
+    ['KITTEN', '🐱', 'A playful little baby cat that purrs!'], ['MAGNET', '🧲', 'A piece of metal that attracts iron objects!'],
+    ['PUPPET', '🧸', 'A doll moved by hand strings or fingers!'], ['WIZARD', '🧙', 'A magical person with a wand and starry hat!'],
+    ['CIRCUS', '🎪', 'A big show with acrobats and clowns in a giant tent!'], ['DONKEY', '🫏', 'A hardworking animal with long ears that brays hee-haw!'],
+    ['PARCEL', '📦', 'A wrapped package delivered in the mail!'], ['CRAYON', '🖍️', 'A stick of colored wax used for coloring!'],
+    ['ROBOTS', '🤖', 'Smart mechanical machines that follow computer code!'], ['ISLAND', '🏝️', 'A piece of land surrounded by water on all sides!'],
+    ['SAFARI', '🦁', 'An expedition to observe wild animals in their habitat!'],
+    // 7+ letters (30 big words)
     ['TEACHER', '👩‍🏫', 'Someone who helps students learn at school!'],
     ['AIRPLANE', '🛩️', 'A flying machine with wings that carries passengers!'],
     ['SANDWICH', '🥪', 'Two slices of bread with yummy filling in between!'],
@@ -92,7 +124,22 @@
     ['STRAWBERRY', '🍓', 'A sweet red berry with tiny seeds on the outside!'],
     ['WATERMELON', '🍉', 'A giant green fruit that is pink and juicy inside!'],
     ['CATERPILLAR', '🐛', 'A hungry little larva that turns into a butterfly!'],
-    ['FIRETRUCK', '🚒', 'A bright red truck that firefighters drive!']
+    ['FIRETRUCK', '🚒', 'A bright red truck that firefighters drive!'],
+    ['DOLPHIN', '🐬', 'A friendly, smart sea mammal that leaps from waves!'],
+    ['OCTOPUS', '🐙', 'An ocean animal with eight flexible arms!'],
+    ['HAMBURGER', '🍔', 'A round patty inside a toasted bun with lettuce!'],
+    ['SUNFLOWER', '🌻', 'A tall yellow flower that turns towards the sun!'],
+    ['BUTTERFLY', '🦋', 'A delicate winged insect with vibrant colors!'],
+    ['CROCODILE', '🐊', 'A large reptile with sharp teeth that swims in rivers!'],
+    ['HELICOPTER', '🚁', 'An aircraft with spinning blades on top!'],
+    ['TELESCOPE', '🔭', 'An instrument that lets you see far-away stars and planets!'],
+    ['MOUNTAIN', '⛰️', 'A giant landform that rises high into the clouds!'],
+    ['SUBMARINE', '🚢', 'A naval ship that travels deep underwater!'],
+    ['KANGAROO', '🦘', 'An Australian animal that carries its joey in a pouch!'],
+    ['FLAMINGO', '🦩', 'A tall pink wading bird that balances on one leg!'],
+    ['DINOSAUR', '🦕', 'Prehistoric creatures that lived millions of years ago!'],
+    ['ASTRONAUT', '👨‍🚀', 'A brave explorer who travels in outer space!'],
+    ['LIGHTNING', '⚡', 'A giant electric flash that streaks across stormy skies!']
   ].map(([w, emoji, clue]) => ({
     emoji,
     primary: w.split('').join(' - '),
@@ -320,9 +367,9 @@
             <h3 class="text-2xl font-black text-slate-900">Spelling Bee Champion!</h3>
             <p class="text-base font-bold text-slate-700">You built ${levelName} spelling word in the hive! Try another level above.</p>
             <div class="pt-2">
-              <button onclick="resetCompletedSpellingWords()" class="px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-sm border-2 border-amber-500 shadow-kids-btn btn-tactile">
-                🔄 Reset &amp; Practice These Words Again
-              </button>
+              <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-amber-100 text-amber-950 text-xs font-bold border border-amber-300">
+                ⭐ Level Completed! Ask your parent or admin in the Parent Portal to reset or add more words.
+              </span>
             </div>
           </div>
         `;

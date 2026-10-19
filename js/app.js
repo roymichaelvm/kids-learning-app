@@ -987,7 +987,7 @@
     const p = activeProfile();
     const badge = document.getElementById('activeModeBadge');
 
-    ['section-teen-dashboard', 'section-teen-sat', 'section-languages', 'section-kid-playground']
+    ['section-teen-dashboard', 'section-teen-sat', 'section-languages', 'section-kid-playground', 'section-parent-admin']
       .forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
@@ -1028,10 +1028,33 @@
   function renderSubNavForKid() {
     const container = document.getElementById('subNavTabs');
     if (!container) return;
+    const currentTab = window.kidViewTab || 'practice';
+    const isPractice = currentTab === 'practice';
+    const isFlash = currentTab === 'flashcards';
+
+    const practiceCls = isPractice
+      ? "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition bg-amber-400 text-slate-950 border border-amber-500 shadow-xs"
+      : "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-700 hover:text-slate-950 hover:bg-slate-100";
+
+    const flashCls = isFlash
+      ? "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition bg-amber-400 text-slate-950 border border-amber-500 shadow-xs"
+      : "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-700 hover:text-slate-950 hover:bg-slate-100";
+
     container.innerHTML = `
-      <span class="text-xs font-bold text-amber-800 bg-amber-100/80 px-3 py-1 rounded-xl">
-        🎈 Hi ${escapeHtml(activeProfile().name || 'friend')}! Tap any colorful button below to hear words and play matching games!
-      </span>
+      <div class="flex items-center gap-2">
+        <button onclick="setKidViewTab('practice')" class="${practiceCls}">
+          <span>🎮</span>
+          <span>Practice &amp; Quizzes</span>
+        </button>
+        <button onclick="setKidViewTab('flashcards')" class="${flashCls}">
+          <span>🃏</span>
+          <span>Study Flashcards &amp; Deck</span>
+        </button>
+      </div>
+      <button onclick="openParentAdminPortal()" class="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 hover:bg-indigo-50 border border-indigo-200 transition ml-auto">
+        <span>⚙️</span>
+        <span>Parent Portal</span>
+      </button>
     `;
   }
 
@@ -1178,6 +1201,592 @@
   }
 
   /* =====================================================================
+     PARENT & ADMIN PORTAL CONTROLLER
+     ===================================================================== */
+  let adminActiveStudentId = null;
+
+  function openParentAdminPortal() {
+    const user = (window.LuminaDB && typeof window.LuminaDB.getCurrentUser === 'function')
+      ? window.LuminaDB.getCurrentUser()
+      : null;
+    if (!user) {
+      if (typeof window.showToast === 'function') {
+        window.showToast("Please sign in with your family account to access the Parent Portal.");
+      }
+      toggleFamilyAuthModal();
+      return;
+    }
+
+    if (typeof window.stopSatTimer === 'function') window.stopSatTimer();
+
+    ['section-teen-dashboard', 'section-teen-sat', 'section-languages', 'section-kid-playground']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+
+    const adminSec = document.getElementById('section-parent-admin');
+    if (adminSec) adminSec.classList.remove('hidden');
+
+    const badge = document.getElementById('activeModeBadge');
+    if (badge) {
+      badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-900 text-amber-300 border border-slate-700";
+      badge.innerText = '⚙️ Parent Admin Portal';
+    }
+
+    const appBody = document.getElementById('appBody');
+    if (appBody) appBody.className = "bg-[#F8FAFC] text-slate-900 min-h-screen flex flex-col font-sans transition-colors duration-300";
+
+    const allProfiles = (window.LuminaDB && typeof window.LuminaDB.getAllProfiles === 'function')
+      ? window.LuminaDB.getAllProfiles()
+      : [];
+    if (!adminActiveStudentId && allProfiles.length > 0) {
+      const active = activeProfile();
+      adminActiveStudentId = (active && active.id) || allProfiles[0].id;
+    }
+
+    renderAdminPortal();
+    updateAdminDomainDropdown();
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function closeParentAdminPortal() {
+    const adminSec = document.getElementById('section-parent-admin');
+    if (adminSec) adminSec.classList.add('hidden');
+    applyActiveProfileView();
+  }
+
+  function selectAdminStudent(pid) {
+    adminActiveStudentId = pid;
+    renderAdminPortal();
+  }
+
+  function getStudentTrackProgressList(pid) {
+    const p = (window.LuminaDB && typeof window.LuminaDB.getProfileById === 'function')
+      ? window.LuminaDB.getProfileById(pid)
+      : null;
+    if (!p) return [];
+    const completed = new Set((p && p.completedQuestionIds) || []);
+
+    const tracks = [];
+
+    // 1. Spelling Bee
+    const allSpelling = (typeof window.getAllSpellingItems === 'function')
+      ? window.getAllSpellingItems()
+      : [];
+    const spellingDone = allSpelling.filter(i => completed.has('spelling_' + ((i.word || i.primary || '').replace(/[^A-Za-z]/g, '').toUpperCase()))).length;
+    tracks.push({
+      key: 'spelling',
+      domain: '6+ Spelling Bee',
+      title: '🐝 6+ Spelling Bee',
+      category: 'Spelling & Vocabulary',
+      targetProfile: 'kid',
+      total: allSpelling.length || 200,
+      completedCount: spellingDone,
+      percent: Math.min(100, Math.round(((spellingDone) / (allSpelling.length || 1)) * 100)),
+      isCompleted: spellingDone >= (allSpelling.length || 1) && allSpelling.length > 0
+    });
+
+    // 2. Math - Addition
+    const addDone = Array.from(completed).filter(id => id.startsWith('kid_math_addition_')).length;
+    tracks.push({
+      key: 'math_addition',
+      domain: '6+ Numbers & Math',
+      title: '➕ Numbers & Math — Addition',
+      category: 'Math',
+      targetProfile: 'kid',
+      total: 25,
+      completedCount: Math.min(25, addDone),
+      percent: Math.min(100, Math.round((Math.min(25, addDone) / 25) * 100)),
+      isCompleted: addDone >= 25
+    });
+
+    // 3. Math - Subtraction
+    const subDone = Array.from(completed).filter(id => id.startsWith('kid_math_subtraction_')).length;
+    tracks.push({
+      key: 'math_subtraction',
+      domain: '6+ Numbers & Math',
+      title: '➖ Numbers & Math — Subtraction',
+      category: 'Math',
+      targetProfile: 'kid',
+      total: 25,
+      completedCount: Math.min(25, subDone),
+      percent: Math.min(100, Math.round((Math.min(25, subDone) / 25) * 100)),
+      isCompleted: subDone >= 25
+    });
+
+    // 4. Math - Multiplication
+    const mulDone = Array.from(completed).filter(id => id.startsWith('kid_math_multiplication_')).length;
+    tracks.push({
+      key: 'math_multiplication',
+      domain: '6+ Numbers & Math',
+      title: '✖️ Numbers & Math — Multiplication',
+      category: 'Math',
+      targetProfile: 'kid',
+      total: 25,
+      completedCount: Math.min(25, mulDone),
+      percent: Math.min(100, Math.round((Math.min(25, mulDone) / 25) * 100)),
+      isCompleted: mulDone >= 25
+    });
+
+    // 5. Math - Division
+    const divDone = Array.from(completed).filter(id => id.startsWith('kid_math_division_')).length;
+    tracks.push({
+      key: 'math_division',
+      domain: '6+ Numbers & Math',
+      title: '➗ Numbers & Math — Division',
+      category: 'Math',
+      targetProfile: 'kid',
+      total: 25,
+      completedCount: Math.min(25, divDone),
+      percent: Math.min(100, Math.round((Math.min(25, divDone) / 25) * 100)),
+      isCompleted: divDone >= 25
+    });
+
+    // 6. Story Reading & Comprehension
+    const compQs = (appData.questions || []).filter(q => q.domain === '6+ Story Reading & Comprehension');
+    const compDone = compQs.filter(q => completed.has(q.id) || completed.has(getQuestionSignature(q))).length;
+    const compTotal = compQs.length || 10;
+    tracks.push({
+      key: '6+ Story Reading & Comprehension',
+      domain: '6+ Story Reading & Comprehension',
+      title: '📖 6+ Story Reading & Comprehension',
+      category: 'Reading',
+      targetProfile: 'kid',
+      total: compTotal,
+      completedCount: compDone,
+      percent: Math.min(100, Math.round((compDone / compTotal) * 100)),
+      isCompleted: compDone >= compTotal && compTotal > 0
+    });
+
+    // 7. Grammar & Sentence Building
+    const gramQs = (appData.questions || []).filter(q => q.domain === '6+ Grammar & Sentence Building');
+    const gramDone = gramQs.filter(q => completed.has(q.id) || completed.has(getQuestionSignature(q))).length;
+    const gramTotal = gramQs.length || 10;
+    tracks.push({
+      key: '6+ Grammar & Sentence Building',
+      domain: '6+ Grammar & Sentence Building',
+      title: '✏️ 6+ Grammar & Sentences',
+      category: 'Grammar',
+      targetProfile: 'kid',
+      total: gramTotal,
+      completedCount: gramDone,
+      percent: Math.min(100, Math.round((gramDone / gramTotal) * 100)),
+      isCompleted: gramDone >= gramTotal && gramTotal > 0
+    });
+
+    // 8. Sight Words & Phonics
+    const phonicsItems = (window.multiLangData && window.multiLangData.phonics && window.multiLangData.phonics.kidItems) || [];
+    const phonicsDone = phonicsItems.filter(i => completed.has('kid_match_phonics_words_' + i.primary) || completed.has('kid_match_phonics_' + i.primary)).length;
+    tracks.push({
+      key: 'phonics',
+      domain: 'Sight Words & Phonics',
+      title: '🔤 Sight Words & Phonics',
+      category: 'Phonics',
+      targetProfile: 'kid',
+      total: phonicsItems.length || 20,
+      completedCount: phonicsDone,
+      percent: Math.min(100, Math.round((phonicsDone / (phonicsItems.length || 1)) * 100)),
+      isCompleted: phonicsDone >= (phonicsItems.length || 1) && phonicsItems.length > 0
+    });
+
+    // 9. Animals & Science
+    const animalItems = (window.multiLangData && window.multiLangData.animals && window.multiLangData.animals.kidItems) || [];
+    const animalDone = animalItems.filter(i => completed.has('kid_match_animals_words_' + i.primary) || completed.has('kid_match_animals_' + i.primary)).length;
+    tracks.push({
+      key: 'animals',
+      domain: 'Animals & Science',
+      title: '🦁 Animals & Science Facts',
+      category: 'Science',
+      targetProfile: 'kid',
+      total: animalItems.length || 20,
+      completedCount: animalDone,
+      percent: Math.min(100, Math.round((animalDone / (animalItems.length || 1)) * 100)),
+      isCompleted: animalDone >= (animalItems.length || 1) && animalItems.length > 0
+    });
+
+    // 10. Malayalam Track
+    const malPack = window.multiLangData && window.multiLangData.malayalam;
+    const malTotal = ((malPack && malPack.letters ? malPack.letters.length : 0) + (malPack && malPack.kidItems ? malPack.kidItems.length : 0) + (malPack && malPack.sentences ? malPack.sentences.length : 0)) || 50;
+    const malDone = Array.from(completed).filter(id => id.startsWith('kid_match_malayalam_')).length;
+    tracks.push({
+      key: 'malayalam',
+      domain: 'Malayalam Language Pack',
+      title: '🌴 Malayalam Track',
+      category: 'Languages',
+      targetProfile: 'kid',
+      total: malTotal,
+      completedCount: Math.min(malTotal, malDone),
+      percent: Math.min(100, Math.round((Math.min(malTotal, malDone) / malTotal) * 100)),
+      isCompleted: malDone >= malTotal && malTotal > 0
+    });
+
+    // 11. Hindi Track
+    const hinPack = window.multiLangData && window.multiLangData.hindi;
+    const hinTotal = ((hinPack && hinPack.letters ? hinPack.letters.length : 0) + (hinPack && hinPack.kidItems ? hinPack.kidItems.length : 0) + (hinPack && hinPack.sentences ? hinPack.sentences.length : 0)) || 50;
+    const hinDone = Array.from(completed).filter(id => id.startsWith('kid_match_hindi_')).length;
+    tracks.push({
+      key: 'hindi',
+      domain: 'Hindi Language Pack',
+      title: '🪔 Hindi Track',
+      category: 'Languages',
+      targetProfile: 'kid',
+      total: hinTotal,
+      completedCount: Math.min(hinTotal, hinDone),
+      percent: Math.min(100, Math.round((Math.min(hinTotal, hinDone) / hinTotal) * 100)),
+      isCompleted: hinDone >= hinTotal && hinTotal > 0
+    });
+
+    // 12. Spanish Track
+    const espPack = window.multiLangData && window.multiLangData.spanish;
+    const espTotal = ((espPack && espPack.kidItems ? espPack.kidItems.length : 0) + (espPack && espPack.sentences ? espPack.sentences.length : 0)) || 40;
+    const espDone = Array.from(completed).filter(id => id.startsWith('kid_match_spanish_')).length;
+    tracks.push({
+      key: 'spanish',
+      domain: 'Spanish Language Pack',
+      title: '🇪🇸 Spanish Track',
+      category: 'Languages',
+      targetProfile: 'kid',
+      total: espTotal,
+      completedCount: Math.min(espTotal, espDone),
+      percent: Math.min(100, Math.round((Math.min(espTotal, espDone) / espTotal) * 100)),
+      isCompleted: espDone >= espTotal && espTotal > 0
+    });
+
+    // 13. SAT Bluebook Reading & Writing
+    const satRwQs = (appData.questions || []).filter(q => (q.targetProfile || 'teen') !== 'kid' && (q.domain.includes('Reading') || q.domain.includes('Writing') || q.domain.includes('Ideas')));
+    const satRwDone = satRwQs.filter(q => completed.has(q.id) || completed.has(getQuestionSignature(q))).length;
+    const satRwTotal = satRwQs.length || 30;
+    tracks.push({
+      key: 'sat_reading_writing',
+      domain: 'Information & Ideas',
+      title: '🎓 13+ SAT Reading & Writing',
+      category: 'SAT Bluebook',
+      targetProfile: 'teen',
+      total: satRwTotal,
+      completedCount: satRwDone,
+      percent: Math.min(100, Math.round((satRwDone / satRwTotal) * 100)),
+      isCompleted: satRwDone >= satRwTotal && satRwTotal > 0
+    });
+
+    // 14. SAT Bluebook Math
+    const satMathQs = (appData.questions || []).filter(q => (q.targetProfile || 'teen') !== 'kid' && (q.domain.includes('Math') || q.domain.includes('Algebra') || q.domain.includes('Advanced')));
+    const satMathDone = satMathQs.filter(q => completed.has(q.id) || completed.has(getQuestionSignature(q))).length;
+    const satMathTotal = satMathQs.length || 20;
+    tracks.push({
+      key: 'sat_math',
+      domain: 'Algebra',
+      title: '📐 13+ SAT Math',
+      category: 'SAT Bluebook',
+      targetProfile: 'teen',
+      total: satMathTotal,
+      completedCount: satMathDone,
+      percent: Math.min(100, Math.round((satMathDone / satMathTotal) * 100)),
+      isCompleted: satMathDone >= satMathTotal && satMathTotal > 0
+    });
+
+    return tracks;
+  }
+
+  function renderAdminPortal() {
+    const allProfiles = (window.LuminaDB && typeof window.LuminaDB.getAllProfiles === 'function')
+      ? window.LuminaDB.getAllProfiles()
+      : [];
+    if (!adminActiveStudentId && allProfiles.length > 0) {
+      adminActiveStudentId = allProfiles[0].id;
+    }
+    const student = allProfiles.find(p => p.id === adminActiveStudentId) || allProfiles[0];
+    if (!student) return;
+
+    // 1. Student Pills Bar
+    const pillsBar = document.getElementById('adminStudentPillsBar');
+    if (pillsBar) {
+      pillsBar.innerHTML = allProfiles.map(p => {
+        const active = p.id === student.id;
+        const tracks = getStudentTrackProgressList(p.id);
+        const finishedCount = tracks.filter(t => t.isCompleted).length;
+        const cls = active
+          ? "px-4 py-2 rounded-2xl bg-indigo-600 text-white font-extrabold text-xs shadow-md border-2 border-indigo-700 flex items-center gap-2 transition btn-tactile"
+          : "px-4 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-2 transition btn-tactile";
+        return `
+          <button onclick="selectAdminStudent('${p.id}')" class="${cls}">
+            <span class="text-base">${p.avatar || '👤'}</span>
+            <span>${escapeHtml(p.name || 'Student')}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${active ? 'bg-indigo-700 text-indigo-100' : 'bg-slate-200 text-slate-700'}">${finishedCount} completed</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // Top Student Name & Reset All button
+    const studentNameEl = document.getElementById('adminActiveStudentName');
+    if (studentNameEl) studentNameEl.innerText = `${student.avatar || ''} ${student.name || 'Student'}`;
+
+    const resetAllBox = document.getElementById('adminStudentResetAllBtnContainer');
+    if (resetAllBox) {
+      resetAllBox.innerHTML = `
+        <button onclick="resetStudentAllCompletedAreas('${student.id}')" class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-extrabold text-xs border border-rose-200 shadow-xs flex items-center gap-1.5 transition btn-tactile">
+          <span>🔄</span>
+          <span>Reset All Completed Tracks</span>
+        </button>
+      `;
+    }
+
+    // 2. Completed Areas Highlight Section
+    const tracks = getStudentTrackProgressList(student.id);
+    const completedTracks = tracks.filter(t => t.isCompleted);
+    const completedGrid = document.getElementById('adminCompletedAreasGrid');
+    const badgeEl = document.getElementById('adminCompletedAreasCountBadge');
+
+    if (badgeEl) {
+      badgeEl.innerHTML = `
+        <span class="px-3 py-1 rounded-full text-xs font-black ${completedTracks.length > 0 ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-slate-100 text-slate-600'}">
+          ${completedTracks.length} of ${tracks.length} Tracks Finished
+        </span>
+      `;
+    }
+
+    if (completedGrid) {
+      if (completedTracks.length === 0) {
+        completedGrid.className = "col-span-full py-8 text-center text-slate-400 bg-slate-50/60 rounded-2xl border border-dashed border-slate-200";
+        completedGrid.innerHTML = `
+          <div class="text-4xl mb-2">🌱</div>
+          <p class="text-sm font-bold text-slate-700">${escapeHtml(student.name || 'Student')} has not completely finished any full track yet.</p>
+          <p class="text-xs text-slate-500 mt-1">As questions and matching cards are completed, finished tracks will appear right here with one-click question expansion!</p>
+        `;
+      } else {
+        completedGrid.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
+        completedGrid.innerHTML = completedTracks.map(t => `
+          <div class="p-5 rounded-3xl bg-gradient-to-br from-emerald-50/90 to-teal-50/60 border-2 border-emerald-300 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-200/80 text-emerald-950 font-black text-[10px] uppercase tracking-wider">
+                  ✓ 100% Completed
+                </span>
+                <span class="text-xs font-extrabold text-emerald-900">${t.completedCount} / ${t.total} Done</span>
+              </div>
+              <h4 class="text-base font-black text-slate-900">${escapeHtml(t.title)}</h4>
+              <p class="text-xs font-semibold text-emerald-800 mt-1">Student has answered all questions in this track! Ready for new questions.</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-emerald-200/70 flex flex-wrap items-center gap-2">
+              <button onclick="prefillAdminQuestionCreator('${escapeHtml(t.domain)}', '${t.targetProfile}')" class="flex-1 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm flex items-center justify-center gap-1.5 transition btn-tactile">
+                <span>➕</span>
+                <span>Add Questions to This Track</span>
+              </button>
+              <button onclick="resetStudentArea('${student.id}', '${t.key}')" class="px-3 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-700 font-bold text-xs border border-rose-200 transition btn-tactile">
+                <span>🔄 Reset</span>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // 3. All Curriculum Tracks Grid
+    const allTracksGrid = document.getElementById('adminAllTracksGrid');
+    if (allTracksGrid) {
+      const overallSum = tracks.reduce((acc, t) => acc + t.completedCount, 0);
+      const overallTotal = tracks.reduce((acc, t) => acc + t.total, 0);
+      const overallPct = overallTotal ? Math.round((overallSum / overallTotal) * 100) : 0;
+
+      const pctEl = document.getElementById('adminStudentOverallProgressText');
+      if (pctEl) pctEl.innerText = `${overallPct}% (${overallSum} / ${overallTotal} items)`;
+
+      allTracksGrid.innerHTML = tracks.map(t => {
+        const isDone = t.isCompleted;
+        const barColor = isDone ? 'bg-emerald-500' : (t.percent > 0 ? 'bg-indigo-600' : 'bg-slate-300');
+        return `
+          <div class="p-4 rounded-2xl bg-white border ${isDone ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200'} shadow-xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-1 mb-1.5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(t.category)}</span>
+                <span class="text-xs font-black ${isDone ? 'text-emerald-700' : 'text-slate-700'}">${t.completedCount} / ${t.total} (${t.percent}%)</span>
+              </div>
+              <h5 class="text-sm font-extrabold text-slate-900 leading-snug">${escapeHtml(t.title)}</h5>
+              
+              <!-- Progress Bar -->
+              <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden my-2.5">
+                <div class="h-full rounded-full transition-all duration-500 ${barColor}" style="width: ${t.percent}%"></div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+              <button onclick="prefillAdminQuestionCreator('${escapeHtml(t.domain)}', '${t.targetProfile}')" class="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold transition flex items-center gap-1">
+                <span>➕ Add Q</span>
+              </button>
+              <button onclick="resetStudentArea('${student.id}', '${t.key}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 font-semibold transition" title="Reset this section for ${escapeHtml(student.name)}">
+                <span>🔄 Reset</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  function resetStudentArea(pid, trackKey) {
+    const student = (window.LuminaDB && typeof window.LuminaDB.getProfileById === 'function')
+      ? window.LuminaDB.getProfileById(pid)
+      : null;
+    const name = student ? student.name : 'Student';
+    if (window.LuminaDB && typeof window.LuminaDB.resetCompletedQuestions === 'function') {
+      window.LuminaDB.resetCompletedQuestions(pid, trackKey);
+    }
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Reset track "${trackKey}" for ${name}! Ready for practice.`);
+    }
+    renderAdminPortal();
+    refreshHeaderUI();
+  }
+
+  function resetStudentAllCompletedAreas(pid) {
+    const student = (window.LuminaDB && typeof window.LuminaDB.getProfileById === 'function')
+      ? window.LuminaDB.getProfileById(pid)
+      : null;
+    const name = student ? student.name : 'Student';
+    if (window.LuminaDB && typeof window.LuminaDB.resetCompletedQuestions === 'function') {
+      window.LuminaDB.resetCompletedQuestions(pid, 'ALL');
+    }
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Reset all completed tracks for ${name}! Ready for a clean start.`);
+    }
+    renderAdminPortal();
+    refreshHeaderUI();
+  }
+
+  function updateAdminDomainDropdown(selectedDomain) {
+    const profileSelect = document.getElementById('adminNewQProfile');
+    const domainSelect = document.getElementById('adminNewQDomain');
+    if (!profileSelect || !domainSelect) return;
+
+    const isKid = profileSelect.value === 'kid';
+    const kidDomains = [
+      '6+ Numbers & Math',
+      '6+ Spelling Bee',
+      '6+ Story Reading & Comprehension',
+      '6+ Grammar & Sentence Building',
+      'Sight Words & Phonics',
+      'Animals & Science',
+      'Malayalam Language Pack',
+      'Hindi Language Pack',
+      'Spanish Language Pack'
+    ];
+    const teenDomains = [
+      'Information & Ideas',
+      'Craft & Structure',
+      'Expression of Ideas',
+      'Standard English Conventions',
+      'Algebra',
+      'Advanced Math',
+      'Problem-Solving & Data Analysis',
+      'Geometry & Trigonometry',
+      'Malayalam Language Pack',
+      'Hindi Language Pack',
+      'Spanish Language Pack'
+    ];
+
+    const list = isKid ? kidDomains : teenDomains;
+    domainSelect.innerHTML = list.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+    if (selectedDomain && list.includes(selectedDomain)) {
+      domainSelect.value = selectedDomain;
+    }
+  }
+
+  function prefillAdminQuestionCreator(domain, targetProfile) {
+    const box = document.getElementById('adminQuestionCreatorBox');
+    if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const prof = document.getElementById('adminNewQProfile');
+    if (prof) {
+      prof.value = targetProfile || 'kid';
+    }
+    updateAdminDomainDropdown(domain);
+
+    const txt = document.getElementById('adminNewQText');
+    if (txt) txt.focus();
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Ready to add questions for ${domain}! Fill in the form below.`);
+    }
+  }
+
+  function resetAdminQuestionForm() {
+    const form = document.getElementById('adminNewQuestionForm');
+    if (form) form.reset();
+    updateAdminDomainDropdown();
+  }
+
+  function handleAdminCreateQuestionSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const profEl = document.getElementById('adminNewQProfile');
+    const domainEl = document.getElementById('adminNewQDomain');
+    const paraEl = document.getElementById('adminNewQParagraph');
+    const qTextEl = document.getElementById('adminNewQText');
+    const cAEl = document.getElementById('adminNewQChoiceA');
+    const cBEl = document.getElementById('adminNewQChoiceB');
+    const cCEl = document.getElementById('adminNewQChoiceC');
+    const cDEl = document.getElementById('adminNewQChoiceD');
+    const correctLetterEl = document.getElementById('adminNewQCorrectAnswer');
+    const expEl = document.getElementById('adminNewQExplanation');
+
+    if (!profEl || !domainEl || !qTextEl) return;
+
+    const prof = profEl.value;
+    const domain = domainEl.value;
+    const para = paraEl ? paraEl.value.trim() : '';
+    const qText = qTextEl.value.trim();
+    const cA = cAEl ? cAEl.value.trim() : '';
+    const cB = cBEl ? cBEl.value.trim() : '';
+    const cC = cCEl ? cCEl.value.trim() : '';
+    const cD = cDEl ? cDEl.value.trim() : '';
+    const correctLetter = correctLetterEl ? correctLetterEl.value : 'A';
+    const exp = expEl ? expEl.value.trim() : '';
+
+    if (!qText || !cA || !cB || !cC || !cD) {
+      if (typeof window.showToast === 'function') window.showToast("Please fill in question prompt and all four choices!");
+      return;
+    }
+
+    const newQuestion = {
+      id: 'q_' + prof + '_' + Date.now().toString(36),
+      targetProfile: prof,
+      domain: domain,
+      skill: domain,
+      question: {
+        paragraph: para || null,
+        question: qText,
+        choices: {
+          A: cA,
+          B: cB,
+          C: cC,
+          D: cD
+        },
+        correct_answer: correctLetter,
+        explanation: exp || `The correct answer is ${correctLetter}: ${correctLetter === 'A' ? cA : (correctLetter === 'B' ? cB : (correctLetter === 'C' ? cC : cD))}`
+      }
+    };
+
+    if (window.LuminaDB && typeof window.LuminaDB.addQuestion === 'function') {
+      window.LuminaDB.addQuestion(newQuestion);
+    } else {
+      appData.questions = appData.questions || [];
+      appData.questions.unshift(newQuestion);
+      saveState();
+    }
+
+    if (typeof window.showToast === 'function') {
+      window.showToast(`✓ Added new question to ${domain} and synced to cloud!`);
+    }
+
+    resetAdminQuestionForm();
+    renderAdminPortal();
+    refreshHeaderUI();
+  }
+
+  /* =====================================================================
      WINDOW EXPORTS & BOOTSTRAP
      ===================================================================== */
   window.multiLangData = multiLangData;
@@ -1210,6 +1819,17 @@
   window.handleFamilyLoginSubmit = handleFamilyLoginSubmit;
   window.handleFamilySignOut = handleFamilySignOut;
   window.updateFamilyAuthUI = updateFamilyAuthUI;
+  window.openParentAdminPortal = openParentAdminPortal;
+  window.closeParentAdminPortal = closeParentAdminPortal;
+  window.selectAdminStudent = selectAdminStudent;
+  window.getStudentTrackProgressList = getStudentTrackProgressList;
+  window.renderAdminPortal = renderAdminPortal;
+  window.resetStudentArea = resetStudentArea;
+  window.resetStudentAllCompletedAreas = resetStudentAllCompletedAreas;
+  window.updateAdminDomainDropdown = updateAdminDomainDropdown;
+  window.prefillAdminQuestionCreator = prefillAdminQuestionCreator;
+  window.resetAdminQuestionForm = resetAdminQuestionForm;
+  window.handleAdminCreateQuestionSubmit = handleAdminCreateQuestionSubmit;
 
   if (window.LuminaDB && typeof window.LuminaDB.onChange === 'function') {
     window.LuminaDB.onChange(() => refreshHeaderUI());

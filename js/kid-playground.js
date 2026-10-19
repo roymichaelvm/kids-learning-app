@@ -22,6 +22,7 @@
   let kidHintRevealed = false;
   let currentKidClueText = '';
   let mathOpFilter = 'all';
+  let kidViewTab = 'practice'; // 'practice' | 'flashcards'
 
   const ALL_KID_CATEGORIES = [
     { key: 'spelling', emoji: '🐝', name: 'Spelling Bee' },
@@ -278,11 +279,48 @@
     generateKidQuizRound();
   }
 
+  function setKidViewTab(tab) {
+    kidViewTab = tab;
+    window.kidViewTab = tab;
+    const practiceSec = document.getElementById('kidSectionPractice');
+    const flashcardSec = document.getElementById('kidSectionFlashcards');
+    const btnPractice = document.getElementById('tab-kid-practice');
+    const btnFlash = document.getElementById('tab-kid-flashcards');
+
+    if (practiceSec && flashcardSec) {
+      if (tab === 'flashcards') {
+        practiceSec.classList.add('hidden');
+        flashcardSec.classList.remove('hidden');
+        if (btnFlash) {
+          btnFlash.className = "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-amber-400 text-slate-950 border-2 border-amber-500 shadow-kids-btn btn-tactile";
+        }
+        if (btnPractice) {
+          btnPractice.className = "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-white text-slate-700 hover:text-slate-950 border-2 border-slate-200 shadow-kids-card btn-tactile";
+        }
+        renderKidFlashcard();
+      } else {
+        flashcardSec.classList.add('hidden');
+        practiceSec.classList.remove('hidden');
+        if (btnPractice) {
+          btnPractice.className = "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-amber-400 text-slate-950 border-2 border-amber-500 shadow-kids-btn btn-tactile";
+        }
+        if (btnFlash) {
+          btnFlash.className = "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-white text-slate-700 hover:text-slate-950 border-2 border-slate-200 shadow-kids-card btn-tactile";
+        }
+        generateKidQuizRound();
+      }
+    }
+    if (typeof window.renderSubNavForKid === 'function') {
+      window.renderSubNavForKid();
+    }
+  }
+
   function initKidPlayground() {
     const startCat = (window.appData && window.appData.kidCategory && window.multiLangData && window.multiLangData[window.appData.kidCategory])
       ? window.appData.kidCategory
       : 'spelling';
     selectKidCategory(startCat);
+    setKidViewTab(kidViewTab || 'practice');
     renderKidProgressSummary();
   }
 
@@ -325,6 +363,7 @@
 
     renderKidFlashcard();
     generateKidQuizRound();
+    setKidViewTab(kidViewTab || 'practice');
     renderKidProgressSummary();
   }
 
@@ -567,15 +606,17 @@
       if (topPrompt) topPrompt.innerText = 'Track Completed:';
       if (subHint) {
         subHint.classList.remove('hidden');
-        subHint.innerText = 'Want to play again? Tap below to reset this topic!';
+        subHint.innerText = 'All questions in this track are completed!';
       }
       if (grid) {
         grid.classList.remove('hidden');
         grid.className = "flex justify-center mt-4";
         grid.innerHTML = `
-          <button onclick="resetCurrentKidCategoryQuestions()" class="px-6 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-base border-2 border-amber-500 shadow-kids-btn btn-tactile">
-            🔄 Reset &amp; Practice This Track Again
-          </button>
+          <div class="p-4 sm:p-5 rounded-3xl bg-emerald-50 border-2 border-emerald-300 text-emerald-950 text-center space-y-1 shadow-sm max-w-md w-full">
+            <div class="text-3xl">🌟</div>
+            <p class="font-extrabold text-sm sm:text-base">Fantastic job! You completed all questions in this track!</p>
+            <p class="text-xs font-semibold text-emerald-800">Parents and admins can add new questions or reset this track in the Parent Portal.</p>
+          </div>
         `;
       }
       return;
@@ -650,15 +691,17 @@
       if (topPrompt) topPrompt.innerText = 'Track Completed:';
       if (subHint) {
         subHint.classList.remove('hidden');
-        subHint.innerText = 'Want to play again? Tap below to reset!';
+        subHint.innerText = 'All items in this matching track are completed!';
       }
       if (grid) {
         grid.classList.remove('hidden');
         grid.className = "flex justify-center mt-4";
         grid.innerHTML = `
-          <button onclick="resetCurrentKidCategoryQuestions()" class="px-6 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-base border-2 border-amber-500 shadow-kids-btn btn-tactile">
-            🔄 Reset &amp; Match Again
-          </button>
+          <div class="p-4 sm:p-5 rounded-3xl bg-amber-50 border-2 border-amber-300 text-amber-950 text-center space-y-1 shadow-sm max-w-md w-full">
+            <div class="text-3xl">🏆</div>
+            <p class="font-extrabold text-sm sm:text-base">Super Explorer! You matched every item in this deck!</p>
+            <p class="text-xs font-semibold text-amber-800">Parents and admins can reset this track or add more items in the Parent Portal.</p>
+          </div>
         `;
       }
       return;
@@ -872,6 +915,8 @@
   window.ALL_KID_CATEGORIES = ALL_KID_CATEGORIES;
   window.kidSubMode = kidSubMode;
   window.setKidSubMode = setKidSubMode;
+  window.kidViewTab = kidViewTab;
+  window.setKidViewTab = setKidViewTab;
   window.mathOpFilter = mathOpFilter;
   window.setMathOpFilter = setMathOpFilter;
   window.getGeneratedMathQuestions = getGeneratedMathQuestions;
