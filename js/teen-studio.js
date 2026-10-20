@@ -598,7 +598,18 @@
     const isCorrect = (currentSelectedOption === correctKey);
     const totalSeconds = Number(satElapsedSeconds.toFixed(1));
     const changedMind = (currentFirstClickOption !== currentSelectedOption);
-    const xpEarned = isCorrect ? 25 : 5;
+
+    let satSubKey = null;
+    const dom = (item && item.domain) ? item.domain.toLowerCase() : '';
+    if (dom.includes('math') || dom.includes('algebra') || dom.includes('geometry') || dom.includes('trig') || dom.includes('problem')) {
+      satSubKey = 'math';
+    } else if (dom.includes('read') || dom.includes('writ') || dom.includes('verbal') || dom.includes('english')) {
+      satSubKey = 'rw';
+    }
+    const baseSatXP = (typeof window.getSectionXP === 'function')
+      ? window.getSectionXP('sat', satSubKey)
+      : 25;
+    const xpEarned = isCorrect ? baseSatXP : Math.max(5, Math.round(baseSatXP * 0.2));
 
     // Record in active child's profile & sync to Firebase
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
@@ -634,7 +645,8 @@
     }
 
     if (isCorrect && typeof window.confetti === 'function') {
-      window.confetti({ particleCount: 55, spread: 60, origin: { y: 0.65 } });
+      const burstCount = baseSatXP >= 40 ? 90 : 55;
+      window.confetti({ particleCount: burstCount, spread: 65, origin: { y: 0.65 } });
     }
 
     ['A', 'B', 'C', 'D'].forEach(letter => {
@@ -657,13 +669,16 @@
         iconBox.className = "w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-bold";
         iconBox.innerText = "✓";
       }
-      if (headline) headline.innerText = "Spot On! +25 XP";
+      if (headline) {
+        const bonusTag = baseSatXP >= 40 ? '🔥 ' : '';
+        headline.innerText = `Spot On! ${bonusTag}+${baseSatXP} XP`;
+      }
     } else {
       if (iconBox) {
         iconBox.className = "w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl font-bold";
         iconBox.innerText = "✗";
       }
-      if (headline) headline.innerText = `Not quite — Correct Answer is ${correctKey} (+5 XP for effort)`;
+      if (headline) headline.innerText = `Not quite — Correct Answer is ${correctKey} (+${xpEarned} XP for effort)`;
     }
 
     const keyBadge = document.getElementById('satOfficialKeyBadge');
@@ -803,6 +818,9 @@
       }
     }
     setTeenLangSubMode(teenSubMode);
+    if (typeof window.refreshStudentXPBadges === 'function') {
+      window.refreshStudentXPBadges();
+    }
   }
 
   function getActiveTeenCardList() {
@@ -1062,6 +1080,11 @@
     const banner = document.getElementById('teenLangQuizBanner');
     if (banner) banner.classList.remove('hidden');
 
+    const baseXP = (typeof window.getSectionXP === 'function')
+      ? window.getSectionXP(lang, teenSubMode)
+      : 20;
+    const earnedXP = isCorrect ? baseXP : Math.max(2, Math.round(baseXP * 0.1));
+
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
       ? window.LuminaDB.getActiveProfile()
       : null;
@@ -1072,7 +1095,7 @@
         domain: pack.label,
         title: quiz.q,
         isCorrect: isCorrect,
-        xp: isCorrect ? 20 : 2,
+        xp: earnedXP,
         durationSec: 8,
         detail: quiz.choices[chosen] || ''
       });
@@ -1082,12 +1105,14 @@
       if (p && window.LuminaDB && typeof window.LuminaDB.markQuestionCompleted === 'function') {
         window.LuminaDB.markQuestionCompleted(p.id, `teen_lang_${lang}_${teenSubMode}_${quiz.q}`);
       }
+      const burstCount = baseXP >= 40 ? 80 : 40;
       if (typeof window.confetti === 'function') {
-        window.confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 } });
+        window.confetti({ particleCount: burstCount, spread: 60, origin: { y: 0.7 } });
       }
       if (banner) {
         banner.className = "mt-6 p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-emerald-50 text-emerald-800 border border-emerald-200";
-        banner.innerHTML = `<span>🎉 Correct! +20 XP earned!</span> <button onclick="nextTeenLangQuizQuestion()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm transition">Next Question →</button>`;
+        const bonusTag = baseXP >= 40 ? '🔥 ' : '';
+        banner.innerHTML = `<span>🎉 Correct! ${bonusTag}+${baseXP} XP earned!</span> <button onclick="nextTeenLangQuizQuestion()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm transition">Next Question →</button>`;
       }
     } else {
       if (banner) {

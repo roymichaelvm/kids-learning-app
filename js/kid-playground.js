@@ -243,7 +243,14 @@
       const cls = active
         ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-sm'
         : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50';
-      return `<button id="math-op-${key}" onclick="setMathOpFilter('${key}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition ${cls}">${label} <span class="opacity-60">(${count})</span></button>`;
+      const xpVal = (typeof window.getSectionXP === 'function' && key !== 'all')
+        ? window.getSectionXP(`math_${key}`)
+        : null;
+      const isBonus = xpVal && xpVal >= 40;
+      const xpPill = xpVal
+        ? `<span class="ml-1 text-[10px] font-black px-1.5 py-0.2 rounded-full ${isBonus ? 'bg-rose-500 text-white shadow-xs' : 'bg-slate-900/10 text-slate-800'}">${isBonus ? '🔥 +' : '+'}${xpVal}</span>`
+        : '';
+      return `<button id="math-op-${key}" onclick="setMathOpFilter('${key}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition ${cls}">${label} <span class="opacity-60">(${count})</span>${xpPill}</button>`;
     }).join('');
   }
 
@@ -365,6 +372,9 @@
     generateKidQuizRound();
     setKidViewTab(kidViewTab || 'practice');
     renderKidProgressSummary();
+    if (typeof window.refreshStudentXPBadges === 'function') {
+      window.refreshStudentXPBadges();
+    }
   }
 
   function stripTranslit(s) {
@@ -782,12 +792,28 @@
 
   function checkKidCloudQuizAnswer(chosenLetter) {
     if (!currentKidCloudQuestion || !currentKidCloudQuestion.question) return;
-    const pack = window.multiLangData[window.appData.kidCategory];
+    const cat = window.appData.kidCategory;
+    const pack = window.multiLangData[cat];
     const qObj = currentKidCloudQuestion.question;
     const correctLetter = qObj.correct_answer;
     const isCorrect = (chosenLetter === correctLetter);
     const toast = document.getElementById('kidQuizFeedbackToast');
     toast.classList.remove('hidden');
+
+    let effectiveTrack = cat;
+    let effectiveSub = null;
+    if (cat === 'numbers' && currentKidCloudQuestion.mathOp) {
+      effectiveTrack = 'math';
+      effectiveSub = currentKidCloudQuestion.mathOp;
+    } else if (cat === 'malayalam' || cat === 'hindi' || cat === 'spanish') {
+      effectiveTrack = cat;
+      effectiveSub = kidSubMode || 'words';
+    }
+
+    const baseXP = (typeof window.getSectionXP === 'function')
+      ? window.getSectionXP(effectiveTrack, effectiveSub)
+      : 20;
+    const earnedXP = isCorrect ? baseXP : Math.max(3, Math.round(baseXP * 0.2));
 
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
       ? window.LuminaDB.getActiveProfile()
@@ -796,10 +822,10 @@
     if (window.LuminaDB && typeof window.LuminaDB.recordActivity === 'function') {
       window.LuminaDB.recordActivity({
         type: 'kid_quiz',
-        domain: pack.label,
+        domain: pack ? pack.label : 'Kids Learning',
         title: qObj.question || currentKidCloudQuestion.id,
         isCorrect: isCorrect,
-        xp: isCorrect ? 20 : 5,
+        xp: earnedXP,
         durationSec: 10,
         detail: `Answered ${chosenLetter} (${(qObj.choices && qObj.choices[chosenLetter]) || ''})`
       });
@@ -812,8 +838,9 @@
       const hintBtn = document.getElementById('kidQuizHintBtn');
       if (hintBtn) hintBtn.classList.add('hidden');
 
+      const burstCount = baseXP >= 40 ? 110 : 75;
       if (typeof window.confetti === 'function') {
-        window.confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } });
+        window.confetti({ particleCount: burstCount, spread: 75, origin: { y: 0.6 } });
       }
       ['A', 'B', 'C', 'D'].forEach(letter => {
         const btn = document.getElementById(`kid-cloud-opt-${letter}`);
@@ -822,8 +849,9 @@
           btn.className = "p-4 sm:p-5 rounded-3xl bg-emerald-100 border-4 border-emerald-500 shadow-kids-card flex items-center gap-3.5 text-left transition";
         }
       });
+      const bonusTag = baseXP >= 40 ? '🔥 SUPER STAR!' : '🌟 SUPER STAR!';
       toast.className = "mt-5 p-4 rounded-2xl text-left text-base sm:text-lg font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400";
-      toast.innerHTML = `<div class="flex items-center justify-between gap-2 mb-1"><span>🌟 SUPER STAR! +20 XP!</span><button onclick="generateKidQuizRound()" class="px-4 py-1.5 rounded-xl bg-emerald-600 text-white text-sm font-bold">Next Question ➡️</button></div><p class="text-sm font-semibold text-emerald-900">${escapeHtml(qObj.explanation || '')}</p>`;
+      toast.innerHTML = `<div class="flex items-center justify-between gap-2 mb-1"><span>${bonusTag} +${baseXP} XP!</span><button onclick="generateKidQuizRound()" class="px-4 py-1.5 rounded-xl bg-emerald-600 text-white text-sm font-bold">Next Question ➡️</button></div><p class="text-sm font-semibold text-emerald-900">${escapeHtml(qObj.explanation || '')}</p>`;
     } else {
       if (!hasFailedFirstAttempt) {
         hasFailedFirstAttempt = true;
@@ -843,12 +871,18 @@
   }
 
   function checkKidQuizSelection(poolIdx) {
-    const pack = window.multiLangData[window.appData.kidCategory];
+    const cat = window.appData.kidCategory;
+    const pack = window.multiLangData[cat];
     const chosen = (window._currentKidPool && window._currentKidPool[poolIdx]) || null;
     const chosenPrimary = chosen ? chosen.primary : '';
     const isCorrect = (chosenPrimary === currentKidQuizAnswer.primary);
     const toast = document.getElementById('kidQuizFeedbackToast');
     toast.classList.remove('hidden');
+
+    const baseXP = (typeof window.getSectionXP === 'function')
+      ? window.getSectionXP(cat, kidSubMode)
+      : 15;
+    const earnedXP = isCorrect ? baseXP : Math.max(2, Math.round(baseXP * 0.2));
 
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
       ? window.LuminaDB.getActiveProfile()
@@ -857,10 +891,10 @@
     if (window.LuminaDB && typeof window.LuminaDB.recordActivity === 'function') {
       window.LuminaDB.recordActivity({
         type: 'kid_quiz',
-        domain: pack.label,
+        domain: pack ? pack.label : 'Kids Learning',
         title: currentKidQuizAnswer.primary,
         isCorrect: isCorrect,
-        xp: isCorrect ? 15 : 3,
+        xp: earnedXP,
         durationSec: 6,
         detail: currentKidQuizAnswer.meaning
       });
@@ -874,11 +908,13 @@
       const hintBtn = document.getElementById('kidQuizHintBtn');
       if (hintBtn) hintBtn.classList.add('hidden');
 
+      const burstCount = baseXP >= 40 ? 100 : 70;
       if (typeof window.confetti === 'function') {
-        window.confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+        window.confetti({ particleCount: burstCount, spread: 70, origin: { y: 0.6 } });
       }
+      const bonusTag = baseXP >= 40 ? '🔥 ' : '';
       toast.className = "mt-5 p-4 rounded-2xl text-center text-lg font-bold bg-emerald-100 text-emerald-900 border-2 border-emerald-400";
-      toast.innerText = "🌟 YAY! You got it right! +15 Stars!";
+      toast.innerText = `🌟 YAY! You got it right! ${bonusTag}+${baseXP} Stars!`;
       setTimeout(generateKidQuizRound, 1600);
     } else {
       if (!hasFailedFirstAttempt) {

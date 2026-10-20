@@ -267,7 +267,7 @@
     return msg;
   }
 
-  const PERSISTED_KEYS = ['activeProfileId', 'teenSubTab', 'activeLanguage', 'kidCategory', 'profiles', 'customKidCards', 'lastCloudSync'];
+  const PERSISTED_KEYS = ['activeProfileId', 'teenSubTab', 'activeLanguage', 'kidCategory', 'profiles', 'customKidCards', 'sectionXP', 'lastCloudSync'];
 
   /* ------------------------------------------------------------------ engine */
   const LuminaDB = {
@@ -283,6 +283,7 @@
       profiles: defaultProfiles(),
       questions: clean(DEFAULT_QUESTIONS),
       customKidCards: [],
+      sectionXP: {},
       languagePacks: {},
       lastCloudSync: null,
       cloudStatus: 'local',   // 'local' | 'syncing' | 'connected' | 'error'
@@ -1035,7 +1036,7 @@
             }
           }
           if (snap.questions || snap.meta) {
-            const metaData = { updatedAt: ts, questionsCount: this.state.questions.length, customKidCards: this.state.customKidCards || [] };
+            const metaData = { updatedAt: ts, questionsCount: this.state.questions.length, customKidCards: this.state.customKidCards || [], sectionXP: this.state.sectionXP || {} };
             if (chunkCount !== null) metaData.questionChunks = chunkCount;
             ops.push(metaRef.set(clean(metaData), { merge: true }));
           }
@@ -1122,6 +1123,9 @@
             }
           }
           if (!this.pending.meta && Array.isArray(meta.customKidCards)) this.state.customKidCards = meta.customKidCards;
+          if (meta.sectionXP && typeof meta.sectionXP === 'object') {
+            this.state.sectionXP = Object.assign({}, meta.sectionXP, this.state.sectionXP || {});
+          }
         }
 
         // ---- Language packs (Malayalam, Hindi, Spanish in Cloud Firestore)

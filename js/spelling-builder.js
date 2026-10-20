@@ -259,7 +259,14 @@
       const cls = active
         ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-sm'
         : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50';
-      return `<button id="spelling-level-${key}" onclick="setSpellingLengthFilter('${key}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition ${cls}">${label} <span class="opacity-60">(${count})</span></button>`;
+      const xpVal = (typeof window.getSectionXP === 'function' && key !== 'all')
+        ? window.getSectionXP('spelling', key)
+        : null;
+      const isBonus = xpVal && xpVal >= 40;
+      const xpPill = xpVal
+        ? `<span class="ml-1 text-[10px] font-black px-1.5 py-0.2 rounded-full ${isBonus ? 'bg-rose-500 text-white shadow-xs' : 'bg-slate-900/10 text-slate-800'}">${isBonus ? '🔥 +' : '+'}${xpVal}</span>`
+        : '';
+      return `<button id="spelling-level-${key}" onclick="setSpellingLengthFilter('${key}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition ${cls}">${label} <span class="opacity-60">(${count})</span>${xpPill}</button>`;
     }).join('');
   }
 
@@ -567,8 +574,14 @@
 
     if (assembled === target) {
       isSpellingResolving = true;
+      const wordLenKey = (target.length >= 7) ? 'big' : String(target.length);
+      const earnedXP = (typeof window.getSectionXP === 'function')
+        ? window.getSectionXP('spelling', wordLenKey)
+        : 20;
+
+      const burstCount = earnedXP >= 40 ? 120 : 85;
       if (typeof window.confetti === 'function') {
-        window.confetti({ particleCount: 85, spread: 80, origin: { y: 0.6 } });
+        window.confetti({ particleCount: burstCount, spread: 80, origin: { y: 0.6 } });
       }
 
       if (slotsRow) {
@@ -579,7 +592,8 @@
 
       if (toast) {
         toast.className = "mt-5 p-4 rounded-2xl text-center text-lg font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400";
-        toast.innerHTML = `🎉 Super Speller! You built <strong>${target}</strong>! (+20 Stars ⭐)`;
+        const bonusTag = earnedXP >= 40 ? '🔥 ' : '';
+        toast.innerHTML = `🎉 Super Speller! You built <strong>${target}</strong>! (${bonusTag}+${earnedXP} Stars ⭐)`;
         toast.classList.remove('hidden');
       }
 
@@ -593,7 +607,7 @@
           isQuestion: true,
           domain: '6+ Spelling Bee',
           title: `Build Word: ${target}`,
-          xp: 20,
+          xp: earnedXP,
           durationSec: 10
         });
       }

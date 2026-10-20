@@ -1073,6 +1073,7 @@
     }
 
     refreshHeaderUI();
+    refreshStudentXPBadges();
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
     }
@@ -1679,6 +1680,9 @@
         `;
       }).join('');
     }
+
+    // 4. Render Section XP Multipliers Grid
+    renderAdminSectionXPGrid();
   }
 
   function resetStudentArea(pid, trackKey) {
@@ -1840,6 +1844,255 @@
   }
 
   /* =====================================================================
+     CUSTOM SECTION XP MULTIPLIERS & MOTIVATION SYSTEM
+     ===================================================================== */
+  const DEFAULT_SECTION_XP = {
+    // Math Operations
+    'math_division': 50,       // ➗ Division promoted by default (Tough)
+    'math_multiplication': 35, // ✖️ Multiplication
+    'math_subtraction': 20,    // ➖ Subtraction
+    'math_addition': 20,       // ➕ Addition
+    'numbers': 25,
+
+    // Spelling Bee Levels
+    'spelling_big': 50,        // 🐝 Big Words (7+ letters, Tough)
+    'spelling_6': 30,          // 🐝 6-Letter Words
+    'spelling_5': 25,          // 🐝 5-Letter Words
+    'spelling_4': 20,          // 🐝 4-Letter Words
+    'spelling_3': 15,          // 🐝 3-Letter Words
+    'spelling': 25,            // 🐝 General Spelling
+
+    // Trilingual Studio (Sentences, Words, Letters)
+    'malayalam_sentences': 50, // 🌴 Malayalam Small Sentences (Tough)
+    'malayalam_words': 20,     // 🌴 Malayalam Core Words
+    'malayalam_letters': 15,   // 🌴 Malayalam Alphabet Letters
+    'malayalam': 30,
+
+    'hindi_sentences': 50,     // 🪔 Hindi Small Sentences (Tough)
+    'hindi_words': 20,         // 🪔 Hindi Core Words
+    'hindi_letters': 15,       // 🪔 Hindi Alphabet Letters
+    'hindi': 30,
+
+    'spanish_sentences': 50,   // 🇪🇸 Spanish Small Sentences (Tough)
+    'spanish_words': 20,       // 🇪🇸 Spanish Core Words
+    'spanish': 30,
+
+    // Reading Comprehension & Facts
+    'comprehension': 35,       // 📖 Story Reading & Comprehension
+    'grammar': 25,             // ✏️ Grammar & Sentence Building
+    'phonics': 20,             // 🔤 Sight Words & Phonics
+    'animals': 20,             // 🦁 Animals & Science Facts
+
+    // Teen Studio
+    'sat_math': 40,            // 📐 SAT Advanced Math & Algebra (Tough)
+    'sat_rw': 25,              // 📝 SAT Reading & Writing
+    'sat': 30
+  };
+
+  const ADMIN_XP_SECTIONS = [
+    // Math Operations
+    { key: 'math_division', title: '➗ Math — Division', group: 'Math Operations', isTough: true, defaultXP: 50, hint: 'Sharing, grouping, and long division' },
+    { key: 'math_multiplication', title: '✖️ Math — Multiplication', group: 'Math Operations', isTough: false, defaultXP: 35, hint: 'Times tables, arrays, and word problems' },
+    { key: 'math_subtraction', title: '➖ Math — Subtraction', group: 'Math Operations', isTough: false, defaultXP: 20, hint: 'Minus, takeaway, and difference problems' },
+    { key: 'math_addition', title: '➕ Math — Addition', group: 'Math Operations', isTough: false, defaultXP: 20, hint: 'Plus, sum, and combine math problems' },
+
+    // Spelling Bee Levels
+    { key: 'spelling_big', title: '🐝 Spelling — Big Words (7+ Letters)', group: 'Spelling Bee', isTough: true, defaultXP: 50, hint: 'Chameleon, dinosaur, chocolate, etc.' },
+    { key: 'spelling_6', title: '🐝 Spelling — 6-Letter Words', group: 'Spelling Bee', isTough: false, defaultXP: 30, hint: 'School, friend, monkey, etc.' },
+    { key: 'spelling_5', title: '🐝 Spelling — 5-Letter Words', group: 'Spelling Bee', isTough: false, defaultXP: 25, hint: 'Tiger, clock, water, apple, etc.' },
+    { key: 'spelling_4', title: '🐝 Spelling — 4-Letter Words', group: 'Spelling Bee', isTough: false, defaultXP: 20, hint: 'Book, bird, star, frog, etc.' },
+    { key: 'spelling_3', title: '🐝 Spelling — 3-Letter Words', group: 'Spelling Bee', isTough: false, defaultXP: 15, hint: 'Cat, sun, dog, pig, etc.' },
+    { key: 'spelling', title: '🐝 Spelling Bee (Standard Track)', group: 'Spelling Bee', isTough: false, defaultXP: 25, hint: 'General spelling builder curriculum' },
+
+    // Trilingual Languages
+    { key: 'malayalam_sentences', title: '🌴 Malayalam — Small Sentences', group: 'Languages', isTough: true, defaultXP: 50, hint: 'Conversational Malayalam sentences' },
+    { key: 'malayalam_words', title: '🌴 Malayalam — Core Words', group: 'Languages', isTough: false, defaultXP: 20, hint: '100+ Vocabulary words' },
+    { key: 'malayalam_letters', title: '🌴 Malayalam — Alphabet Letters', group: 'Languages', isTough: false, defaultXP: 15, hint: '50+ Malayalam letter sounds' },
+
+    { key: 'hindi_sentences', title: '🪔 Hindi — Small Sentences', group: 'Languages', isTough: true, defaultXP: 50, hint: 'Conversational Hindi sentences' },
+    { key: 'hindi_words', title: '🪔 Hindi — Core Words', group: 'Languages', isTough: false, defaultXP: 20, hint: '100+ Hindi vocabulary words' },
+    { key: 'hindi_letters', title: '🪔 Hindi — Alphabet Letters', group: 'Languages', isTough: false, defaultXP: 15, hint: 'Devanagari letter sounds' },
+
+    { key: 'spanish_sentences', title: '🇪🇸 Spanish — Small Sentences', group: 'Languages', isTough: true, defaultXP: 50, hint: 'Conversational Spanish sentences' },
+    { key: 'spanish_words', title: '🇪🇸 Spanish — Core Words', group: 'Languages', isTough: false, defaultXP: 20, hint: '100+ Spanish vocabulary words' },
+
+    // Reading Comprehension & Facts
+    { key: 'comprehension', title: '📖 6+ Story Reading & Comprehension', group: 'Reading & Science', isTough: false, defaultXP: 35, hint: 'Reading passages & paragraph questions' },
+    { key: 'grammar', title: '✏️ 6+ Grammar & Sentence Building', group: 'Reading & Science', isTough: false, defaultXP: 25, hint: 'Parts of speech & sentence structure' },
+    { key: 'phonics', title: '🔤 Sight Words & Phonics', group: 'Reading & Science', isTough: false, defaultXP: 20, hint: 'Phonetic blends and sight words' },
+    { key: 'animals', title: '🦁 Animals & Science Facts', group: 'Reading & Science', isTough: false, defaultXP: 20, hint: 'Animal science and nature facts' },
+
+    // Teen Studio
+    { key: 'sat_math', title: '📐 SAT Advanced Math & Algebra', group: 'Digital SAT', isTough: true, defaultXP: 40, hint: '13+ College Board SAT Math' },
+    { key: 'sat_rw', title: '📝 SAT Reading & Writing', group: 'Digital SAT', isTough: false, defaultXP: 25, hint: '13+ College Board SAT Verbal' }
+  ];
+
+  function getSectionXP(trackKey, subKey) {
+    const custom = (window.LuminaDB && window.LuminaDB.state && window.LuminaDB.state.sectionXP) || {};
+    if (subKey && custom[`${trackKey}_${subKey}`] !== undefined) {
+      return Number(custom[`${trackKey}_${subKey}`]) || 20;
+    }
+    if (trackKey && custom[trackKey] !== undefined) {
+      return Number(custom[trackKey]) || 20;
+    }
+    if (subKey && DEFAULT_SECTION_XP[`${trackKey}_${subKey}`] !== undefined) {
+      return DEFAULT_SECTION_XP[`${trackKey}_${subKey}`];
+    }
+    if (trackKey && DEFAULT_SECTION_XP[trackKey] !== undefined) {
+      return DEFAULT_SECTION_XP[trackKey];
+    }
+    return 20;
+  }
+
+  function setSectionXP(trackKey, xp) {
+    if (!window.LuminaDB) return;
+    if (!window.LuminaDB.state.sectionXP) window.LuminaDB.state.sectionXP = {};
+    const cleanVal = Math.max(5, Math.min(500, Math.round(Number(xp) || 20)));
+    window.LuminaDB.state.sectionXP[trackKey] = cleanVal;
+    if (typeof window.LuminaDB.saveLocal === 'function') window.LuminaDB.saveLocal();
+    if (typeof window.LuminaDB.scheduleCloudSync === 'function') window.LuminaDB.scheduleCloudSync(500);
+    renderAdminSectionXPGrid();
+    refreshStudentXPBadges();
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Updated ${trackKey.replace(/_/g, ' ')} reward to +${cleanVal} XP!`);
+    }
+  }
+
+  function resetAllSectionXPToDefaults() {
+    if (!confirm('Reset all section XP rewards back to standard defaults?')) return;
+    if (window.LuminaDB && window.LuminaDB.state) {
+      window.LuminaDB.state.sectionXP = {};
+      if (typeof window.LuminaDB.saveLocal === 'function') window.LuminaDB.saveLocal();
+      if (typeof window.LuminaDB.scheduleCloudSync === 'function') window.LuminaDB.scheduleCloudSync(500);
+    }
+    renderAdminSectionXPGrid();
+    refreshStudentXPBadges();
+    if (typeof window.showToast === 'function') {
+      window.showToast('All section XP rewards reset to standard defaults.');
+    }
+  }
+
+  function renderAdminSectionXPGrid() {
+    const grid = document.getElementById('adminSectionXPGrid');
+    if (!grid) return;
+
+    grid.innerHTML = ADMIN_XP_SECTIONS.map(sec => {
+      const currentXP = getSectionXP(sec.key);
+      const isHighXP = currentXP >= 40;
+      const isSuperHigh = currentXP >= 75;
+
+      const badgeCls = isSuperHigh
+        ? "bg-rose-100 text-rose-950 border-rose-300 animate-pulse"
+        : (isHighXP ? "bg-amber-100 text-amber-950 border-amber-300" : "bg-indigo-50 text-indigo-800 border-indigo-200");
+
+      return `
+        <div class="p-5 rounded-3xl bg-slate-50/80 border-2 ${isHighXP ? 'border-amber-300/80 bg-amber-50/30' : 'border-slate-200'} shadow-sm flex flex-col justify-between transition hover:border-indigo-300">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">${escapeHtml(sec.group)}</span>
+              ${sec.isTough ? '<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200 text-[10px] font-extrabold flex items-center gap-1"><span>🔥</span><span>Tough Topic</span></span>' : ''}
+            </div>
+            <h4 class="text-sm font-extrabold text-slate-900 leading-snug">${escapeHtml(sec.title)}</h4>
+            <p class="text-[11px] text-slate-500 mt-1">${escapeHtml(sec.hint)}</p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-200/70">
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <span class="text-xs font-bold text-slate-600">Reward:</span>
+              <span class="px-3 py-1 rounded-full text-xs font-black border ${badgeCls} flex items-center gap-1 shadow-2xs">
+                <span>${isSuperHigh ? '🚀' : (isHighXP ? '🔥' : '⚡')}</span>
+                <span>+${currentXP} XP</span>
+              </span>
+            </div>
+
+            <!-- Preset buttons -->
+            <div class="grid grid-cols-4 gap-1.5 mb-2.5">
+              <button onclick="setSectionXP('${sec.key}', 10)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 10 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'}">10</button>
+              <button onclick="setSectionXP('${sec.key}', 20)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 20 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'}">20</button>
+              <button onclick="setSectionXP('${sec.key}', 50)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 50 ? 'bg-amber-500 text-white shadow-xs' : 'bg-white hover:bg-amber-100 text-amber-800 border border-amber-200'}">50 🌟</button>
+              <button onclick="setSectionXP('${sec.key}', 100)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 100 ? 'bg-rose-600 text-white shadow-xs' : 'bg-white hover:bg-rose-100 text-rose-800 border border-rose-200'}">100 🔥</button>
+            </div>
+
+            <!-- Custom input -->
+            <div class="flex items-center justify-between gap-2 text-xs">
+              <span class="text-slate-500 font-semibold text-[11px]">Custom XP:</span>
+              <div class="flex items-center gap-1">
+                <input type="number" min="5" max="500" step="5" value="${currentXP}" onchange="setSectionXP('${sec.key}', this.value)" class="w-16 px-2 py-1 text-center font-bold text-xs bg-white border border-slate-300 rounded-lg focus:outline-indigo-500" />
+                <span class="font-bold text-slate-500">XP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function refreshStudentXPBadges() {
+    // 1. Kid categories
+    const catMap = {
+      'spelling': () => Math.max(getSectionXP('spelling_big'), getSectionXP('spelling_6'), getSectionXP('spelling_5'), getSectionXP('spelling_4'), getSectionXP('spelling_3'), getSectionXP('spelling')),
+      'comprehension': () => getSectionXP('comprehension'),
+      'grammar': () => getSectionXP('grammar'),
+      'numbers': () => Math.max(getSectionXP('math_division'), getSectionXP('math_multiplication'), getSectionXP('math_subtraction'), getSectionXP('math_addition'), getSectionXP('numbers')),
+      'phonics': () => getSectionXP('phonics'),
+      'animals': () => getSectionXP('animals'),
+      'malayalam': () => Math.max(getSectionXP('malayalam_sentences'), getSectionXP('malayalam_words'), getSectionXP('malayalam_letters')),
+      'hindi': () => Math.max(getSectionXP('hindi_sentences'), getSectionXP('hindi_words'), getSectionXP('hindi_letters')),
+      'spanish': () => Math.max(getSectionXP('spanish_sentences'), getSectionXP('spanish_words'))
+    };
+
+    Object.entries(catMap).forEach(([idSuffix, getVal]) => {
+      const btn = document.getElementById(`kidCat-${idSuffix}`);
+      if (!btn) return;
+      let badge = btn.querySelector('.kid-cat-xp-badge');
+      const xp = (typeof getVal === 'function') ? getVal() : getSectionXP(getVal);
+      const isHigh = xp >= 40;
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'kid-cat-xp-badge';
+        btn.appendChild(badge);
+      }
+      badge.className = `kid-cat-xp-badge px-2 py-0.5 rounded-full text-[10px] font-black mt-1 ${isHigh ? 'bg-rose-500 text-white shadow-xs animate-bounce' : 'bg-slate-900/10 text-slate-800'}`;
+      badge.innerText = isHigh ? `🔥 +${xp} XP` : `+${xp} XP`;
+    });
+
+    // 2. Kid trilingual sub-nav
+    const cat = (window.appData && window.appData.kidCategory) || 'malayalam';
+    if (cat === 'malayalam' || cat === 'hindi' || cat === 'spanish') {
+      const bLet = document.getElementById('btn-kid-sub-letters');
+      const bWrd = document.getElementById('btn-kid-sub-words');
+      const bSen = document.getElementById('btn-kid-sub-sentences');
+      const xpLet = getSectionXP(cat, 'letters');
+      const xpWrd = getSectionXP(cat, 'words');
+      const xpSen = getSectionXP(cat, 'sentences');
+      if (bLet) bLet.innerHTML = `🔤 Letters <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-slate-900/10 ml-1">+${xpLet}</span>`;
+      if (bWrd) bWrd.innerHTML = `📖 Words <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-slate-900/10 ml-1">+${xpWrd}</span>`;
+      if (bSen) bSen.innerHTML = `💬 Sentences <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full ${xpSen >= 40 ? 'bg-rose-500 text-white' : 'bg-slate-900/10'} ml-1">${xpSen >= 40 ? '🔥 ' : ''}+${xpSen}</span>`;
+    }
+
+    // 3. Teen trilingual sub-nav
+    const teenLang = (window.appData && window.appData.activeLanguage) || 'malayalam';
+    const tbLet = document.getElementById('btn-teen-sub-letters');
+    const tbWrd = document.getElementById('btn-teen-sub-words');
+    const tbSen = document.getElementById('btn-teen-sub-sentences');
+    const txpLet = getSectionXP(teenLang, 'letters');
+    const txpWrd = getSectionXP(teenLang, 'words');
+    const txpSen = getSectionXP(teenLang, 'sentences');
+    if (tbLet) tbLet.innerHTML = `🔤 Alphabet Letters <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 ml-1">+${txpLet}</span>`;
+    if (tbWrd) tbWrd.innerHTML = `📖 Core Words <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 ml-1">+${txpWrd}</span>`;
+    if (tbSen) tbSen.innerHTML = `💬 Small Sentences <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full ${txpSen >= 40 ? 'bg-rose-500 text-white shadow-xs' : 'bg-indigo-100 text-indigo-900'} ml-1">${txpSen >= 40 ? '🔥 ' : ''}+${txpSen} XP</span>`;
+
+    // 4. Spelling level buttons
+    if (typeof window.ensureSpellingLevelBar === 'function') {
+      window.ensureSpellingLevelBar();
+    }
+    // 5. Math operation filter bar
+    if (typeof window.ensureMathOpBar === 'function') {
+      window.ensureMathOpBar();
+    }
+  }
+
+  /* =====================================================================
      WINDOW EXPORTS & BOOTSTRAP
      ===================================================================== */
   if (!appData.activeLanguage) appData.activeLanguage = 'malayalam';
@@ -1884,9 +2137,19 @@
   window.prefillAdminQuestionCreator = prefillAdminQuestionCreator;
   window.resetAdminQuestionForm = resetAdminQuestionForm;
   window.handleAdminCreateQuestionSubmit = handleAdminCreateQuestionSubmit;
+  window.DEFAULT_SECTION_XP = DEFAULT_SECTION_XP;
+  window.ADMIN_XP_SECTIONS = ADMIN_XP_SECTIONS;
+  window.getSectionXP = getSectionXP;
+  window.setSectionXP = setSectionXP;
+  window.resetAllSectionXPToDefaults = resetAllSectionXPToDefaults;
+  window.renderAdminSectionXPGrid = renderAdminSectionXPGrid;
+  window.refreshStudentXPBadges = refreshStudentXPBadges;
 
   if (window.LuminaDB && typeof window.LuminaDB.onChange === 'function') {
-    window.LuminaDB.onChange(() => refreshHeaderUI());
+    window.LuminaDB.onChange(() => {
+      refreshHeaderUI();
+      refreshStudentXPBadges();
+    });
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
@@ -1896,6 +2159,7 @@
     mergeLanguagePacksFromDB();
     mergeCustomKidCards();
     applyActiveProfileView();
+    refreshStudentXPBadges();
 
     if (window.LuminaDB && typeof window.LuminaDB.pullFromCloud === 'function') {
       const res = await window.LuminaDB.pullFromCloud();
@@ -1903,6 +2167,7 @@
         mergeLanguagePacksFromDB();
         mergeCustomKidCards();
         applyActiveProfileView();
+        refreshStudentXPBadges();
       }
     }
   });

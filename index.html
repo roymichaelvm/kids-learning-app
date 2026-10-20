@@ -894,6 +894,29 @@
         <div id="adminAllTracksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
+      <!-- CUSTOM XP REWARDS & TOPIC INCENTIVES (PROMOTE TOUGH TRACKS WITH BONUS POINTS) -->
+      <div class="bg-white rounded-3xl border-2 border-amber-300 p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-amber-100">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-950 text-xs font-bold mb-1">
+              <span>⚡</span>
+              <span>XP Reward Multipliers &amp; Difficulty Incentives</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900">Custom Section Points &amp; Motivation Multipliers</h3>
+            <p class="text-xs text-slate-500 max-w-2xl">
+              Promote challenging sections (such as <strong>➗ Division</strong>, <strong>🐝 Big Words Spelling</strong>, or <strong>💬 Malayalam Small Sentences</strong>) with bonus XP points to inspire kids to take on tough learning goals!
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="resetAllSectionXPToDefaults()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+              <span>↺</span>
+              <span>Reset to Defaults</span>
+            </button>
+          </div>
+        </div>
+        <div id="adminSectionXPGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
       <!-- QUESTION CREATOR DRAWER / CARD -->
       <div id="adminQuestionCreatorBox" class="bg-gradient-to-br from-indigo-50/70 to-sky-50/60 rounded-3xl border-2 border-indigo-200 p-6 sm:p-8 shadow-sm">
         <div class="flex items-start justify-between gap-3 mb-4">
