@@ -182,6 +182,27 @@
     if (typeof p.cashBalance !== 'number') p.cashBalance = 0;
     if (!Array.isArray(p.redemptions)) p.redemptions = [];
     if (typeof p.totalXpSpent !== 'number') p.totalXpSpent = 0;
+    if (typeof p.xp !== 'number') p.xp = 0;
+
+    // Calculate sum of already approved XP redemptions
+    const approvedXpCost = p.redemptions
+      .filter(r => (r.status === 'Approved' || r.status === 'Added to Wallet') && r.paymentMethod === 'xp' && Number(r.tierPoints) > 0)
+      .reduce((sum, r) => sum + Number(r.tierPoints), 0);
+
+    // Initialize lifetime XP if not set
+    if (typeof p.lifetimeXp !== 'number') {
+      p.lifetimeXp = p.xp;
+    }
+
+    // Auto-reconcile existing profiles where XP was never reduced after previous approvals
+    if (approvedXpCost > 0 && !p._reconciledV2) {
+      if (p.xp >= p.lifetimeXp) {
+        p.xp = Math.max(0, p.lifetimeXp - approvedXpCost);
+      }
+      p.totalXpSpent = approvedXpCost;
+      p._reconciledV2 = true;
+    }
+
     return p;
   }
 
@@ -195,7 +216,8 @@
       ageLabel: fields.ageLabel || (ageGroup === 'kid' ? 'Little Explorer' : 'Teen Scholar'),
       dailyGoalQuestions: Number(fields.dailyGoalQuestions) || (ageGroup === 'kid' ? 10 : 12),
       dailyGoalMinutes: Number(fields.dailyGoalMinutes) || (ageGroup === 'kid' ? 15 : 20),
-      xp: 0,
+      xp: Number(fields.xp) || 0,
+      lifetimeXp: Number(fields.lifetimeXp || fields.xp) || 0,
       streakDays: 0,
       lastActiveDate: null,
       createdAt: new Date().toISOString(),
@@ -817,6 +839,15 @@
       return true;
     },
 
+    getAvailableXp: function (p) {
+      if (!p) return 0;
+      ensureProfileFields(p);
+      const pendingXp = (p.redemptions || [])
+        .filter(r => (r.status === 'Pending Approval' || r.status === 'pending') && r.paymentMethod === 'xp')
+        .reduce((sum, r) => sum + (Number(r.tierPoints) || 0), 0);
+      return Math.max(0, (p.xp || 0) - pendingXp);
+    },
+
     redeemReward: function (pid, tierOrPrizeId, rewardItem, opts = {}) {
       const p = this.getProfileById(pid || this.state.activeProfileId);
       if (!p) return { ok: false, error: 'Profile not found' };
@@ -824,7 +855,7 @@
 
       const paymentMethod = opts.paymentMethod || 'xp'; // 'xp' | 'wallet'
       const parentApproved = Boolean(opts.parentApproved);
-      const availableXP = (p.xp || 0) - (p.totalXpSpent || 0);
+      const availableXP = this.getAvailableXp(p);
       const walletCash = p.cashBalance || 0;
 
       let xpCost = Number(opts.xpCost) || 0;
@@ -878,8 +909,11 @@
         if (availableXP < xpCost) {
           return { ok: false, error: `You need ${xpCost.toLocaleString()} XP, but only have ${availableXP.toLocaleString()} available XP.` };
         }
-        // Deduct/reserve XP
-        p.totalXpSpent = (p.totalXpSpent || 0) + xpCost;
+        // If parent pre-approved on spot (e.g. Master PIN 0000), immediately reduce XP
+        if (parentApproved) {
+          p.xp = Math.max(0, (p.xp || 0) - xpCost);
+          p.totalXpSpent = (p.totalXpSpent || 0) + xpCost;
+        }
       } else if (paymentMethod === 'wallet') {
         if (walletCash < cashCost) {
           return { ok: false, error: `You need $${cashCost.toFixed(2)} in your Wallet, but only have $${walletCash.toFixed(2)}.` };
@@ -940,6 +974,15 @@
 
       const r = (p.redemptions || []).find(item => item.id === redemptionId);
       if (!r) return { ok: false, error: 'Redemption record not found' };
+      if (r.status === 'Approved' || r.status === 'Added to Wallet') {
+        return { ok: false, error: 'Redemption has already been approved.' };
+      }
+
+      // Deduct XP points upon parent approval
+      if (r.paymentMethod === 'xp' && Number(r.tierPoints) > 0) {
+        p.xp = Math.max(0, (p.xp || 0) - Number(r.tierPoints));
+        p.totalXpSpent = (p.totalXpSpent || 0) + Number(r.tierPoints);
+      }
 
       r.status = 'Approved';
       r.approvedAt = new Date().toISOString();
@@ -964,17 +1007,27 @@
 
       const r = (p.redemptions || []).find(item => item.id === redemptionId);
       if (!r) return { ok: false, error: 'Redemption record not found' };
+      if (r.status === 'Rejected') {
+        return { ok: false, error: 'Redemption has already been rejected.' };
+      }
 
+      const wasApproved = r.status === 'Approved' || r.status === 'Added to Wallet';
       r.status = 'Rejected';
       r.rejectedAt = new Date().toISOString();
       r.rejectReason = reason;
 
-      // Refund reserved payment
+      // Refund payment if necessary
       if (r.paymentMethod === 'wallet' && r.cashCost > 0) {
         p.cashBalance = Number(((p.cashBalance || 0) + r.cashCost).toFixed(2));
-      } else if (r.tierPoints > 0) {
-        p.totalXpSpent = Math.max(0, (p.totalXpSpent || 0) - r.tierPoints);
+      } else if (r.paymentMethod === 'xp' && wasApproved && Number(r.tierPoints) > 0) {
+        // If it was previously approved and deducted from p.xp, restore it
+        p.xp = (p.xp || 0) + Number(r.tierPoints);
+        p.totalXpSpent = Math.max(0, (p.totalXpSpent || 0) - Number(r.tierPoints));
+        if (r.isCashConversion && r.cashAmount > 0) {
+          p.cashBalance = Number(Math.max(0, (p.cashBalance || 0) - r.cashAmount).toFixed(2));
+        }
       }
+      // If was 'Pending Approval', simply changing status to 'Rejected' releases the pending hold from getAvailableXp
 
       this.markProfile(p.id);
       this.saveLocal();
@@ -1064,14 +1117,15 @@
           ageGroup: p.ageGroup,
           ageLabel: p.ageLabel,
           xp: p.xp || 0,
-          availableXp: Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0)),
+          lifetimeXp: p.lifetimeXp || ((p.xp || 0) + (p.totalXpSpent || 0)),
+          availableXp: this.getAvailableXp(p),
           streakDays: this.getCurrentStreak(p),
           cashBalance: p.cashBalance || 0,
           totalCashEarned: Number(totalCashEarned.toFixed(2)),
           redemptionsCount: (p.redemptions || []).length,
           recentRedemptions: (p.redemptions || []).slice(0, 5)
         };
-      }).sort((a, b) => b.xp - a.xp);
+      }).sort((a, b) => (b.lifetimeXp || b.xp) - (a.lifetimeXp || a.xp));
     },
 
     clearTelemetry: function (id) {
@@ -1149,6 +1203,7 @@
       }
 
       p.xp = (p.xp || 0) + xp;
+      p.lifetimeXp = (p.lifetimeXp || p.xp || 0) + xp;
       const m = p.domainMastery[domain] || (p.domainMastery[domain] = { attempted: 0, correct: 0, totalTimeSec: 0, cardsViewed: 0, lastPracticed: today });
       m.totalTimeSec = (m.totalTimeSec || 0) + dur;
       m.lastPracticed = today;

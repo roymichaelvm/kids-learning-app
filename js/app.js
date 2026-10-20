@@ -332,7 +332,12 @@
     if (streakEl && window.LuminaDB) streakEl.innerText = window.LuminaDB.getCurrentStreak(p);
 
     const xpEl = document.getElementById('headerXPCount');
-    if (xpEl) xpEl.innerText = p.xp || 0;
+    if (xpEl) {
+      const avail = (window.LuminaDB && typeof window.LuminaDB.getAvailableXp === 'function')
+        ? window.LuminaDB.getAvailableXp(p)
+        : (p.xp || 0);
+      xpEl.innerText = avail.toLocaleString();
+    }
 
     const cashEl = document.getElementById('headerRewardsCashText');
     if (cashEl) cashEl.innerText = `$${(p.cashBalance || 0).toFixed(2)}`;
@@ -709,15 +714,20 @@
                 </span>
               </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
-                🔥 ${item.streakDays} Day Streak • ⚡ ${item.availableXp} XP Available
+                🔥 ${item.streakDays} Day Streak • ⚡ ${(item.availableXp || 0).toLocaleString()} XP Available
               </p>
             </div>
           </div>
 
           <div class="flex flex-wrap items-center gap-3 md:gap-6 justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100 dark:border-slate-800">
             <div class="text-left md:text-right">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Points</span>
-              <span class="font-extrabold text-indigo-600 dark:text-indigo-400 text-lg">⚡ ${item.xp}</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Current Balance</span>
+              <span class="font-extrabold text-indigo-600 dark:text-indigo-400 text-lg">⚡ ${(item.xp || 0).toLocaleString()}</span>
+            </div>
+
+            <div class="text-left md:text-right">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Lifetime Earned</span>
+              <span class="font-bold text-slate-600 dark:text-slate-300 text-base">⚡ ${(item.lifetimeXp || item.xp || 0).toLocaleString()}</span>
             </div>
 
             <div class="text-left md:text-right">
@@ -762,7 +772,9 @@
     const catalog = (window.LuminaDB && typeof window.LuminaDB.getPrizeCatalog === 'function')
       ? window.LuminaDB.getPrizeCatalog()
       : (window.LuminaDB && window.LuminaDB.DEFAULT_PRIZE_CATALOG) || [];
-    const availableXP = Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+    const availableXP = (window.LuminaDB && typeof window.LuminaDB.getAvailableXp === 'function')
+      ? window.LuminaDB.getAvailableXp(p)
+      : Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
     const walletCash = p.cashBalance || 0;
     const redemptions = p.redemptions || [];
     const pendingCount = redemptions.filter(r => r.status === 'Pending Approval' || r.status === 'pending').length;
@@ -943,7 +955,9 @@
 
   function handleConvertXPToWallet(cashAmount, xpRequired) {
     const p = activeProfile();
-    const availableXP = Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+    const availableXP = (window.LuminaDB && typeof window.LuminaDB.getAvailableXp === 'function')
+      ? window.LuminaDB.getAvailableXp(p)
+      : Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
     if (availableXP < xpRequired) {
       showToast(`You need ${xpRequired.toLocaleString()} XP to convert to $${cashAmount.toFixed(2)}. You have ${availableXP.toLocaleString()} XP.`);
       return;
@@ -989,7 +1003,9 @@
     const item = catalog.find(i => i.id === prizeId);
     if (!item) return;
 
-    const availableXP = Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+    const availableXP = (window.LuminaDB && typeof window.LuminaDB.getAvailableXp === 'function')
+      ? window.LuminaDB.getAvailableXp(p)
+      : Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
     const walletCash = p.cashBalance || 0;
 
     if (paymentMethod === 'wallet' && walletCash < item.price) {
@@ -2394,7 +2410,10 @@
     if (cashContainer) {
       cashContainer.innerHTML = allProfiles.map(p => {
         const cash = p.cashBalance || 0;
-        const availableXP = Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+        const availableXP = (window.LuminaDB && typeof window.LuminaDB.getAvailableXp === 'function')
+          ? window.LuminaDB.getAvailableXp(p)
+          : Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+        const pendingXp = Math.max(0, (p.xp || 0) - availableXP);
         return `
           <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-4">
             <div>
@@ -2418,12 +2437,13 @@
 
               <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400 mb-3 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                 <div>
-                  <span class="text-[10px] uppercase font-bold text-slate-400 block">Available XP</span>
-                  <span class="font-black text-indigo-600 dark:text-indigo-400 text-sm">⚡ ${availableXP.toLocaleString()}</span>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 block">Current Balance</span>
+                  <span class="font-black text-indigo-600 dark:text-indigo-400 text-sm">⚡ ${(p.xp || 0).toLocaleString()} XP</span>
+                  ${pendingXp > 0 ? `<span class="text-[10px] text-amber-600 dark:text-amber-400 block font-semibold">(${availableXP.toLocaleString()} available)</span>` : ''}
                 </div>
                 <div>
-                  <span class="text-[10px] uppercase font-bold text-slate-400 block">XP Spent / Converted</span>
-                  <span class="font-bold text-slate-700 dark:text-slate-300 text-sm">⚡ ${(p.totalXpSpent || 0).toLocaleString()}</span>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 block">Total XP Redeemed</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-300 text-sm">⚡ ${(p.totalXpSpent || 0).toLocaleString()} XP</span>
                 </div>
               </div>
 
@@ -3005,8 +3025,26 @@
       if (adminSec && !adminSec.classList.contains('hidden')) {
         renderAdminPortal();
       }
+      const rewardsModal = document.getElementById('rewardsModal');
+      if (rewardsModal && !rewardsModal.classList.contains('hidden')) {
+        renderRewardsModal();
+      }
+      const leaderboardModal = document.getElementById('leaderboardModal');
+      if (leaderboardModal && !leaderboardModal.classList.contains('hidden')) {
+        renderLeaderboardModal();
+      }
     });
   }
+
+  // Cross-tab synchronization via localStorage storage event
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'lumina_db_state_v1' || e.key === 'lumina_theme') {
+      if (window.LuminaDB && typeof window.LuminaDB.loadFromLocal === 'function') {
+        window.LuminaDB.loadFromLocal();
+        window.LuminaDB.notify();
+      }
+    }
+  });
 
   window.addEventListener('DOMContentLoaded', async () => {
     initTheme();
