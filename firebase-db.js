@@ -66,46 +66,109 @@
 
   const DEFAULT_REWARD_TIERS = [
     {
-      id: 'tier_500',
-      points: 500,
-      label: '500 XP Quick Treats',
-      options: ['Ring Pop 🍭', 'Snickers Bar 🍫', 'Extra 15 Min Bedtime 🌙', '$1 Cash Allowance 💵']
-    },
-    {
-      id: 'tier_1000',
-      points: 1000,
-      label: '1,000 XP Bronze Treats',
-      options: ['1 Hour TV / Screen Time 📺', 'Snickers & Candy Pack 🍫', 'Pick Dinner Tonight 🍕', '$2 Cash Allowance 💵']
-    },
-    {
-      id: 'tier_2500',
-      points: 2500,
-      label: '2,500 XP Silver Rewards',
-      options: ['Ice Cream Trip 🍦', '2 Hours Gaming / TV Time 🎮', '$3 Cash Allowance 💵', '$5 Cash Allowance 💵']
-    },
-    {
       id: 'tier_5000',
       points: 5000,
-      label: '5,000 XP Gold Rewards',
-      options: ['Movie Night Ticket 🍿', 'Book of Your Choice 📚', 'Skip One Chore 🧹', '$5 Cash Allowance 💵']
+      label: '5,000 XP Quick Treats',
+      options: ['Extra 15 Min Bedtime 🌙', 'Pick Dinner Tonight 🍕', 'Skip 1 Small Chore 🧹']
     },
     {
       id: 'tier_10000',
       points: 10000,
-      label: '10,000 XP Platinum Mega Rewards',
-      options: ['$10 Cash Allowance 💵', 'Video Game / Robux Card 🎁', 'Pizza Party with Friends 🍕', 'No Chores for a Weekend 🌟']
+      label: '10,000 XP Bronze Treats',
+      options: ['Ring Pop 🍭', 'Snickers Mini Pack 🍫', '30 Min Extra Screen Time 📺']
     },
     {
       id: 'tier_20000',
       points: 20000,
-      label: '20,000 XP Diamond Milestone',
-      options: ['$20 Cash Allowance 💵', 'Theme Park / Water Park Ticket 🎢', 'Special Shopping Outing 🛍️']
+      label: '20,000 XP Tier ($1.00 Cash Milestone)',
+      options: ['$1 Cash Allowance 💵', 'Snickers Bar 🍫', '1 Hour TV Time 📺']
     },
     {
       id: 'tier_30000',
       points: 30000,
-      label: '30,000 XP Champion Grand Prize',
-      options: ['$30 Cash Allowance 💵', 'New Tech / Wireless Headphones 🎧', 'Ultimate Family Adventure Day 🏆']
+      label: '30,000 XP Tier ($2.00 Cash Bonus Milestone)',
+      options: ['$2 Cash Allowance 💵', 'Movie Night Ticket 🍿', 'Ice Cream Trip 🍦']
+    },
+    {
+      id: 'tier_60000',
+      points: 60000,
+      label: '60,000 XP Gold Champion',
+      options: ['$4 Cash Allowance 💵', 'Book of Your Choice 📚', 'Robux / Game Card 🎁']
+    }
+  ];
+
+  const DEFAULT_PRIZE_CATALOG = [
+    {
+      id: 'prize_cash_1',
+      name: '$1.00 Cash to Wallet',
+      price: 1.00,
+      xpPoints: 20000,
+      category: 'cash',
+      icon: '💵',
+      description: 'Exchange 20,000 XP for $1.00 added to your Learning Wallet'
+    },
+    {
+      id: 'prize_cash_2',
+      name: '$2.00 Cash to Wallet (Bonus)',
+      price: 2.00,
+      xpPoints: 30000,
+      category: 'cash',
+      icon: '💵',
+      description: 'Bonus Exchange: 30,000 XP for $2.00 added to your Learning Wallet'
+    },
+    {
+      id: 'prize_ring_pop',
+      name: 'Ring Pop 🍭',
+      price: 0.50,
+      xpPoints: 10000,
+      category: 'treat',
+      icon: '🍭',
+      description: 'Fruity Ring Pop lollipop treat'
+    },
+    {
+      id: 'prize_snickers',
+      name: 'Snickers Bar 🍫',
+      price: 1.00,
+      xpPoints: 20000,
+      category: 'treat',
+      icon: '🍫',
+      description: 'Full-size Snickers candy bar'
+    },
+    {
+      id: 'prize_tv_1hr',
+      name: '1 Hour TV / Screen Time 📺',
+      price: 1.00,
+      xpPoints: 20000,
+      category: 'activity',
+      icon: '📺',
+      description: '1 extra hour of TV, iPad, or streaming time'
+    },
+    {
+      id: 'prize_ice_cream',
+      name: 'Ice Cream Parlor Trip 🍦',
+      price: 3.00,
+      xpPoints: 45000,
+      category: 'treat',
+      icon: '🍦',
+      description: 'Trip to local ice cream shop for a scoop'
+    },
+    {
+      id: 'prize_book',
+      name: 'New Book of Choice 📚',
+      price: 5.00,
+      xpPoints: 75000,
+      category: 'activity',
+      icon: '📚',
+      description: 'Pick any new book from bookstore or Amazon'
+    },
+    {
+      id: 'prize_game',
+      name: 'Video Game / Robux Card 🎮',
+      price: 10.00,
+      xpPoints: 150000,
+      category: 'activity',
+      icon: '🎮',
+      description: '$10 Robux or digital app purchase'
     }
   ];
 
@@ -170,13 +233,14 @@
     return msg;
   }
 
-  const PERSISTED_KEYS = ['activeProfileId', 'teenSubTab', 'activeLanguage', 'kidCategory', 'profiles', 'customKidCards', 'sectionXP', 'rewardTiers', 'lastCloudSync'];
+  const PERSISTED_KEYS = ['activeProfileId', 'teenSubTab', 'activeLanguage', 'kidCategory', 'profiles', 'customKidCards', 'sectionXP', 'rewardTiers', 'rewardCatalog', 'lastCloudSync'];
 
   /* ------------------------------------------------------------------ engine */
   const LuminaDB = {
     FIREBASE_CONFIG: FIREBASE_CONFIG,
     DEFAULT_QUESTIONS: DEFAULT_QUESTIONS,
     DEFAULT_REWARD_TIERS: DEFAULT_REWARD_TIERS,
+    DEFAULT_PRIZE_CATALOG: DEFAULT_PRIZE_CATALOG,
     getDefaultQuestions: getDefaultQuestions,
     getTodayDateKey: dateKey,
 
@@ -190,6 +254,7 @@
       customKidCards: [],
       sectionXP: {},
       rewardTiers: clean(DEFAULT_REWARD_TIERS),
+      rewardCatalog: clean(DEFAULT_PRIZE_CATALOG),
       languagePacks: {},
       lastCloudSync: null,
       cloudStatus: 'local',   // 'local' | 'syncing' | 'connected' | 'error'
@@ -361,6 +426,9 @@
         }
         if (!Array.isArray(this.state.rewardTiers) || this.state.rewardTiers.length === 0) {
           this.state.rewardTiers = clean(DEFAULT_REWARD_TIERS);
+        }
+        if (!Array.isArray(this.state.rewardCatalog) || this.state.rewardCatalog.length === 0) {
+          this.state.rewardCatalog = clean(DEFAULT_PRIZE_CATALOG);
         }
         if (this.state.profiles) {
           Object.keys(this.state.profiles).forEach(pid => {
@@ -692,41 +760,157 @@
       return false;
     },
 
-    redeemReward: function (pid, tierId, rewardItem) {
+    /* ------------------------------------------------ prize catalog & wallet */
+    getPrizeCatalog: function () {
+      if (!Array.isArray(this.state.rewardCatalog) || this.state.rewardCatalog.length === 0) {
+        this.state.rewardCatalog = clean(DEFAULT_PRIZE_CATALOG);
+      }
+      return this.state.rewardCatalog;
+    },
+
+    savePrizeCatalog: function (catalog) {
+      if (Array.isArray(catalog)) {
+        this.state.rewardCatalog = clean(catalog);
+        this.saveLocal();
+        this.scheduleCloudSync();
+        this.notify();
+        return true;
+      }
+      return false;
+    },
+
+    addPrizeCatalogItem: function (item) {
+      const catalog = this.getPrizeCatalog();
+      const newItem = {
+        id: 'prize_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 5),
+        name: String(item.name || 'New Prize').trim(),
+        price: Number(item.price) || 1.00,
+        xpPoints: Number(item.xpPoints) || 20000,
+        category: item.category || 'treat',
+        icon: item.icon || '🎁',
+        description: item.description || ''
+      };
+      catalog.push(newItem);
+      this.savePrizeCatalog(catalog);
+      return newItem;
+    },
+
+    updatePrizeCatalogItem: function (id, fields) {
+      const catalog = this.getPrizeCatalog();
+      const item = catalog.find(i => i.id === id);
+      if (!item) return false;
+      if (fields.name !== undefined) item.name = String(fields.name).trim();
+      if (fields.price !== undefined) item.price = Math.max(0, Number(fields.price) || 0);
+      if (fields.xpPoints !== undefined) item.xpPoints = Math.max(1, Number(fields.xpPoints) || 1000);
+      if (fields.category !== undefined) item.category = fields.category;
+      if (fields.icon !== undefined) item.icon = fields.icon;
+      if (fields.description !== undefined) item.description = fields.description;
+      this.savePrizeCatalog(catalog);
+      return true;
+    },
+
+    deletePrizeCatalogItem: function (id) {
+      const catalog = this.getPrizeCatalog();
+      const filtered = catalog.filter(i => i.id !== id);
+      if (filtered.length === 0) return false;
+      this.savePrizeCatalog(filtered);
+      return true;
+    },
+
+    redeemReward: function (pid, tierOrPrizeId, rewardItem, opts = {}) {
       const p = this.getProfileById(pid || this.state.activeProfileId);
       if (!p) return { ok: false, error: 'Profile not found' };
       ensureProfileFields(p);
 
-      const tiers = this.getRewardTiers();
-      const tier = tiers.find(t => t.id === tierId) || tiers.find(t => t.options && t.options.includes(rewardItem));
-      if (!tier) return { ok: false, error: 'Reward tier not found' };
-
+      const paymentMethod = opts.paymentMethod || 'xp'; // 'xp' | 'wallet'
+      const parentApproved = Boolean(opts.parentApproved);
       const availableXP = (p.xp || 0) - (p.totalXpSpent || 0);
-      if (availableXP < tier.points) {
-        return { ok: false, error: `You need ${tier.points} XP, but only have ${availableXP} available XP.` };
+      const walletCash = p.cashBalance || 0;
+
+      let xpCost = Number(opts.xpCost) || 0;
+      let cashCost = Number(opts.cashCost || opts.price) || 0;
+      let isCashConversion = Boolean(opts.isCashConversion);
+      let cashAmount = Number(opts.cashAmount) || 0;
+
+      // Detect if reward text has cash conversion rate (e.g. $1 for 20k, $2 for 30k)
+      if (!isCashConversion) {
+        const cashMatch = String(rewardItem).match(/\$(\d+(?:\.\d{1,2})?)/);
+        if (cashMatch) {
+          isCashConversion = true;
+          cashAmount = parseFloat(cashMatch[1]);
+        }
       }
 
-      // Check if reward contains a cash amount (e.g. "$1", "$2", "$3", "$4", "$5", "$10", "$20", "$30")
-      const cashMatch = String(rewardItem).match(/\$(\d+(?:\.\d{1,2})?)/);
-      const isCash = Boolean(cashMatch);
-      const cashAmount = isCash ? parseFloat(cashMatch[1]) : 0;
+      // If costs not provided, try to find in catalog or tiers
+      if (paymentMethod === 'xp' && xpCost === 0) {
+        const catalog = this.getPrizeCatalog();
+        const catItem = catalog.find(i => i.id === tierOrPrizeId || i.name === rewardItem);
+        if (catItem) {
+          xpCost = catItem.xpPoints;
+          if (catItem.category === 'cash' && !cashAmount) {
+            isCashConversion = true;
+            cashAmount = catItem.price;
+          }
+        } else {
+          const tiers = this.getRewardTiers();
+          const tier = tiers.find(t => t.id === tierOrPrizeId) || tiers.find(t => t.options && t.options.includes(rewardItem));
+          if (tier) {
+            xpCost = tier.points;
+          } else {
+            // Default based on conversion rate: 20k for $1, 30k for $2
+            if (cashAmount === 1) xpCost = 20000;
+            else if (cashAmount === 2) xpCost = 30000;
+            else xpCost = 20000;
+          }
+        }
+      } else if (paymentMethod === 'wallet' && cashCost === 0) {
+        const catalog = this.getPrizeCatalog();
+        const catItem = catalog.find(i => i.id === tierOrPrizeId || i.name === rewardItem);
+        if (catItem) {
+          cashCost = catItem.price;
+        } else {
+          cashCost = 1.00;
+        }
+      }
 
-      // Deduct XP and add cash balance if cash reward
-      p.totalXpSpent = (p.totalXpSpent || 0) + tier.points;
-      if (isCash && cashAmount > 0) {
-        p.cashBalance = Number(((p.cashBalance || 0) + cashAmount).toFixed(2));
+      // Validate balances
+      if (paymentMethod === 'xp') {
+        if (availableXP < xpCost) {
+          return { ok: false, error: `You need ${xpCost.toLocaleString()} XP, but only have ${availableXP.toLocaleString()} available XP.` };
+        }
+        // Deduct/reserve XP
+        p.totalXpSpent = (p.totalXpSpent || 0) + xpCost;
+      } else if (paymentMethod === 'wallet') {
+        if (walletCash < cashCost) {
+          return { ok: false, error: `You need $${cashCost.toFixed(2)} in your Wallet, but only have $${walletCash.toFixed(2)}.` };
+        }
+        // Deduct/reserve Wallet Cash
+        p.cashBalance = Number(Math.max(0, walletCash - cashCost).toFixed(2));
+      }
+
+      let initialStatus = 'Pending Approval';
+      if (parentApproved) {
+        if (isCashConversion && cashAmount > 0) {
+          p.cashBalance = Number(((p.cashBalance || 0) + cashAmount).toFixed(2));
+          initialStatus = 'Added to Wallet';
+        } else {
+          initialStatus = 'Approved';
+        }
       }
 
       const redemptionRecord = {
         id: 'red_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
         date: dateKey(),
         timestamp: new Date().toISOString(),
-        tierPoints: tier.points,
-        tierLabel: tier.label || `${tier.points} XP`,
         reward: rewardItem,
-        isCash: isCash,
+        tierPoints: xpCost,
+        cashCost: cashCost,
+        paymentMethod: paymentMethod,
+        isCash: isCashConversion,
+        isCashConversion: isCashConversion,
         cashAmount: cashAmount,
-        status: isCash ? 'Added to Cash Balance' : 'Ready to Claim'
+        status: initialStatus,
+        parentApproved: parentApproved
       };
 
       p.redemptions.unshift(redemptionRecord);
@@ -735,8 +919,8 @@
       this.recordActivity({
         type: 'reward_redemption',
         isQuestion: false,
-        domain: 'Prize & Cash Redemption',
-        title: `Redeemed: ${rewardItem}`,
+        domain: 'Prize & Wallet Store',
+        title: `Redeemed: ${rewardItem} (${initialStatus})`,
         xp: 0,
         durationSec: 10,
         profileId: p.id
@@ -749,6 +933,105 @@
       return { ok: true, redemption: redemptionRecord, profile: p };
     },
 
+    approveRedemption: function (pid, redemptionId) {
+      const p = this.getProfileById(pid);
+      if (!p) return { ok: false, error: 'Profile not found' };
+      ensureProfileFields(p);
+
+      const r = (p.redemptions || []).find(item => item.id === redemptionId);
+      if (!r) return { ok: false, error: 'Redemption record not found' };
+
+      r.status = 'Approved';
+      r.approvedAt = new Date().toISOString();
+
+      // If it was an XP to Wallet Cash conversion, credit to wallet balance now!
+      if (r.isCashConversion && r.cashAmount > 0) {
+        p.cashBalance = Number(((p.cashBalance || 0) + r.cashAmount).toFixed(2));
+        r.status = 'Added to Wallet';
+      }
+
+      this.markProfile(p.id);
+      this.saveLocal();
+      this.scheduleCloudSync();
+      this.notify();
+      return { ok: true, redemption: r, profile: p };
+    },
+
+    rejectRedemption: function (pid, redemptionId, reason = 'Declined by parent') {
+      const p = this.getProfileById(pid);
+      if (!p) return { ok: false, error: 'Profile not found' };
+      ensureProfileFields(p);
+
+      const r = (p.redemptions || []).find(item => item.id === redemptionId);
+      if (!r) return { ok: false, error: 'Redemption record not found' };
+
+      r.status = 'Rejected';
+      r.rejectedAt = new Date().toISOString();
+      r.rejectReason = reason;
+
+      // Refund reserved payment
+      if (r.paymentMethod === 'wallet' && r.cashCost > 0) {
+        p.cashBalance = Number(((p.cashBalance || 0) + r.cashCost).toFixed(2));
+      } else if (r.tierPoints > 0) {
+        p.totalXpSpent = Math.max(0, (p.totalXpSpent || 0) - r.tierPoints);
+      }
+
+      this.markProfile(p.id);
+      this.saveLocal();
+      this.scheduleCloudSync();
+      this.notify();
+      return { ok: true, redemption: r, profile: p };
+    },
+
+    getPendingRedemptions: function () {
+      const list = [];
+      const profiles = this.getAllProfiles();
+      profiles.forEach(p => {
+        ensureProfileFields(p);
+        (p.redemptions || []).forEach(r => {
+          if (r.status === 'Pending Approval' || r.status === 'pending') {
+            list.push({ ...r, studentId: p.id, studentName: p.name, studentAvatar: p.avatar });
+          }
+        });
+      });
+      return list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    },
+
+    requestCashPayout: function (pid, amount) {
+      const p = this.getProfileById(pid);
+      if (!p) return { ok: false, error: 'Profile not found' };
+      ensureProfileFields(p);
+
+      const availableCash = p.cashBalance || 0;
+      const payoutAmount = Math.min(availableCash, Number(amount) || availableCash);
+      if (payoutAmount <= 0) return { ok: false, error: 'No wallet balance available for payout.' };
+
+      // Deduct from wallet balance
+      p.cashBalance = Number(Math.max(0, availableCash - payoutAmount).toFixed(2));
+
+      const payoutRecord = {
+        id: 'payout_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+        date: dateKey(),
+        timestamp: new Date().toISOString(),
+        reward: `Cash Payout Request: $${payoutAmount.toFixed(2)}`,
+        tierPoints: 0,
+        cashCost: payoutAmount,
+        paymentMethod: 'wallet',
+        isCash: true,
+        isPayout: true,
+        cashAmount: payoutAmount,
+        status: 'Pending Approval',
+        parentApproved: false
+      };
+
+      p.redemptions.unshift(payoutRecord);
+      this.markProfile(p.id);
+      this.saveLocal();
+      this.scheduleCloudSync();
+      this.notify();
+      return { ok: true, payout: payoutRecord, profile: p };
+    },
+
     settleStudentCash: function (pid) {
       const p = this.getProfileById(pid);
       if (!p) return { ok: false, error: 'Profile not found' };
@@ -757,7 +1040,7 @@
       p.cashBalance = 0;
       if (Array.isArray(p.redemptions)) {
         p.redemptions.forEach(r => {
-          if (r.isCash && r.status !== 'Paid Out') {
+          if ((r.isCash || r.isPayout) && r.status !== 'Paid Out' && r.status !== 'Rejected') {
             r.status = 'Paid Out';
           }
         });

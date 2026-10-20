@@ -234,44 +234,114 @@
         <div id="adminSectionXPGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
-      <!-- REWARDS, CASH ALLOWANCES & PROFILE PIN MANAGEMENT -->
-      <div class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-emerald-400 dark:border-emerald-700 p-6 sm:p-8 shadow-sm space-y-6">
+      <!-- REWARDS, CASH ALLOWANCES, PRIZE CATALOG & PROFILE PIN MANAGEMENT -->
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-emerald-400 dark:border-emerald-700 p-6 sm:p-8 shadow-sm space-y-7">
         
         <!-- Header -->
         <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-emerald-100 dark:border-emerald-950">
           <div>
             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-950 dark:text-emerald-300 text-xs font-bold mb-1">
-              <span>🎁</span>
-              <span>XP Rewards Bazaar &amp; Security PINs</span>
+              <span>👛</span>
+              <span>Learning Wallet, Prize Catalog &amp; Security PINs</span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900 dark:text-slate-100">Reward Tiers, Cash Allowances &amp; Profile PINs</h3>
+            <h3 class="text-xl font-extrabold text-slate-900 dark:text-slate-100">Rewards Bazaar, Parent Approvals &amp; Allowance Controls</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 max-w-2xl">
-              Customize reward options for point milestones, manage student cash allowances, pay out redemptions, and configure private profile PINs.
+              Review and approve student prize redemptions &amp; cash payouts, customize price ($) and XP points for every catalog item, manage student wallets, and protect learner profiles with 4-digit PINs.
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="handleAddNewRewardTier()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs btn-tactile cursor-pointer">
-              <span>➕</span>
-              <span>Add New Milestone Tier</span>
-            </button>
-            <button type="button" onclick="handleResetRewardTiersToDefault()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
-              <span>↺</span>
-              <span>Reset Defaults</span>
-            </button>
+            <div id="adminPendingApprovalsCountBadge"></div>
           </div>
         </div>
 
-        <!-- 1. Student Cash Balances & Profile PINs Grid -->
+        <!-- 1. Parent Approval Queue: Pending Redemptions & Payout Requests -->
+        <div class="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border-2 border-amber-300 dark:border-amber-700/80 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 class="text-xs font-black uppercase tracking-wider text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
+                <span>⏳</span>
+                <span>Parent Approval Queue (Prize Redemptions &amp; Cash Payouts)</span>
+              </h4>
+              <p class="text-[11px] text-amber-800 dark:text-amber-300">
+                Student prize claims and cash payout requests require your approval unless entered with Parent Master PIN (0000).
+              </p>
+            </div>
+          </div>
+          <div id="adminPendingApprovalsContainer"></div>
+        </div>
+
+        <!-- 2. Student Cash Balances & Profile PINs Grid -->
         <div>
           <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
             <span>💵</span>
-            <span>Student Cash Allowances &amp; Profile PIN Security</span>
+            <span>Student Learning Wallets &amp; Profile PIN Security</span>
           </h4>
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 mb-3">When students redeem cash options (e.g. $1, $5, $30), their balance updates automatically. Pay out cash in person and click "Mark Paid" to reset balance to $0.00.</p>
+          <p class="text-[11px] text-slate-400 dark:text-slate-500 mb-3">
+            Accumulated wallet dollars from XP conversions (20,000 XP = $1.00, 30,000 XP = $2.00). When you hand cash to your student, click "Mark Paid" to settle their balance.
+          </p>
           <div id="adminStudentCashGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- 2. Popular Presets Multi-Select Toolbar & Target Tier -->
+        <!-- 3. Customizable Prize Catalog (Price $ and XP Points) -->
+        <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                <span>🎁</span>
+                <span>Customizable Prize Catalog &amp; Exchange Rates</span>
+              </h4>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500">
+                Customize the real-world Price ($) and XP Points cost for any reward. Students can purchase using Wallet Cash ($) or redeem directly with XP.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="handleResetCatalogToDefaults()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                <span>↺</span>
+                <span>Reset Prize Catalog</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Add New Prize Form -->
+          <form onsubmit="handleAddNewCatalogItemSubmit(event)" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-wrap items-end gap-3 text-xs">
+            <div class="flex-1 min-w-[140px]">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Prize Name</label>
+              <input type="text" id="adminNewCatalogName" required placeholder="e.g. 15 min Minecraft, Hot Wheels" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-bold text-slate-800 dark:text-slate-200 focus:outline-indigo-500" />
+            </div>
+            <div class="w-24">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Price ($)</label>
+              <input type="number" step="0.25" min="0" id="adminNewCatalogPrice" value="1.00" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-mono font-bold text-emerald-700 dark:text-emerald-400 focus:outline-indigo-500" />
+            </div>
+            <div class="w-28">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">XP Points</label>
+              <input type="number" step="1000" min="1000" id="adminNewCatalogXP" value="20000" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-mono font-bold text-indigo-700 dark:text-indigo-400 focus:outline-indigo-500" />
+            </div>
+            <div class="w-28">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Category</label>
+              <select id="adminNewCatalogCategory" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 font-bold text-slate-700 dark:text-slate-300 focus:outline-indigo-500">
+                <option value="treat">🍭 Treat</option>
+                <option value="privilege">📺 Privilege</option>
+                <option value="item">🎁 Item / Toy</option>
+                <option value="activity">⚽ Activity</option>
+              </select>
+            </div>
+            <div class="w-20">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Emoji Icon</label>
+              <input type="text" id="adminNewCatalogIcon" value="🎁" maxlength="4" class="w-full text-center bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-base focus:outline-indigo-500" />
+            </div>
+            <div>
+              <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black transition flex items-center gap-1.5 shadow-xs btn-tactile cursor-pointer">
+                <span>➕</span>
+                <span>Add Prize</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Prize Catalog Cards Grid -->
+          <div id="adminPrizeCatalogGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5"></div>
+        </div>
+
+        <!-- 4. Popular Presets Multi-Select Toolbar & Target Tier -->
         <div class="p-5 rounded-2xl bg-gradient-to-r from-indigo-50/70 to-purple-50/60 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-200 dark:border-indigo-800 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -298,17 +368,29 @@
           </div>
         </div>
 
-        <!-- 3. Customizable XP Milestone Tiers List -->
+        <!-- 5. Customizable XP Milestone Tiers List -->
         <div>
-          <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
-            <span>🎯</span>
-            <span>Customizable Milestone Tiers &amp; Redemption Options</span>
-          </h4>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <span>🎯</span>
+              <span>Customizable Milestone Tiers &amp; Redemption Options</span>
+            </h4>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="handleAddNewRewardTier()" class="px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1 shadow-xs btn-tactile cursor-pointer">
+                <span>➕</span>
+                <span>Add Milestone Tier</span>
+              </button>
+              <button type="button" onclick="handleResetRewardTiersToDefault()" class="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                <span>↺</span>
+                <span>Reset Defaults</span>
+              </button>
+            </div>
+          </div>
           <p class="text-[11px] text-slate-400 dark:text-slate-500 mb-3">Adjust required XP thresholds, rename tiers, remove options, or type custom rewards.</p>
           <div id="adminRewardTiersEditorGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- 4. Family Redemptions Audit Log -->
+        <!-- 6. Family Redemptions Audit Log -->
         <div class="pt-4 border-t border-emerald-100 dark:border-emerald-950">
           <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
             <span>📜</span>

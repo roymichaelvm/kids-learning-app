@@ -757,127 +757,328 @@
 
   function renderRewardsModal() {
     const p = activeProfile();
-    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
-      ? window.LuminaDB.getRewardTiers()
-      : [];
+    const catalog = (window.LuminaDB && typeof window.LuminaDB.getPrizeCatalog === 'function')
+      ? window.LuminaDB.getPrizeCatalog()
+      : (window.LuminaDB && window.LuminaDB.DEFAULT_PRIZE_CATALOG) || [];
     const availableXP = Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+    const walletCash = p.cashBalance || 0;
+    const redemptions = p.redemptions || [];
+    const pendingCount = redemptions.filter(r => r.status === 'Pending Approval' || r.status === 'pending').length;
 
     // Stats Banner
     const nameEl = document.getElementById('rewardsModalStudentName');
     const xpEl = document.getElementById('rewardsModalAvailableXP');
     const cashEl = document.getElementById('rewardsModalCashBalance');
     const spentEl = document.getElementById('rewardsModalTotalSpent');
+    const pendingBadge = document.getElementById('rewardsModalPendingBadge');
 
-    if (nameEl) nameEl.textContent = `${p.avatar || '👤'} ${p.name || 'Scholar'}'s Prize Bazaar`;
-    if (xpEl) xpEl.textContent = `⚡ ${availableXP} XP`;
-    if (cashEl) cashEl.textContent = `$${(p.cashBalance || 0).toFixed(2)}`;
-    if (spentEl) spentEl.textContent = `⚡ ${p.totalXpSpent || 0} XP`;
+    if (nameEl) nameEl.textContent = `${p.avatar || '👤'} ${p.name || 'Scholar'}'s Learning Wallet & Prize Store`;
+    if (xpEl) xpEl.textContent = `⚡ ${availableXP.toLocaleString()} XP`;
+    if (cashEl) cashEl.textContent = `$${walletCash.toFixed(2)}`;
+    if (spentEl) spentEl.textContent = `⚡ ${(p.totalXpSpent || 0).toLocaleString()} XP`;
+    if (pendingBadge) {
+      if (pendingCount > 0) {
+        pendingBadge.textContent = `⏳ ${pendingCount} Awaiting Parent Approval`;
+        pendingBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 text-xs font-bold";
+      } else {
+        pendingBadge.textContent = "✓ All requests up to date";
+        pendingBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 text-xs font-bold";
+      }
+    }
 
-    // Render Tiers
-    const tiersGrid = document.getElementById('rewardsTiersGrid');
-    if (tiersGrid) {
-      tiersGrid.innerHTML = tiers.map(tier => {
-        const canAfford = availableXP >= tier.points;
-        const progressPct = Math.min(100, Math.round((availableXP / tier.points) * 100));
-
-        const optionsHtml = (tier.options || []).map(opt => {
-          const isCash = /\$(\d+(?:\.\d{1,2})?)/.test(opt);
-          const icon = isCash ? '💵' : '🎁';
-          return `
-            <button onclick="handleRedeemReward('${tier.id}', '${escapeHtml(opt)}')" ${canAfford ? '' : 'disabled'}
-              class="w-full text-left p-3 rounded-xl border transition flex items-center justify-between gap-2 btn-tactile ${canAfford
-                ? (isCash
-                    ? 'bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border-emerald-300 dark:border-emerald-700 text-emerald-950 dark:text-emerald-100 font-extrabold cursor-pointer'
-                    : 'bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border-indigo-200 dark:border-indigo-800 text-indigo-950 dark:text-indigo-100 font-bold cursor-pointer')
-                : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60'}">
-              <span class="flex items-center gap-2">
-                <span>${icon}</span>
-                <span class="text-xs sm:text-sm">${escapeHtml(opt)}</span>
+    // Render XP to Wallet Cash Conversion Station
+    const conversionGrid = document.getElementById('rewardsConversionStationGrid');
+    if (conversionGrid) {
+      const canAfford1 = availableXP >= 20000;
+      const canAfford2 = availableXP >= 30000;
+      conversionGrid.innerHTML = `
+        <div class="p-4 rounded-2xl border-2 transition-all flex flex-col justify-between ${canAfford1
+          ? 'border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/30 dark:border-emerald-700 shadow-sm'
+          : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 opacity-75'}">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-800 text-emerald-950 dark:text-emerald-100">
+                💵 Standard Rate
               </span>
-              <span class="text-[11px] px-2.5 py-0.5 rounded-md ${canAfford ? (isCash ? 'bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 font-black' : 'bg-indigo-200 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-100 font-bold') : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}">
-                ${canAfford ? 'Redeem ➔' : `Need ${tier.points - availableXP} XP`}
-              </span>
+              <span class="text-xs font-black text-emerald-700 dark:text-emerald-400">⚡ 20,000 XP</span>
+            </div>
+            <h4 class="text-base font-black text-slate-900 dark:text-slate-100">+$1.00 Cash to Wallet</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Exchange 20,000 XP for $1.00 added directly into your Wallet balance.</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-emerald-200/60 dark:border-emerald-800/60">
+            <button onclick="handleConvertXPToWallet(1.00, 20000)" ${canAfford1 ? '' : 'disabled'}
+              class="w-full py-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 btn-tactile ${canAfford1
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer'
+                : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'}">
+              <span>💵</span>
+              <span>${canAfford1 ? 'Convert 20,000 XP ➔ +$1.00' : `Need ${(20000 - availableXP).toLocaleString()} More XP`}</span>
             </button>
-          `;
-        }).join('');
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl border-2 transition-all flex flex-col justify-between ${canAfford2
+          ? 'border-indigo-400 bg-indigo-50/60 dark:bg-indigo-950/30 dark:border-indigo-700 shadow-sm ring-2 ring-indigo-400/20'
+          : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 opacity-75'}">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-200 dark:bg-indigo-800 text-indigo-950 dark:text-indigo-100">
+                ⭐ Best Value Bonus!
+              </span>
+              <span class="text-xs font-black text-indigo-700 dark:text-indigo-400">⚡ 30,000 XP</span>
+            </div>
+            <h4 class="text-base font-black text-slate-900 dark:text-slate-100">+$2.00 Cash to Wallet</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Bonus exchange: 30,000 XP gives you $2.00 cash (save 10,000 XP)!</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-indigo-200/60 dark:border-indigo-800/60">
+            <button onclick="handleConvertXPToWallet(2.00, 30000)" ${canAfford2 ? '' : 'disabled'}
+              class="w-full py-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 btn-tactile ${canAfford2
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs cursor-pointer'
+                : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'}">
+              <span>🌟</span>
+              <span>${canAfford2 ? 'Convert 30,000 XP ➔ +$2.00 (Bonus)' : `Need ${(30000 - availableXP).toLocaleString()} More XP`}</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Prize Catalog Store (Buy with Wallet Cash or XP)
+    const catalogGrid = document.getElementById('rewardsPrizeCatalogGrid');
+    if (catalogGrid) {
+      const displayItems = catalog.filter(item => item.category !== 'cash'); // cash items handled in conversion station above
+      catalogGrid.innerHTML = displayItems.map(item => {
+        const canAffordCash = walletCash >= item.price;
+        const canAffordXP = availableXP >= item.xpPoints;
 
         return `
-          <div class="rounded-3xl border-2 p-5 flex flex-col justify-between transition-all ${canAfford
-            ? 'border-indigo-400 dark:border-indigo-600 bg-white dark:bg-slate-900 shadow-md ring-2 ring-indigo-400/20'
-            : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 opacity-90'}">
+          <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
             <div>
-              <div class="flex items-center justify-between gap-2 mb-2">
-                <span class="text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${canAfford ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}">
-                  ${escapeHtml(tier.label || `${tier.points} XP Milestone`)}
-                </span>
-                <span class="text-xs font-black ${canAfford ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}">
-                  ⚡ ${tier.points} XP
-                </span>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="text-3xl">${escapeHtml(item.icon || '🎁')}</span>
+                <div>
+                  <h5 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">${escapeHtml(item.name)}</h5>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">${escapeHtml(item.description || '')}</p>
+                </div>
               </div>
-
-              <!-- Progress bar -->
-              <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-3">
-                <div class="h-full rounded-full transition-all duration-500 ${canAfford ? 'bg-emerald-500' : 'bg-indigo-500'}" style="width: ${progressPct}%"></div>
+              <div class="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 mb-2 font-mono">
+                <span class="font-black text-emerald-700 dark:text-emerald-400">💵 $${item.price.toFixed(2)}</span>
+                <span class="text-slate-400">or</span>
+                <span class="font-extrabold text-indigo-600 dark:text-indigo-400">⚡ ${item.xpPoints.toLocaleString()} XP</span>
               </div>
+            </div>
 
-              <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-3">
-                ${canAfford ? '🎉 You have unlocked this tier! Pick any reward below:' : `Earn ${tier.points - availableXP} more XP to unlock these choices:`}
-              </p>
+            <!-- Two purchase buttons -->
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+              <button onclick="handlePurchasePrize('${item.id}', 'wallet')" ${canAffordCash ? '' : 'disabled'}
+                class="py-2 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 btn-tactile ${canAffordCash
+                  ? 'bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-700 text-emerald-950 dark:text-emerald-200 cursor-pointer'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60'}"
+                title="${canAffordCash ? `Buy with $${item.price.toFixed(2)} from your wallet` : `You need $${item.price.toFixed(2)} in your wallet (You have $${walletCash.toFixed(2)})`}">
+                <span>👛 Wallet ($${item.price.toFixed(2)})</span>
+              </button>
 
-              <div class="space-y-2">
-                ${optionsHtml}
-              </div>
+              <button onclick="handlePurchasePrize('${item.id}', 'xp')" ${canAffordXP ? '' : 'disabled'}
+                class="py-2 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 btn-tactile ${canAffordXP
+                  ? 'bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-300 dark:border-indigo-700 text-indigo-950 dark:text-indigo-200 cursor-pointer'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60'}"
+                title="${canAffordXP ? `Redeem with ${item.xpPoints.toLocaleString()} XP` : `You need ${item.xpPoints.toLocaleString()} XP (You have ${availableXP.toLocaleString()} XP)`}">
+                <span>⚡ XP (${(item.xpPoints / 1000).toFixed(0)}k)</span>
+              </button>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    // Render Student's Redemption History
+    // Render Student's Redemption & Wallet Activity History
     const historyContainer = document.getElementById('rewardsHistoryList');
     if (historyContainer) {
-      const redemptions = p.redemptions || [];
       if (redemptions.length === 0) {
         historyContainer.innerHTML = `
           <div class="text-center py-6 text-slate-400 text-xs italic">
-            You haven't redeemed any rewards yet. Answer questions and practice daily to build up XP!
+            You haven't requested any rewards yet. Answer questions and complete tracks to build up XP and Wallet cash!
           </div>
         `;
       } else {
-        historyContainer.innerHTML = redemptions.map(r => `
-          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-            <div class="flex items-center gap-2.5">
-              <span class="text-base">${r.isCash ? '💵' : '🎁'}</span>
-              <div>
-                <p class="font-black text-slate-900 dark:text-slate-100">${escapeHtml(r.reward)}</p>
-                <p class="text-[10px] text-slate-500 dark:text-slate-400">${new Date(r.timestamp).toLocaleDateString()} • Tier: ${escapeHtml(r.tierLabel || `${r.tierPoints} XP`)}</p>
+        historyContainer.innerHTML = redemptions.map(r => {
+          let statusBadge = '';
+          if (r.status === 'Pending Approval' || r.status === 'pending') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 animate-pulse">⏳ Waiting for Parent Approval</span>';
+          } else if (r.status === 'Approved') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">✅ Approved by Parent</span>';
+          } else if (r.status === 'Added to Wallet') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">👛 Added to Wallet</span>';
+          } else if (r.status === 'Paid Out') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 line-through">💵 Paid Out</span>';
+          } else if (r.status === 'Rejected') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300">❌ Declined (Refunded)</span>';
+          } else {
+            statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600">${escapeHtml(r.status || 'Done')}</span>`;
+          }
+
+          const paymentTxt = r.paymentMethod === 'wallet'
+            ? `<span class="text-emerald-700 dark:text-emerald-400 font-black font-mono">-$${(r.cashCost || 0).toFixed(2)} from Wallet</span>`
+            : `<span class="text-indigo-600 dark:text-indigo-400 font-black font-mono">-⚡${(r.tierPoints || 0).toLocaleString()} XP</span>`;
+
+          return `
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs gap-2">
+              <div class="flex items-center gap-2.5">
+                <span class="text-xl">${r.isCash ? '💵' : '🎁'}</span>
+                <div>
+                  <p class="font-black text-slate-900 dark:text-slate-100">${escapeHtml(r.reward)}</p>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">${new Date(r.timestamp).toLocaleDateString()} ${new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Cost: ${paymentTxt}</p>
+                </div>
+              </div>
+              <div class="sm:text-right shrink-0">
+                ${statusBadge}
               </div>
             </div>
-            <div class="text-right">
-              <span class="font-extrabold text-indigo-600 dark:text-indigo-400">-⚡${r.tierPoints} XP</span>
-              <span class="block text-[10px] font-bold ${r.status === 'Paid Out' ? 'text-slate-400 line-through' : (r.isCash ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400')}">${escapeHtml(r.status || 'Claimed')}</span>
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
+      }
+    }
+  }
+
+  function handleConvertXPToWallet(cashAmount, xpRequired) {
+    const p = activeProfile();
+    const availableXP = Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+    if (availableXP < xpRequired) {
+      showToast(`You need ${xpRequired.toLocaleString()} XP to convert to $${cashAmount.toFixed(2)}. You have ${availableXP.toLocaleString()} XP.`);
+      return;
+    }
+
+    const pinInput = window.prompt(
+      `Convert ${xpRequired.toLocaleString()} XP to $${cashAmount.toFixed(2)} Cash in ${p.name}'s Wallet?\n\nPARENT APPROVAL:\n• If parent is here, enter Parent Master PIN (0000) for instant approval.\n• Or leave blank and click OK to submit for Parent Approval in the Parent Portal:`,
+      ''
+    );
+    if (pinInput === null) return; // User cancelled
+
+    const isMasterApproved = pinInput.trim() === '0000';
+
+    if (window.LuminaDB && typeof window.LuminaDB.redeemReward === 'function') {
+      const res = window.LuminaDB.redeemReward(p.id, 'prize_cash', `$${cashAmount.toFixed(2)} Cash to Wallet`, {
+        paymentMethod: 'xp',
+        xpCost: xpRequired,
+        isCashConversion: true,
+        cashAmount: cashAmount,
+        parentApproved: isMasterApproved
+      });
+
+      if (res && res.ok) {
+        if (isMasterApproved) {
+          if (typeof window.confetti === 'function') window.confetti({ particleCount: 160, spread: 100 });
+          showToast(`💵 Added $${cashAmount.toFixed(2)} directly to ${p.name}'s Learning Wallet!`);
+        } else {
+          showToast(`⏳ Submitted $${cashAmount.toFixed(2)} conversion request for Parent Approval!`);
+        }
+        refreshHeaderUI();
+        renderRewardsModal();
+      } else {
+        showToast((res && res.error) || 'Could not convert XP to wallet cash');
+      }
+    }
+  }
+
+  function handlePurchasePrize(prizeId, paymentMethod) {
+    const p = activeProfile();
+    const catalog = (window.LuminaDB && typeof window.LuminaDB.getPrizeCatalog === 'function')
+      ? window.LuminaDB.getPrizeCatalog()
+      : [];
+    const item = catalog.find(i => i.id === prizeId);
+    if (!item) return;
+
+    const availableXP = Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+    const walletCash = p.cashBalance || 0;
+
+    if (paymentMethod === 'wallet' && walletCash < item.price) {
+      showToast(`You need $${item.price.toFixed(2)} in your Wallet. Your current wallet balance is $${walletCash.toFixed(2)}.`);
+      return;
+    }
+    if (paymentMethod === 'xp' && availableXP < item.xpPoints) {
+      showToast(`You need ${item.xpPoints.toLocaleString()} XP. Your available XP is ${availableXP.toLocaleString()} XP.`);
+      return;
+    }
+
+    const costLabel = paymentMethod === 'wallet' ? `$${item.price.toFixed(2)} from Wallet` : `${item.xpPoints.toLocaleString()} XP`;
+    const pinInput = window.prompt(
+      `Redeem "${item.name}" for ${costLabel}?\n\nPARENT APPROVAL:\n• If parent is here, enter Parent Master PIN (0000) for instant approval.\n• Or leave blank and click OK to submit for Parent Approval in the Parent Portal:`,
+      ''
+    );
+    if (pinInput === null) return; // Cancelled
+
+    const isMasterApproved = pinInput.trim() === '0000';
+
+    if (window.LuminaDB && typeof window.LuminaDB.redeemReward === 'function') {
+      const res = window.LuminaDB.redeemReward(p.id, item.id, item.name, {
+        paymentMethod: paymentMethod,
+        price: item.price,
+        cashCost: item.price,
+        xpCost: item.xpPoints,
+        parentApproved: isMasterApproved
+      });
+
+      if (res && res.ok) {
+        if (isMasterApproved) {
+          if (typeof window.confetti === 'function') window.confetti({ particleCount: 160, spread: 100 });
+          showToast(`🎉 Approved! Claim your "${item.name}".`);
+        } else {
+          showToast(`⏳ Request for "${item.name}" submitted! Waiting for Parent Approval.`);
+        }
+        refreshHeaderUI();
+        renderRewardsModal();
+      } else {
+        showToast((res && res.error) || 'Could not redeem prize');
+      }
+    }
+  }
+
+  function handleRequestCashPayout() {
+    const p = activeProfile();
+    const walletCash = p.cashBalance || 0;
+    if (walletCash <= 0) {
+      showToast('No wallet cash available for payout. Convert XP to cash first!');
+      return;
+    }
+
+    const conf = window.confirm(`Request cash payout of $${walletCash.toFixed(2)} from your parent in real life?`);
+    if (!conf) return;
+
+    if (window.LuminaDB && typeof window.LuminaDB.requestCashPayout === 'function') {
+      const res = window.LuminaDB.requestCashPayout(p.id, walletCash);
+      if (res && res.ok) {
+        showToast(`💵 Cash payout request for $${walletCash.toFixed(2)} submitted! Ask parent to pay and approve.`);
+        refreshHeaderUI();
+        renderRewardsModal();
+      } else {
+        showToast((res && res.error) || 'Could not submit payout request');
       }
     }
   }
 
   function handleRedeemReward(tierId, rewardItem) {
     const p = activeProfile();
-    const conf = window.confirm(`Redeem "${rewardItem}" for ${tierId} points?\n\nThis will deduct points from ${p.name}'s available XP.`);
-    if (!conf) return;
+    const pinInput = window.prompt(
+      `Redeem "${rewardItem}" for ${tierId} points?\n\nPARENT APPROVAL:\n• Enter Parent PIN (0000) for instant approval\n• Or leave blank and click OK to submit for Parent Approval:`,
+      ''
+    );
+    if (pinInput === null) return;
+
+    const isMasterApproved = pinInput.trim() === '0000';
 
     if (window.LuminaDB && typeof window.LuminaDB.redeemReward === 'function') {
-      const res = window.LuminaDB.redeemReward(p.id, tierId, rewardItem);
+      const res = window.LuminaDB.redeemReward(p.id, tierId, rewardItem, {
+        parentApproved: isMasterApproved
+      });
       if (res && res.ok) {
-        if (typeof window.confetti === 'function') {
-          window.confetti({ particleCount: 180, spread: 120, origin: { y: 0.5 } });
-        }
-        if (res.redemption.isCash) {
-          showToast(`💵 Added $${res.redemption.cashAmount.toFixed(2)} to ${p.name}'s Cash Balance! Total: $${(p.cashBalance || 0).toFixed(2)}`);
+        if (isMasterApproved) {
+          if (typeof window.confetti === 'function') window.confetti({ particleCount: 180, spread: 120 });
+          if (res.redemption.isCash) {
+            showToast(`💵 Added $${res.redemption.cashAmount.toFixed(2)} to ${p.name}'s Wallet! Total: $${(p.cashBalance || 0).toFixed(2)}`);
+          } else {
+            showToast(`🎉 Approved! Claim "${rewardItem}".`);
+          }
         } else {
-          showToast(`🎉 Redeemed "${rewardItem}"! Show your parent to claim.`);
+          showToast(`⏳ Submitted request for "${rewardItem}"! Waiting for parent approval.`);
         }
         refreshHeaderUI();
         renderRewardsModal();
@@ -2034,15 +2235,12 @@
     { id: 'ring_pop', label: '🍭 Ring Pop', value: 'Ring Pop 🍭' },
     { id: 'snickers', label: '🍫 Snickers Bar', value: 'Snickers Bar 🍫' },
     { id: 'tv_1hr', label: '📺 1 Hour TV Time', value: '1 Hour TV Time 📺' },
-    { id: 'cash_1', label: '💵 $1 Cash', value: '$1 Cash Allowance 💵' },
-    { id: 'cash_2', label: '💵 $2 Cash', value: '$2 Cash Allowance 💵' },
-    { id: 'cash_3', label: '💵 $3 Cash', value: '$3 Cash Allowance 💵' },
-    { id: 'cash_4', label: '💵 $4 Cash', value: '$4 Cash Allowance 💵' },
-    { id: 'cash_5', label: '💵 $5 Cash', value: '$5 Cash Allowance 💵' },
-    { id: 'cash_30', label: '💵 $30 Cash', value: '$30 Cash Allowance 💵' },
-    { id: 'cash_10k', label: '💵 10K XP: $10 Cash', value: '$10 Cash Allowance 💵' },
-    { id: 'cash_20k', label: '💵 20K XP: $20 Cash', value: '$20 Cash Allowance 💵' },
-    { id: 'cash_30k', label: '💵 30K XP: $30 Cash', value: '$30 Cash Allowance 💵' },
+    { id: 'cash_1', label: '💵 20K XP: $1 Cash', value: '$1 Cash Allowance 💵' },
+    { id: 'cash_2', label: '💵 30K XP: $2 Cash', value: '$2 Cash Allowance 💵' },
+    { id: 'ice_cream', label: '🍦 Ice Cream Trip', value: 'Ice Cream Trip 🍦' },
+    { id: 'book', label: '📚 Book of Choice', value: 'Book of Choice 📚' },
+    { id: 'cash_4', label: '💵 60K XP: $4 Cash', value: '$4 Cash Allowance 💵' },
+    { id: 'game', label: '🎮 Video Game / Robux', value: 'Video Game / Robux Card 🎮' }
   ];
 
   const selectedPresetRewardIds = new Set();
@@ -2121,8 +2319,75 @@
     const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
       ? window.LuminaDB.getRewardTiers()
       : [];
+    const catalog = (window.LuminaDB && typeof window.LuminaDB.getPrizeCatalog === 'function')
+      ? window.LuminaDB.getPrizeCatalog()
+      : [];
+    const pendingList = (window.LuminaDB && typeof window.LuminaDB.getPendingRedemptions === 'function')
+      ? window.LuminaDB.getPendingRedemptions()
+      : [];
 
-    // 1. Student Cash Allowances & Profile PINs
+    // 1. Pending Approvals Queue
+    const pendingContainer = document.getElementById('adminPendingApprovalsContainer');
+    const pendingHeaderBadge = document.getElementById('adminPendingApprovalsCountBadge');
+    if (pendingHeaderBadge) {
+      pendingHeaderBadge.innerHTML = pendingList.length > 0
+        ? `<span class="px-3 py-1 rounded-full text-xs font-black bg-rose-500 text-white animate-pulse">⚠️ ${pendingList.length} Awaiting Approval</span>`
+        : `<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">✓ All Caught Up</span>`;
+    }
+
+    if (pendingContainer) {
+      if (pendingList.length === 0) {
+        pendingContainer.innerHTML = `
+          <div class="py-6 text-center text-slate-400 bg-slate-50/60 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+            <span class="text-3xl block mb-1">🎉</span>
+            <p class="text-xs font-bold text-slate-600 dark:text-slate-300">No pending student redemptions or payout requests!</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">When students request prizes or wallet payouts, they will appear here for your review and approval.</p>
+          </div>
+        `;
+      } else {
+        pendingContainer.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            ${pendingList.map(r => `
+              <div class="p-4 rounded-2xl bg-amber-50/90 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700 shadow-sm flex flex-col justify-between gap-3">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">${escapeHtml(r.studentAvatar || '👤')}</span>
+                    <div>
+                      <h4 class="font-extrabold text-sm text-slate-900 dark:text-slate-100">${escapeHtml(r.studentName)}</h4>
+                      <p class="text-[10px] text-amber-800 dark:text-amber-300 font-semibold">${new Date(r.timestamp).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 uppercase">
+                    ${r.isPayout ? 'Cash Payout' : (r.isCashConversion ? 'XP to Wallet' : 'Prize Claim')}
+                  </span>
+                </div>
+
+                <div class="py-2 px-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/80">
+                  <p class="font-black text-sm text-slate-900 dark:text-slate-100">${escapeHtml(r.reward)}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Payment: <strong class="text-indigo-600 dark:text-indigo-400">${r.paymentMethod === 'wallet' ? `$${(r.cashCost || 0).toFixed(2)} from Wallet` : `⚡ ${(r.tierPoints || 0).toLocaleString()} XP`}</strong>
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                  <button type="button" onclick="handleApproveRedemption('${r.studentId}', '${r.id}')"
+                    class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 btn-tactile cursor-pointer">
+                    <span>✅</span>
+                    <span>Approve</span>
+                  </button>
+                  <button type="button" onclick="handleRejectRedemption('${r.studentId}', '${r.id}')"
+                    class="py-2 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-rose-50 text-rose-700 dark:text-rose-400 font-bold text-xs border border-rose-200 dark:border-rose-900 transition btn-tactile cursor-pointer">
+                    <span>❌ Reject</span>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+    }
+
+    // 2. Student Cash Allowances & Profile PINs
     const cashContainer = document.getElementById('adminStudentCashGrid');
     if (cashContainer) {
       cashContainer.innerHTML = allProfiles.map(p => {
@@ -2144,7 +2409,7 @@
                   </div>
                 </div>
                 <div class="text-right">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Cash Balance</span>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Wallet Cash</span>
                   <span class="text-2xl font-black text-emerald-700 dark:text-emerald-300">$${cash.toFixed(2)}</span>
                 </div>
               </div>
@@ -2152,11 +2417,11 @@
               <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400 mb-3 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                 <div>
                   <span class="text-[10px] uppercase font-bold text-slate-400 block">Available XP</span>
-                  <span class="font-black text-indigo-600 dark:text-indigo-400 text-sm">⚡ ${availableXP}</span>
+                  <span class="font-black text-indigo-600 dark:text-indigo-400 text-sm">⚡ ${availableXP.toLocaleString()}</span>
                 </div>
                 <div>
-                  <span class="text-[10px] uppercase font-bold text-slate-400 block">XP Spent on Prizes</span>
-                  <span class="font-bold text-slate-700 dark:text-slate-300 text-sm">⚡ ${p.totalXpSpent || 0}</span>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 block">XP Spent / Converted</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-300 text-sm">⚡ ${(p.totalXpSpent || 0).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -2168,7 +2433,7 @@
                 </span>
                 <div class="flex items-center gap-1.5">
                   <input type="password" id="adminStudentPin_${p.id}" value="${escapeHtml(p.pin || '1234')}" maxlength="4" class="w-16 text-center font-mono font-black text-sm px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-indigo-500 text-slate-900 dark:text-slate-100" />
-                  <button onclick="handleUpdateStudentPin('${p.id}')" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition text-xs btn-tactile">
+                  <button type="button" onclick="handleUpdateStudentPin('${p.id}')" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition text-xs btn-tactile cursor-pointer">
                     Save PIN
                   </button>
                 </div>
@@ -2177,10 +2442,10 @@
 
             <!-- Pay Out Cash Button -->
             <div>
-              <button onclick="handleSettleStudentCash('${p.id}')" ${cash > 0 ? '' : 'disabled'}
+              <button type="button" onclick="handleSettleStudentCash('${p.id}')" ${cash > 0 ? '' : 'disabled'}
                 class="w-full py-2.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 ${cash > 0 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs btn-tactile cursor-pointer' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'}">
                 <span>💵</span>
-                <span>${cash > 0 ? `Mark Paid &amp; Pay Out $${cash.toFixed(2)}` : 'No Cash Owed ($0.00)'}</span>
+                <span>${cash > 0 ? `Mark Paid &amp; Settle $${cash.toFixed(2)}` : 'No Cash Owed ($0.00)'}</span>
               </button>
             </div>
           </div>
@@ -2188,17 +2453,62 @@
       }).join('');
     }
 
-    // 2. Render Presets Multi-Select Row & Target Tier Dropdown
-    renderAdminRewardsPresetsRow();
+    // 3. Customizable Prize Catalog & Points Exchange Rate Table
+    const catalogContainer = document.getElementById('adminPrizeCatalogGrid');
+    if (catalogContainer) {
+      catalogContainer.innerHTML = catalog.map(item => `
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-2xl">${escapeHtml(item.icon || '🎁')}</span>
+              <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${item.category === 'cash' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' : 'bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300'}">
+                ${escapeHtml(item.category || 'treat')}
+              </span>
+            </div>
+            <input type="text" value="${escapeHtml(item.name)}" onchange="handleUpdateCatalogName('${item.id}', this.value)"
+              class="w-full text-xs font-black px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 mb-2" />
+            <input type="text" value="${escapeHtml(item.description || '')}" placeholder="Short description..." onchange="handleUpdateCatalogDescription('${item.id}', this.value)"
+              class="w-full text-[11px] px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 mb-3" />
 
-    const targetSelect = document.getElementById('adminRewardTargetTierSelect');
-    if (targetSelect) {
-      targetSelect.innerHTML = tiers.map(t => `
-        <option value="${t.id}">${t.points} XP Milestone (${escapeHtml(t.label || '')})</option>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-0.5">Price ($)</label>
+                <div class="flex items-center gap-1">
+                  <span class="font-bold text-slate-500">$</span>
+                  <input type="number" step="0.25" value="${item.price}" onchange="handleUpdateCatalogPrice('${item.id}', this.value)"
+                    class="w-full font-mono font-black text-xs px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-emerald-700 dark:text-emerald-300" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-0.5">XP Points</label>
+                <div class="flex items-center gap-1">
+                  <span class="font-bold text-slate-500">⚡</span>
+                  <input type="number" step="1000" value="${item.xpPoints}" onchange="handleUpdateCatalogXP('${item.id}', this.value)"
+                    class="w-full font-mono font-black text-xs px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-indigo-700 dark:text-indigo-300" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+            <button type="button" onclick="handleDeleteCatalogItem('${item.id}')" class="text-xs font-bold text-rose-600 hover:text-rose-800 transition p-1 cursor-pointer" title="Delete item">
+              🗑️ Remove Prize
+            </button>
+          </div>
+        </div>
       `).join('');
     }
 
-    // 3. Tiers Editor Grid
+    // 4. Milestone Tiers Editor Grid
+    renderAdminRewardsPresetsRow();
+    const targetSelect = document.getElementById('adminRewardTargetTierSelect');
+    if (targetSelect) {
+      targetSelect.innerHTML = tiers.map(t => `
+        <option value="${t.id}">${t.points.toLocaleString()} XP Milestone (${escapeHtml(t.label || '')})</option>
+      `).join('');
+    }
+
     const tiersContainer = document.getElementById('adminRewardTiersEditorGrid');
     if (tiersContainer) {
       tiersContainer.innerHTML = tiers.map((tier) => {
@@ -2216,15 +2526,15 @@
               <div class="flex items-center justify-between gap-2 mb-2">
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-black text-indigo-600 dark:text-indigo-400">⚡</span>
-                  <input type="number" value="${tier.points}" onchange="handleUpdateTierPoints('${tier.id}', this.value)" class="w-24 px-2 py-1 text-sm font-black font-mono bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-indigo-500 text-slate-900 dark:text-slate-100" />
+                  <input type="number" value="${tier.points}" onchange="handleUpdateTierPoints('${tier.id}', this.value)" class="w-28 px-2 py-1 text-sm font-black font-mono bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-indigo-500 text-slate-900 dark:text-slate-100" />
                   <span class="text-xs font-bold text-slate-500">XP</span>
                 </div>
                 <button type="button" onclick="handleDeleteRewardTier('${tier.id}')" class="text-xs font-bold text-rose-600 hover:text-rose-800 p-1 cursor-pointer" title="Delete Tier">
-                  🗑️ Delete Tier
+                  🗑️ Delete
                 </button>
               </div>
 
-              <input type="text" value="${escapeHtml(tier.label || '')}" placeholder="Tier Label (e.g. 500 XP Milestone)" onchange="handleUpdateTierLabel('${tier.id}', this.value)" class="w-full text-xs font-bold px-2.5 py-1.5 mb-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200" />
+              <input type="text" value="${escapeHtml(tier.label || '')}" placeholder="Tier Label" onchange="handleUpdateTierLabel('${tier.id}', this.value)" class="w-full text-xs font-bold px-2.5 py-1.5 mb-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200" />
 
               <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Redeemable Rewards</div>
               <div class="flex flex-wrap gap-1.5 mb-3">
@@ -2232,9 +2542,8 @@
               </div>
             </div>
 
-            <!-- Add custom option to this tier -->
             <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
-              <input type="text" id="adminNewOptionInput_${tier.id}" placeholder="Add custom reward (e.g. 🍫 Snickers, $5 Cash)..." class="flex-1 text-xs px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" onkeydown="if(event.key==='Enter'){handleAddCustomRewardOption('${tier.id}');}" />
+              <input type="text" id="adminNewOptionInput_${tier.id}" placeholder="Add custom reward..." class="flex-1 text-xs px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" onkeydown="if(event.key==='Enter'){handleAddCustomRewardOption('${tier.id}');}" />
               <button type="button" onclick="handleAddCustomRewardOption('${tier.id}')" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition btn-tactile cursor-pointer">
                 Add
               </button>
@@ -2244,7 +2553,7 @@
       }).join('');
     }
 
-    // 4. Family Redemptions Audit Log
+    // 5. Family Redemptions Audit Log
     const logContainer = document.getElementById('adminRedemptionsAuditLog');
     if (logContainer) {
       const allRedemptions = [];
@@ -2270,27 +2579,163 @@
                   <th class="py-2">Date &amp; Time</th>
                   <th class="py-2">Student</th>
                   <th class="py-2">Reward</th>
-                  <th class="py-2">XP Spent</th>
+                  <th class="py-2">Payment Cost</th>
                   <th class="py-2">Type</th>
                   <th class="py-2">Status</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
-                ${allRedemptions.slice(0, 30).map(r => `
-                  <tr>
-                    <td class="py-2.5 text-slate-500 font-mono text-[11px]">${new Date(r.timestamp).toLocaleString()}</td>
-                    <td class="py-2.5 font-bold text-slate-900 dark:text-slate-100">${escapeHtml(r.studentAvatar || '')} ${escapeHtml(r.studentName)}</td>
-                    <td class="py-2.5 font-extrabold text-indigo-700 dark:text-indigo-400">${escapeHtml(r.reward)}</td>
-                    <td class="py-2.5 font-bold text-slate-700 dark:text-slate-300">⚡ ${r.tierPoints}</td>
-                    <td class="py-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.isCash ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' : 'bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300'}">${r.isCash ? '💵 Cash' : '🎁 Treat'}</span></td>
-                    <td class="py-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'Paid Out' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 line-through' : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'}">${escapeHtml(r.status || 'Active')}</span></td>
-                  </tr>
-                `).join('')}
+                ${allRedemptions.slice(0, 30).map(r => {
+                  let badge = '';
+                  if (r.status === 'Pending Approval' || r.status === 'pending') {
+                    badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">⏳ Pending Approval</span>';
+                  } else if (r.status === 'Approved') {
+                    badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">✅ Approved</span>';
+                  } else if (r.status === 'Added to Wallet') {
+                    badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">👛 In Wallet</span>';
+                  } else if (r.status === 'Paid Out') {
+                    badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 line-through">💵 Paid Out</span>';
+                  } else if (r.status === 'Rejected') {
+                    badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">❌ Declined</span>';
+                  } else {
+                    badge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">${escapeHtml(r.status || 'Done')}</span>`;
+                  }
+
+                  const costStr = r.paymentMethod === 'wallet' ? `$${(r.cashCost || 0).toFixed(2)} Wallet` : `⚡ ${(r.tierPoints || 0).toLocaleString()} XP`;
+
+                  return `
+                    <tr>
+                      <td class="py-2.5 text-slate-500 font-mono text-[11px]">${new Date(r.timestamp).toLocaleString()}</td>
+                      <td class="py-2.5 font-bold text-slate-900 dark:text-slate-100">${escapeHtml(r.studentAvatar || '')} ${escapeHtml(r.studentName)}</td>
+                      <td class="py-2.5 font-extrabold text-indigo-700 dark:text-indigo-400">${escapeHtml(r.reward)}</td>
+                      <td class="py-2.5 font-bold text-slate-700 dark:text-slate-300">${costStr}</td>
+                      <td class="py-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.isCash ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' : 'bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300'}">${r.isCash ? '💵 Cash' : '🎁 Treat'}</span></td>
+                      <td class="py-2.5">${badge}</td>
+                    </tr>
+                  `;
+                }).join('')}
               </tbody>
             </table>
           </div>
         `;
       }
+    }
+  }
+
+  function handleApproveRedemption(studentId, redemptionId) {
+    if (window.LuminaDB && typeof window.LuminaDB.approveRedemption === 'function') {
+      const res = window.LuminaDB.approveRedemption(studentId, redemptionId);
+      if (res && res.ok) {
+        showToast('Redemption approved successfully!');
+        renderAdminRewardsSection();
+        refreshHeaderUI();
+      } else {
+        showToast((res && res.error) || 'Failed to approve redemption.');
+      }
+    }
+  }
+
+  function handleRejectRedemption(studentId, redemptionId) {
+    const reason = window.prompt('Reason for declining this request (will refund student):', 'Declined by parent');
+    if (reason === null) return;
+
+    if (window.LuminaDB && typeof window.LuminaDB.rejectRedemption === 'function') {
+      const res = window.LuminaDB.rejectRedemption(studentId, redemptionId, reason);
+      if (res && res.ok) {
+        showToast('Redemption declined and points/funds refunded.');
+        renderAdminRewardsSection();
+        refreshHeaderUI();
+      } else {
+        showToast((res && res.error) || 'Failed to decline redemption.');
+      }
+    }
+  }
+
+  function handleUpdateCatalogPrice(prizeId, newPrice) {
+    const price = parseFloat(newPrice);
+    if (isNaN(price) || price < 0) return;
+    if (window.LuminaDB && typeof window.LuminaDB.updatePrizeCatalogItem === 'function') {
+      window.LuminaDB.updatePrizeCatalogItem(prizeId, { price: price });
+      showToast(`Updated price to $${price.toFixed(2)}`);
+    }
+  }
+
+  function handleUpdateCatalogXP(prizeId, newXP) {
+    const xp = parseInt(newXP, 10);
+    if (isNaN(xp) || xp <= 0) return;
+    if (window.LuminaDB && typeof window.LuminaDB.updatePrizeCatalogItem === 'function') {
+      window.LuminaDB.updatePrizeCatalogItem(prizeId, { xpPoints: xp });
+      showToast(`Updated XP cost to ${xp.toLocaleString()} XP`);
+    }
+  }
+
+  function handleUpdateCatalogName(prizeId, newName) {
+    const name = String(newName || '').trim();
+    if (!name) return;
+    if (window.LuminaDB && typeof window.LuminaDB.updatePrizeCatalogItem === 'function') {
+      window.LuminaDB.updatePrizeCatalogItem(prizeId, { name: name });
+    }
+  }
+
+  function handleUpdateCatalogDescription(prizeId, newDesc) {
+    if (window.LuminaDB && typeof window.LuminaDB.updatePrizeCatalogItem === 'function') {
+      window.LuminaDB.updatePrizeCatalogItem(prizeId, { description: newDesc });
+    }
+  }
+
+  function handleDeleteCatalogItem(prizeId) {
+    const conf = window.confirm('Delete this prize from the catalog?');
+    if (!conf) return;
+    if (window.LuminaDB && typeof window.LuminaDB.deletePrizeCatalogItem === 'function') {
+      window.LuminaDB.deletePrizeCatalogItem(prizeId);
+      renderAdminRewardsSection();
+      showToast('Prize removed from catalog.');
+    }
+  }
+
+  function handleAddNewCatalogItemSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const nameInput = document.getElementById('adminNewCatalogName');
+    const priceInput = document.getElementById('adminNewCatalogPrice');
+    const xpInput = document.getElementById('adminNewCatalogXP');
+    const catInput = document.getElementById('adminNewCatalogCategory');
+    const iconInput = document.getElementById('adminNewCatalogIcon');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const price = priceInput ? parseFloat(priceInput.value) : 1.00;
+    const xpPoints = xpInput ? parseInt(xpInput.value, 10) : 20000;
+    const category = catInput ? catInput.value : 'treat';
+    const icon = iconInput && iconInput.value.trim() ? iconInput.value.trim() : '🎁';
+
+    if (!name) {
+      showToast('Please enter a prize name.');
+      return;
+    }
+
+    if (window.LuminaDB && typeof window.LuminaDB.addPrizeCatalogItem === 'function') {
+      window.LuminaDB.addPrizeCatalogItem({
+        name,
+        price,
+        xpPoints,
+        category,
+        icon,
+        description: `${icon} ${name}`
+      });
+      if (nameInput) nameInput.value = '';
+      if (priceInput) priceInput.value = '1.00';
+      if (xpInput) xpInput.value = '20000';
+      renderAdminRewardsSection();
+      showToast(`Added "${name}" to prize catalog!`);
+    }
+  }
+
+  function handleResetCatalogToDefaults() {
+    const conf = window.confirm('Reset prize catalog to default items (including 20,000 XP for $1 and 30,000 XP for $2)?');
+    if (!conf) return;
+    if (window.LuminaDB && window.LuminaDB.DEFAULT_PRIZE_CATALOG) {
+      window.LuminaDB.savePrizeCatalog(JSON.parse(JSON.stringify(window.LuminaDB.DEFAULT_PRIZE_CATALOG)));
+      renderAdminRewardsSection();
+      showToast('Prize catalog reset to default options.');
     }
   }
 
@@ -2408,12 +2853,12 @@
       ? window.LuminaDB.getRewardTiers()
       : [];
     const maxPoints = tiers.reduce((max, t) => Math.max(max, t.points || 0), 0);
-    const newPoints = maxPoints > 0 ? maxPoints + 5000 : 500;
+    const newPoints = maxPoints > 0 ? maxPoints + 10000 : 10000;
     const newTier = {
       id: 'tier_' + Date.now().toString(36),
       points: newPoints,
       label: `${newPoints.toLocaleString()} XP Milestone`,
-      options: ['$5 Cash Allowance 💵', '1 Hour TV Time 📺', 'Snickers Bar 🍫']
+      options: ['$1 Cash Allowance 💵', 'Snickers Bar 🍫', '1 Hour TV Time 📺']
     };
     tiers.push(newTier);
     tiers.sort((a, b) => a.points - b.points);
@@ -2507,12 +2952,24 @@
   window.closeRewardsModal = closeRewardsModal;
   window.renderRewardsModal = renderRewardsModal;
   window.handleRedeemReward = handleRedeemReward;
+  window.handleConvertXPToWallet = handleConvertXPToWallet;
+  window.handlePurchasePrize = handlePurchasePrize;
+  window.handleRequestCashPayout = handleRequestCashPayout;
 
-  // Parent Portal Rewards & Cash Allowance Configurator Exports
+  // Parent Portal Rewards, Approvals & Cash Allowance Configurator Exports
   window.PRESET_REWARD_OPTIONS = PRESET_REWARD_OPTIONS;
   window.handleTogglePresetSelection = handleTogglePresetSelection;
   window.handleAddSelectedPresetsToTier = handleAddSelectedPresetsToTier;
   window.renderAdminRewardsSection = renderAdminRewardsSection;
+  window.handleApproveRedemption = handleApproveRedemption;
+  window.handleRejectRedemption = handleRejectRedemption;
+  window.handleUpdateCatalogPrice = handleUpdateCatalogPrice;
+  window.handleUpdateCatalogXP = handleUpdateCatalogXP;
+  window.handleUpdateCatalogName = handleUpdateCatalogName;
+  window.handleUpdateCatalogDescription = handleUpdateCatalogDescription;
+  window.handleDeleteCatalogItem = handleDeleteCatalogItem;
+  window.handleAddNewCatalogItemSubmit = handleAddNewCatalogItemSubmit;
+  window.handleResetCatalogToDefaults = handleResetCatalogToDefaults;
   window.handleUpdateStudentPin = handleUpdateStudentPin;
   window.handleSettleStudentCash = handleSettleStudentCash;
   window.handleUpdateTierPoints = handleUpdateTierPoints;

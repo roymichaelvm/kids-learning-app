@@ -16,7 +16,7 @@
     - `#profilePickerOverlay`: "Who's learning today?" selector.
     - `#profilePinModal`: 4-digit PIN authentication pad preventing students from viewing/editing each other's profiles (default PIN `1234`, master PIN `0000`).
     - `#leaderboardModal`: Public family leaderboard and trophy room showing total points, current streaks, cash allowances, and recently redeemed prizes.
-    - `#rewardsModal`: XP Rewards Bazaar allowing students to redeem points for treats, screen time, or cash allowance (with automated cash balance accumulation and redemption audit history).
+    - `#rewardsModal`: Learning Wallet & Prize Store allowing students to convert XP to real cash allowance (default: 20,000 XP = $1.00, 30,000 XP = $2.00 Bonus), buy catalog prizes using Wallet Cash ($) or XP, request real-world cash payouts, and view full approval status tracking.
   - **Main Content (`#mainAppContent`)**:
     - `#section-teen-dashboard`: Teen Hero banner, `#teenTopicsBentoGrid`, 14-day streak calendar (`#teenStreakCalendarGrid`), domain mastery (`#teenDomainMasteryList`), and Bluebook second-guess telemetry (`#telemetryTableBody`).
     - `#section-teen-sat`: Digital SAT Bluebook Exam Simulator (split passage/question layout, `#satDomainFilter`, stopwatch `#satStopwatch`, Eliminator tool, `#satExplanationDrawer`).
@@ -28,12 +28,12 @@
     - `#section-kid-playground`: 6+ Little Explorer Playground with 9 categories (`spelling`, `comprehension`, `grammar`, `numbers`, `phonics`, `animals`, `malayalam`, `hindi`, `spanish`), `#kidSectionPractice` (with `#spellingBuilderZone`), and `#kidSectionFlashcards`.
 - **[`parent.html`](file:///c:/Users/nikhi\code\kids-learning-app\parent.html)** — Standalone Parent & Admin Portal (`#section-parent-admin`):
   - Student Selector (`#adminStudentPillsBar`), Completed Areas Highlight (`#adminCompletedAreasGrid`), All Curriculum Tracks (`#adminAllTracksGrid`), Custom XP Multipliers (`#adminSectionXPGrid`).
-  - **Rewards, Cash Allowances & Profile PIN Management**:
-    - Student Cash Balances & Mark Paid settlement (`#adminStudentCashGrid`).
-    - Profile PIN Manager (view & edit 4-digit PIN per child).
-    - Popular Presets Multi-Select Toolbar (Ring Pop, Snickers, $1, $2, $3, $4, $5, $30, 1 hr TV time, 10K/20K/30K cash options) with one-click assignment to target tiers.
-    - Customizable XP Milestone Tiers & Options Editor (`#adminRewardTiersEditorGrid`).
-    - Family Redemptions Audit Log (`#adminRedemptionsAuditLog`).
+  - **Learning Wallet, Approvals, Prize Catalog & Profile PIN Management**:
+    - **Parent Approval Queue** (`#adminPendingApprovalsContainer`, `#adminPendingApprovalsCountBadge`): Review, approve, or reject and refund student prize claims and cash payout requests.
+    - **Student Learning Wallets & Security PINs** (`#adminStudentCashGrid`): View cash balances, Mark Paid settlement, and customize 4-digit profile PINs (default `1234`, master `0000`).
+    - **Customizable Prize Catalog & Exchange Rates** (`#adminPrizeCatalogGrid`): Edit Dollar Price ($) and XP Points for each reward item, create custom prizes with emoji icons, or reset to defaults.
+    - **Popular Presets & Milestone Tiers Editor** (`#adminRewardPresetsRow`, `#adminRewardTiersEditorGrid`): Quick-assign popular treats and allowance presets (Ring Pop, Snickers, $1/20K, $2/30K, 1 hr TV time, Robux) to milestones.
+    - **Family Redemptions Audit Log** (`#adminRedemptionsAuditLog`): Chronological log with status tracking (`Pending Approval`, `Approved`, `Added to Wallet`, `Paid Out`, `Declined`).
   - Fast Cloud Question Creator (`#adminNewQuestionForm`).
 - **[`admin.html`](file:///c:/Users/nikhi/code/kids-learning-app/admin.html)** — Advanced Parent Progress, Profile Manager & Firebase DB Studio:
   - Profile CRUD modal (`#profileModal`), 14-day heatmap inspector, bulk `SAT.json` uploader, and full question bank table.
@@ -55,13 +55,13 @@ All static questions, language packs, and spelling word banks are stored **outsi
 - **[`js/seed-data.js`](file:///c:/Users/nikhi/code/kids-learning-app/js/seed-data.js)** — Lightweight data loader (`hydrateDataFromJson()`) that hydrates questions, curriculum, and spelling banks (supporting both in-memory script objects, `localStorage` cache fallback, and async `fetch()` on HTTP/HTTPS).
 - **[`firebase-db.js`](file:///c:/Users/nikhi/code/kids-learning-app/firebase-db.js)** — `window.LuminaDB` Cloud Firestore & `localStorage` engine:
   - Manages `profiles`, `dailyActivity`, `completedQuestionIds`, `question_chunks`, `language_packs`, `sectionXP`, and `rewardTiers`.
-  - Key methods: `init()`, `signIn()`, `signOut()`, `pullFromCloud()`, `pushToCloud()`, `getAllProfiles()`, `getActiveProfile()`, `setActiveProfile()`, `recordActivity()`, `markQuestionCompleted()`, `resetCompletedQuestions()`, `addQuestion()`, `mergeQuestions()`, `verifyProfilePin()`, `setProfilePin()`, `getRewardTiers()`, `saveRewardTiers()`, `redeemReward()`, `settleStudentCash()`, `getLeaderboardData()`.
+  - Key methods: `init()`, `signIn()`, `signOut()`, `pullFromCloud()`, `pushToCloud()`, `getAllProfiles()`, `getActiveProfile()`, `setActiveProfile()`, `recordActivity()`, `markQuestionCompleted()`, `resetCompletedQuestions()`, `addQuestion()`, `mergeQuestions()`, `verifyProfilePin()`, `setProfilePin()`, `getPrizeCatalog()`, `savePrizeCatalog()`, `addPrizeCatalogItem()`, `updatePrizeCatalogItem()`, `deletePrizeCatalogItem()`, `getRewardTiers()`, `saveRewardTiers()`, `redeemReward()`, `approveRedemption()`, `rejectRedemption()`, `getPendingRedemptions()`, `requestCashPayout()`, `settleStudentCash()`, `getLeaderboardData()`.
 - **[`js/app.js`](file:///c:/Users/nikhi/code/kids-learning-app/js/app.js)** — Core app coordinator:
   - Theme Engine: `initTheme()`, `toggleTheme()`, `updateThemeIcon()`.
   - PIN Protection & Switching: `promptProfilePin()`, `handlePinInput()`, `verifyAndSubmitPin()`, `completeProfileSwitch()`.
   - Gamification & Leaderboard: `openLeaderboardModal()`, `renderLeaderboardModal()`.
-  - Rewards Bazaar: `openRewardsModal()`, `renderRewardsModal()`, `handleRedeemReward()`.
-  - Parent Portal Rewards Configurator: `renderAdminRewardsSection()`, `handleAddSelectedPresetsToTier()`, `handleUpdateStudentPin()`, `handleSettleStudentCash()`.
+  - Learning Wallet & Rewards Bazaar: `openRewardsModal()`, `renderRewardsModal()`, `handleConvertXPToWallet()`, `handlePurchasePrize()`, `handleRequestCashPayout()`, `handleRedeemReward()`.
+  - Parent Portal Rewards Configurator: `renderAdminRewardsSection()`, `handleApproveRedemption()`, `handleRejectRedemption()`, `handleUpdateCatalogPrice()`, `handleUpdateCatalogXP()`, `handleAddNewCatalogItemSubmit()`, `handleResetCatalogToDefaults()`, `handleAddSelectedPresetsToTier()`, `handleUpdateStudentPin()`, `handleSettleStudentCash()`.
   - Header/streak UI (`refreshHeaderUI()`, `renderTodayStrip()`, `trackActivity()`), and Section XP Multipliers (`getSectionXP()`, `setSectionXP()`). Includes local/offline fallback (`continueOfflineMode()`).
 - **[`js/teen-studio.js`](file:///c:/Users/nikhi/code/kids-learning-app/js/teen-studio.js)** — 13+ Teen Scholar Studio:
   - Tab router: `openTeenTab('dashboard' | 'sat' | 'spelling' | 'languages')` & `renderSubNavForTeen()`.

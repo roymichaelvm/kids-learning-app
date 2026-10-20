@@ -173,10 +173,10 @@
         </div>
 
         <!-- Rewards Bazaar & Cash Allowance Pill -->
-        <button onclick="openRewardsModal()" id="headerRewardsPill" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs font-bold shadow-xs cursor-pointer btn-tactile" title="XP Rewards Bazaar & Cash Allowance">
-          <span class="text-sm">🎁</span>
+        <button onclick="openRewardsModal()" id="headerRewardsPill" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs font-bold shadow-xs cursor-pointer btn-tactile" title="Learning Wallet & Prize Store">
+          <span class="text-sm">👛</span>
           <span id="headerRewardsCashText" class="font-black text-emerald-700 dark:text-emerald-300">$0.00</span>
-          <span class="hidden md:inline font-semibold text-emerald-600 dark:text-emerald-400">Rewards</span>
+          <span class="hidden md:inline font-semibold text-emerald-600 dark:text-emerald-400">Wallet</span>
         </button>
 
         <!-- Family Leaderboard Button -->
@@ -1138,17 +1138,17 @@
        REWARDS BAZAAR & CASH REDEMPTION MODAL
        ===================================================================== -->
   <div id="rewardsModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto animate-fade">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto animate-fade">
       
       <!-- Modal Header -->
       <div class="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
         <div>
           <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 text-xs font-bold mb-1">
-            <span>🎁</span>
-            <span>Milestone Prize Shop &amp; Cash Allowance</span>
+            <span>👛</span>
+            <span>Scholar's Learning Wallet &amp; Prize Store</span>
           </div>
-          <h3 id="rewardsModalStudentName" class="text-2xl font-black text-slate-900 dark:text-slate-100">Scholar's Prize Bazaar</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Redeem your hard-earned XP for awesome treats, TV time, or real cash allowance!</p>
+          <h3 id="rewardsModalStudentName" class="text-2xl font-black text-slate-900 dark:text-slate-100">Scholar's Learning Wallet</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Convert XP into real Wallet dollars, redeem custom prizes, or request a cash payout with parent approval!</p>
         </div>
         <button onclick="closeRewardsModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
       </div>
@@ -1161,33 +1161,60 @@
           <span class="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">Answer questions to earn more</span>
         </div>
 
-        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
-          <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Current Cash Balance</span>
-          <span id="rewardsModalCashBalance" class="text-2xl font-black text-emerald-700 dark:text-emerald-300">$0.00</span>
-          <span class="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">Collect from parent at payout</span>
+        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Learning Wallet Cash</span>
+              <span id="rewardsModalPendingBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">✓ Up to date</span>
+            </div>
+            <span id="rewardsModalCashBalance" class="text-2xl font-black text-emerald-700 dark:text-emerald-300 block">$0.00</span>
+          </div>
+          <button onclick="handleRequestCashPayout()" class="mt-2 w-full py-1.5 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] transition shadow-xs flex items-center justify-center gap-1 btn-tactile cursor-pointer" title="Ask parent to pay out your wallet balance in real cash">
+            <span>💵</span>
+            <span>Request Cash Payout</span>
+          </button>
         </div>
 
         <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
           <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Total XP Redeemed</span>
           <span id="rewardsModalTotalSpent" class="text-2xl font-black text-slate-700 dark:text-slate-300">⚡ 0 XP</span>
-          <span class="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">Lifetime prizes redeemed</span>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">Lifetime points used</span>
         </div>
       </div>
 
-      <!-- Milestone Tiers Grid -->
-      <div>
-        <h4 class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-          <span>🎯</span>
-          <span>Choose a Milestone to Redeem</span>
-        </h4>
-        <div id="rewardsTiersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <!-- 1. XP to Wallet Cash Conversion Station -->
+      <div class="space-y-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h4 class="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <span>⚡</span>
+              <span>Convert XP to Wallet Cash</span>
+            </h4>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Standard Rate: 20,000 XP = $1.00 cash • Bonus Rate: 30,000 XP = $2.00 cash</p>
+          </div>
+        </div>
+        <div id="rewardsConversionStationGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
       </div>
 
-      <!-- Redemption History -->
+      <!-- 2. Prize Catalog Store Grid -->
+      <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h4 class="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <span>🎁</span>
+              <span>Choose Your Prize (Pay with Wallet $ or XP)</span>
+            </h4>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Buy treats, screen time, or games directly with your Wallet balance or redeem with XP points!</p>
+          </div>
+        </div>
+        <div id="rewardsPrizeCatalogGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+      </div>
+
+      <!-- 3. Redemption & Wallet Activity History -->
       <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
         <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
           <span>📜</span>
-          <span>My Redemption History</span>
+          <span>My Learning Wallet Activity &amp; Redemptions</span>
         </h4>
         <div id="rewardsHistoryList" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
       </div>
@@ -1195,7 +1222,7 @@
       <!-- Footer -->
       <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
         <button onclick="closeRewardsModal()" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition cursor-pointer">
-          Close Prize Bazaar
+          Close Learning Wallet
         </button>
       </div>
     </div>
