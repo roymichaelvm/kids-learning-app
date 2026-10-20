@@ -701,80 +701,133 @@
     ['malayalam', 'hindi', 'spanish'].forEach(lang => {
       if (!multiLangData[lang]) return;
       const target = multiLangData[lang];
-      // Prefer cached cloud database pack, fallback to seed pack
-      const src = dbPacks[lang] || seedPacks[lang];
-      if (!src) return;
-
-      // 1. Merge 100 Words into kidItems
-      if (Array.isArray(src.words)) {
-        src.words.forEach(w => {
-          const exists = target.kidItems.some(i => i.primary === w.primary);
-          if (!exists) {
-            target.kidItems.push({
-              emoji: w.emoji || '📖',
-              primary: w.primary,
-              meaning: w.meaning,
-              speech: w.speech || w.primary
-            });
-          }
-        });
-      }
-
-      // 2. Merge 100 Sentences into sentences
       if (!target.sentences) target.sentences = [];
-      if (Array.isArray(src.sentences)) {
-        src.sentences.forEach(s => {
-          const exists = target.sentences.some(i => i.script === s.script);
-          if (!exists) {
-            target.sentences.push({
-              script: s.script,
-              translit: s.translit || '',
-              meaning: s.meaning,
-              speech: s.speech || s.script
-            });
-          }
-        });
-      }
-
-      // 3. Merge 100 Words into teenCards
+      if (!target.kidItems) target.kidItems = [];
       if (!target.teenCards) target.teenCards = [];
-      if (Array.isArray(src.words)) {
-        src.words.forEach(w => {
-          const cleanScript = w.primary.split('(')[0].trim();
-          const translit = (w.primary.match(/\(([^)]+)\)/) || ['', ''])[1];
-          const exists = target.teenCards.some(i => i.script === cleanScript || i.script === w.primary);
-          if (!exists) {
-            target.teenCards.push({
-              script: cleanScript,
-              translit: translit,
-              meaning: w.meaning,
-              example: `${w.primary} — ${w.meaning}`
-            });
-          }
-        });
-      }
+      if (!target.teenQuiz) target.teenQuiz = [];
+      if (!target.teenSentenceQuiz) target.teenSentenceQuiz = [];
+
+      const seed = seedPacks[lang] || {};
+      const db = dbPacks[lang] || {};
+
+      // 1. Merge seed words & db words into kidItems
+      [seed.words, db.words].forEach(wordsList => {
+        if (Array.isArray(wordsList)) {
+          wordsList.forEach(w => {
+            const exists = target.kidItems.some(i => i.primary === w.primary);
+            if (!exists) {
+              target.kidItems.push({
+                emoji: w.emoji || '📖',
+                primary: w.primary,
+                meaning: w.meaning,
+                speech: w.speech || w.primary
+              });
+            }
+          });
+        }
+      });
+
+      // 2. Merge seed sentences & db sentences into sentences
+      [seed.sentences, db.sentences].forEach(sentencesList => {
+        if (Array.isArray(sentencesList)) {
+          sentencesList.forEach(s => {
+            const exists = target.sentences.some(i => i.script === s.script);
+            if (!exists) {
+              target.sentences.push({
+                script: s.script,
+                translit: s.translit || '',
+                meaning: s.meaning,
+                speech: s.speech || s.script
+              });
+            }
+          });
+        }
+      });
+
+      // 3. Merge words into teenCards
+      [seed.words, db.words].forEach(wordsList => {
+        if (Array.isArray(wordsList)) {
+          wordsList.forEach(w => {
+            const cleanScript = (w.primary || '').split('(')[0].trim();
+            const translit = ((w.primary || '').match(/\(([^)]+)\)/) || ['', ''])[1];
+            const exists = target.teenCards.some(i => i.script === cleanScript || i.script === w.primary);
+            if (!exists && cleanScript) {
+              target.teenCards.push({
+                script: cleanScript,
+                translit: translit,
+                meaning: w.meaning,
+                example: `${w.primary} — ${w.meaning}`
+              });
+            }
+          });
+        }
+      });
 
       // 4. Merge vocabulary quiz items into teenQuiz
-      if (!target.teenQuiz) target.teenQuiz = [];
-      if (Array.isArray(src.words)) {
-        src.words.forEach(w => {
-          const cleanScript = w.primary.split('(')[0].trim();
-          const translit = (w.primary.match(/\(([^)]+)\)/) || ['', ''])[1];
-          const qText = `What is the English meaning of '${cleanScript}${translit ? " (" + translit + ")" : ""}'?`;
-          const exists = target.teenQuiz.some(q => q.q === qText);
-          if (!exists) {
-            const distractors = src.words
-              .filter(other => other.meaning !== w.meaning)
+      [seed.words, db.words].forEach(wordsList => {
+        if (Array.isArray(wordsList)) {
+          wordsList.forEach(w => {
+            const cleanScript = (w.primary || '').split('(')[0].trim();
+            const translit = ((w.primary || '').match(/\(([^)]+)\)/) || ['', ''])[1];
+            const qText = `What is the English meaning of '${cleanScript}${translit ? " (" + translit + ")" : ""}'?`;
+            const exists = target.teenQuiz.some(q => q.q === qText);
+            if (!exists && cleanScript) {
+              const distractors = (seed.words || [])
+                .filter(other => other.meaning !== w.meaning)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3)
+                .map(other => other.meaning.split('/')[0].trim());
+              if (distractors.length === 3) {
+                const choices = [w.meaning.split('/')[0].trim(), ...distractors].sort(() => Math.random() - 0.5);
+                const answerIdx = choices.indexOf(w.meaning.split('/')[0].trim());
+                target.teenQuiz.push({
+                  q: qText,
+                  choices: choices,
+                  answer: answerIdx
+                });
+              }
+            }
+          });
+        }
+      });
+
+      // 5. Merge sentence quiz items into teenSentenceQuiz
+      if (Array.isArray(target.sentences) && target.sentences.length >= 4) {
+        target.sentences.forEach((s, idx) => {
+          const qText1 = `What is the English meaning of: '${s.script}'?`;
+          if (!target.teenSentenceQuiz.some(q => q.q === qText1)) {
+            const distractors = target.sentences
+              .filter((_, i) => i !== idx)
               .sort(() => Math.random() - 0.5)
               .slice(0, 3)
-              .map(other => other.meaning.split('/')[0].trim());
+              .map(o => o.meaning);
             if (distractors.length === 3) {
-              const choices = [w.meaning.split('/')[0].trim(), ...distractors].sort(() => Math.random() - 0.5);
-              const answerIdx = choices.indexOf(w.meaning.split('/')[0].trim());
-              target.teenQuiz.push({
-                q: qText,
+              const choices = [s.meaning, ...distractors].sort(() => Math.random() - 0.5);
+              target.teenSentenceQuiz.push({
+                q: qText1,
                 choices: choices,
-                answer: answerIdx
+                answer: choices.indexOf(s.meaning),
+                script: s.script,
+                translit: s.translit
+              });
+            }
+          }
+
+          const qText2 = `Which ${target.label.split(' ')[0]} sentence means: "${s.meaning}"?`;
+          if (!target.teenSentenceQuiz.some(q => q.q === qText2)) {
+            const distractors = target.sentences
+              .filter((_, i) => i !== idx)
+              .sort(() => Math.random() - 0.5)
+              .slice(0, 3)
+              .map(o => o.script);
+            if (distractors.length === 3) {
+              const choices = [s.script, ...distractors].sort(() => Math.random() - 0.5);
+              target.teenSentenceQuiz.push({
+                q: qText2,
+                choices: choices,
+                answer: choices.indexOf(s.script),
+                script: s.script,
+                translit: s.translit
               });
             }
           }
@@ -1789,6 +1842,7 @@
   /* =====================================================================
      WINDOW EXPORTS & BOOTSTRAP
      ===================================================================== */
+  if (!appData.activeLanguage) appData.activeLanguage = 'malayalam';
   window.multiLangData = multiLangData;
   window.appData = appData;
   window.selectedCalendarDateKey = selectedCalendarDateKey;

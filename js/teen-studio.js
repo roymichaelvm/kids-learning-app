@@ -27,6 +27,7 @@
   let satQuestionSubmitted = false;
 
   let teenSubMode = 'words';
+  let teenLangViewTab = 'practice';
   let teenCardIdx = 0;
   let teenQuizIdx = 0;
 
@@ -51,6 +52,7 @@
     } else if (tabName === 'languages') {
       stopSatTimer();
       document.getElementById('section-languages').classList.remove('hidden');
+      setTeenLangViewTab(teenLangViewTab || 'practice');
       renderTeenLanguageStudio();
     }
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -714,10 +716,52 @@
   }
 
   /* ---------------------------------------------------------------------
-     TRILINGUAL VOCABULARY STUDIO (TEEN)
+     TRILINGUAL VOCABULARY & SENTENCE STUDIO (TEEN)
      --------------------------------------------------------------------- */
+  function getActiveLangCode() {
+    return (window.appData && window.appData.activeLanguage) || 'malayalam';
+  }
+
+  function getActiveLangPack() {
+    const lang = getActiveLangCode();
+    return (window.multiLangData && window.multiLangData[lang]) || null;
+  }
+
+  function setTeenLangViewTab(tab) {
+    teenLangViewTab = tab;
+    window.teenLangViewTab = tab;
+    const practiceSec = document.getElementById('teenSectionPractice');
+    const flashcardSec = document.getElementById('teenSectionFlashcards');
+    const btnPractice = document.getElementById('tab-teen-practice');
+    const btnFlash = document.getElementById('tab-teen-flashcards');
+
+    if (practiceSec && flashcardSec) {
+      if (tab === 'flashcards') {
+        practiceSec.classList.add('hidden');
+        flashcardSec.classList.remove('hidden');
+        if (btnFlash) {
+          btnFlash.className = "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-indigo-600 text-white shadow-md";
+        }
+        if (btnPractice) {
+          btnPractice.className = "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-sm";
+        }
+        renderTeenLanguageFlashcard();
+      } else {
+        flashcardSec.classList.add('hidden');
+        practiceSec.classList.remove('hidden');
+        if (btnPractice) {
+          btnPractice.className = "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-indigo-600 text-white shadow-md";
+        }
+        if (btnFlash) {
+          btnFlash.className = "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-sm";
+        }
+        renderTeenLanguageQuiz();
+      }
+    }
+  }
+
   function setTeenLangSubMode(mode) {
-    const pack = window.multiLangData && window.multiLangData[window.appData.activeLanguage];
+    const pack = getActiveLangPack();
     if (mode === 'letters' && (!pack || !pack.letters || pack.letters.length === 0)) {
       if (typeof window.showToast === 'function') window.showToast("Alphabet Letters mode is available for Malayalam & Hindi!");
       return;
@@ -727,9 +771,9 @@
       const b = document.getElementById(`btn-teen-sub-${m}`);
       if (!b) return;
       if (m === mode) {
-        b.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs";
+        b.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs";
       } else {
-        b.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900";
+        b.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900";
       }
     });
     teenCardIdx = 0;
@@ -762,28 +806,34 @@
   }
 
   function getActiveTeenCardList() {
-    const pack = window.multiLangData[window.appData.activeLanguage];
-    if (teenSubMode === 'letters' && pack.letters && pack.letters.length > 0) {
+    const pack = getActiveLangPack();
+    if (!pack) return [];
+    if (teenSubMode === 'letters' && Array.isArray(pack.letters) && pack.letters.length > 0) {
       return pack.letters.map(item => ({
         script: item.char,
         translit: item.translit,
         meaning: `${item.word} • ${item.wordMeaning}`,
-        example: `Letter sound & vocabulary in ${pack.label}`
+        example: `Letter sound & vocabulary in ${pack.label}`,
+        phonetic: item.translit || item.wordMeaning || ''
       }));
     }
-    if (teenSubMode === 'sentences' && pack.sentences && pack.sentences.length > 0) {
+    if (teenSubMode === 'sentences' && Array.isArray(pack.sentences) && pack.sentences.length > 0) {
       return pack.sentences.map(item => ({
         script: item.script,
         translit: item.translit || '',
         meaning: item.meaning,
-        example: `Natural everyday sentence in ${pack.label}`
+        example: `Natural everyday conversational sentence in ${pack.label}`,
+        phonetic: item.translit || item.meaning || ''
       }));
     }
-    return pack.teenCards || [];
+    return (pack.teenCards || []).map(item => ({
+      ...item,
+      phonetic: item.translit || item.meaning || ''
+    }));
   }
 
-  function renderTeenLanguageStudio() {
-    const pack = window.multiLangData && window.multiLangData[window.appData.activeLanguage];
+  function renderTeenLanguageFlashcard() {
+    const pack = getActiveLangPack();
     if (!pack) return;
     const list = getActiveTeenCardList();
     if (list.length === 0) return;
@@ -791,33 +841,164 @@
 
     const flipCard = document.getElementById('teenFlipCard');
     if (flipCard) flipCard.classList.remove('flipped');
+
     const counter = document.getElementById('teenCardCounter');
     if (counter) counter.innerText = `${(teenCardIdx % list.length) + 1} / ${list.length}`;
+
+    const deckBadge = document.getElementById('teenDeckHeaderBadge');
+    if (deckBadge) {
+      if (teenSubMode === 'letters') {
+        deckBadge.innerText = `🔤 ${pack.label} Alphabet Letter Deck`;
+      } else if (teenSubMode === 'sentences') {
+        deckBadge.innerText = `💬 ${pack.label} Conversational Sentences Deck`;
+      } else {
+        deckBadge.innerText = `📖 ${pack.label} Core Vocabulary Deck`;
+      }
+    }
+
     const sc = document.getElementById('teenLangScript');
-    if (sc) sc.innerText = card.script;
+    if (sc) {
+      sc.innerText = card.script;
+      if (teenSubMode === 'sentences') {
+        sc.className = "text-xl sm:text-2xl font-extrabold text-slate-900 mb-3 leading-relaxed max-w-xl mx-auto px-2";
+      } else if (teenSubMode === 'letters') {
+        sc.className = "text-5xl sm:text-6xl font-extrabold text-indigo-700 mb-3";
+      } else {
+        sc.className = "text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3";
+      }
+    }
+
     const tr = document.getElementById('teenLangTranslit');
-    if (tr) tr.innerText = card.translit;
+    if (tr) {
+      tr.innerText = card.translit;
+      if (teenSubMode === 'sentences') {
+        tr.className = "text-xs sm:text-sm font-mono font-semibold text-indigo-600 tracking-wide max-w-xl mx-auto px-2";
+      } else {
+        tr.className = "text-sm font-mono font-bold text-indigo-600 uppercase tracking-widest";
+      }
+    }
+
     const me = document.getElementById('teenLangMeaning');
-    if (me) me.innerText = card.meaning;
+    if (me) {
+      me.innerText = card.meaning;
+      if (teenSubMode === 'sentences') {
+        me.className = "text-lg sm:text-xl font-extrabold text-white mb-3 leading-snug max-w-xl mx-auto px-2";
+      } else {
+        me.className = "text-xl sm:text-2xl font-extrabold text-white mb-4";
+      }
+    }
+
     const ex = document.getElementById('teenLangExample');
     if (ex) ex.innerText = card.example;
+  }
 
-    // Pull quiz question with zero repeats using Fisher-Yates deck queue
-    const quiz = (typeof window.getNextFromDeck === 'function' && pack.teenQuiz)
-      ? window.getNextFromDeck('teen_quiz_' + window.appData.activeLanguage, pack.teenQuiz, q => q.q)
-      : (pack.teenQuiz && pack.teenQuiz[0]);
+  function getActiveTeenQuizPool() {
+    const lang = getActiveLangCode();
+    const pack = getActiveLangPack();
+    if (!pack) return [];
+
+    if (teenSubMode === 'sentences') {
+      if (Array.isArray(pack.teenSentenceQuiz) && pack.teenSentenceQuiz.length > 0) {
+        return pack.teenSentenceQuiz;
+      }
+      // Dynamic generation from pack.sentences if not yet built
+      if (Array.isArray(pack.sentences) && pack.sentences.length >= 4) {
+        const pool = [];
+        pack.sentences.forEach((s, idx) => {
+          const distractors = pack.sentences
+            .filter((_, i) => i !== idx)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3)
+            .map(o => o.meaning);
+          if (distractors.length === 3) {
+            const choices = [s.meaning, ...distractors].sort(() => Math.random() - 0.5);
+            pool.push({
+              q: `What is the English meaning of: '${s.script}'?`,
+              choices: choices,
+              answer: choices.indexOf(s.meaning),
+              script: s.script,
+              translit: s.translit
+            });
+          }
+        });
+        pack.teenSentenceQuiz = pool;
+        return pool;
+      }
+    }
+
+    if (teenSubMode === 'letters' && Array.isArray(pack.letters) && pack.letters.length >= 4) {
+      if (!pack.teenLetterQuiz) {
+        const pool = [];
+        pack.letters.forEach((item, idx) => {
+          const distractors = pack.letters
+            .filter((_, i) => i !== idx)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3)
+            .map(o => `${o.char} (${o.translit})`);
+          if (distractors.length === 3) {
+            const correctChoice = `${item.char} (${item.translit})`;
+            const choices = [correctChoice, ...distractors].sort(() => Math.random() - 0.5);
+            pool.push({
+              q: `Which letter makes the sound '${item.translit}' as in ${item.word}?`,
+              choices: choices,
+              answer: choices.indexOf(correctChoice),
+              script: item.char,
+              translit: item.translit
+            });
+          }
+        });
+        pack.teenLetterQuiz = pool;
+      }
+      return pack.teenLetterQuiz;
+    }
+
+    return pack.teenQuiz || [];
+  }
+
+  function renderTeenLanguageQuiz() {
+    const lang = getActiveLangCode();
+    const pack = getActiveLangPack();
+    if (!pack) return;
+
+    const pool = getActiveTeenQuizPool();
+    if (!pool || pool.length === 0) return;
+
+    const deckKey = 'teen_quiz_' + lang + '_' + teenSubMode;
+    const quiz = (typeof window.getNextFromDeck === 'function')
+      ? window.getNextFromDeck(deckKey, pool, q => q.q)
+      : pool[teenQuizIdx % pool.length];
 
     if (quiz) {
+      window._currentTeenQuiz = quiz;
+
+      const headerBadge = document.getElementById('teenQuizHeaderBadge');
+      if (headerBadge) {
+        if (teenSubMode === 'sentences') {
+          headerBadge.innerText = `💬 ${pack.label} Sentence Challenge`;
+        } else if (teenSubMode === 'letters') {
+          headerBadge.innerText = `🔤 ${pack.label} Letter Recognition`;
+        } else {
+          headerBadge.innerText = `🎮 ${pack.label} Active Recall Challenge`;
+        }
+      }
+
+      const qPromptSub = document.getElementById('teenQuizPromptSub');
+      if (qPromptSub) {
+        qPromptSub.innerText = teenSubMode === 'sentences'
+          ? "Translate or Identify the Sentence:"
+          : (teenSubMode === 'letters' ? "Identify the Correct Letter Sound:" : "Translate or Identify:");
+      }
+
       const qEl = document.getElementById('teenLangQuizQuestion');
       if (qEl) qEl.innerText = quiz.q;
+
       const bEl = document.getElementById('teenLangQuizBanner');
       if (bEl) bEl.classList.add('hidden');
-      window._currentTeenQuiz = quiz;
 
       const choicesEl = document.getElementById('teenLangQuizChoices');
       if (choicesEl) {
         choicesEl.innerHTML = quiz.choices.map((c, i) => `
-          <button onclick="checkTeenLangQuiz(${i}, ${quiz.answer})" class="p-4 rounded-2xl border-2 border-slate-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/40 text-left font-bold text-xs sm:text-sm text-slate-800 transition">
+          <button onclick="checkTeenLangQuiz(${i}, ${quiz.answer})" class="p-4 sm:p-5 rounded-2xl border-2 border-slate-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/50 text-left font-bold text-xs sm:text-sm text-slate-800 transition shadow-xs hover:shadow-sm">
             ${escapeHtml(c)}
           </button>
         `).join('');
@@ -825,10 +1006,15 @@
     }
   }
 
+  function renderTeenLanguageStudio() {
+    renderTeenLanguageFlashcard();
+    renderTeenLanguageQuiz();
+  }
+
   function stepTeenLangCard(delta) {
-    const pack = window.multiLangData[window.appData.activeLanguage];
+    const pack = getActiveLangPack();
     const list = getActiveTeenCardList();
-    if (list.length === 0) return;
+    if (!pack || list.length === 0) return;
     teenCardIdx = (teenCardIdx + delta + list.length) % list.length;
     if (window.LuminaDB && typeof window.LuminaDB.recordActivity === 'function') {
       window.LuminaDB.recordActivity({
@@ -840,27 +1026,45 @@
         durationSec: 4
       });
     }
-    renderTeenLanguageStudio();
+    renderTeenLanguageFlashcard();
     speakCurrentTeenWord();
   }
 
   function speakCurrentTeenWord() {
-    const pack = window.multiLangData[window.appData.activeLanguage];
+    const pack = getActiveLangPack();
     const list = getActiveTeenCardList();
-    if (list.length === 0) return;
+    if (!pack || list.length === 0) return;
     const card = list[teenCardIdx % list.length];
     if (typeof window.speakNativeAudio === 'function') {
-      window.speakNativeAudio(card.script, pack.langCode);
+      window.speakNativeAudio(card.script, pack.langCode, card.phonetic || card.translit || card.meaning);
+    }
+  }
+
+  function speakTeenQuizPrompt() {
+    const pack = getActiveLangPack();
+    const quiz = window._currentTeenQuiz;
+    if (!pack || !quiz) return;
+    if (typeof window.speakNativeAudio === 'function') {
+      if (quiz.script) {
+        window.speakNativeAudio(quiz.script, pack.langCode, quiz.translit || quiz.q);
+      } else {
+        window.speakNativeAudio(quiz.q, 'en-US');
+      }
     }
   }
 
   function checkTeenLangQuiz(chosen, correct) {
-    const pack = window.multiLangData[window.appData.activeLanguage];
-    const quiz = window._currentTeenQuiz || (pack && pack.teenQuiz && pack.teenQuiz[0]);
-    if (!quiz) return;
+    const lang = getActiveLangCode();
+    const pack = getActiveLangPack();
+    const quiz = window._currentTeenQuiz;
+    if (!pack || !quiz) return;
     const isCorrect = (chosen === correct);
     const banner = document.getElementById('teenLangQuizBanner');
     if (banner) banner.classList.remove('hidden');
+
+    const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+      ? window.LuminaDB.getActiveProfile()
+      : null;
 
     if (typeof window.trackActivity === 'function') {
       window.trackActivity({
@@ -875,24 +1079,27 @@
     }
 
     if (isCorrect) {
+      if (p && window.LuminaDB && typeof window.LuminaDB.markQuestionCompleted === 'function') {
+        window.LuminaDB.markQuestionCompleted(p.id, `teen_lang_${lang}_${teenSubMode}_${quiz.q}`);
+      }
       if (typeof window.confetti === 'function') {
         window.confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 } });
       }
       if (banner) {
-        banner.className = "mt-5 p-4 rounded-2xl text-xs font-bold flex items-center justify-between bg-emerald-50 text-emerald-800 border border-emerald-200";
-        banner.innerHTML = `<span>🎉 Correct! +20 XP earned!</span> <button onclick="nextTeenLangQuizQuestion()" class="px-3 py-1 rounded-lg bg-emerald-600 text-white">Next Question →</button>`;
+        banner.className = "mt-6 p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-emerald-50 text-emerald-800 border border-emerald-200";
+        banner.innerHTML = `<span>🎉 Correct! +20 XP earned!</span> <button onclick="nextTeenLangQuizQuestion()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm transition">Next Question →</button>`;
       }
     } else {
       if (banner) {
-        banner.className = "mt-5 p-4 rounded-2xl text-xs font-bold flex items-center justify-between bg-rose-50 text-rose-800 border border-rose-200";
-        banner.innerHTML = `<span>Not quite! Try another option or flip the study card.</span>`;
+        banner.className = "mt-6 p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-rose-50 text-rose-800 border border-rose-200";
+        banner.innerHTML = `<span>Not quite! Try another choice or switch to Study Flashcards tab to review.</span>`;
       }
     }
   }
 
   function nextTeenLangQuizQuestion() {
     teenQuizIdx++;
-    renderTeenLanguageStudio();
+    renderTeenLanguageQuiz();
   }
 
   window.openTeenTab = openTeenTab;
@@ -914,12 +1121,17 @@
   window.submitSatAnswer = submitSatAnswer;
   window.navigateSat = navigateSat;
   window.toggleFlagSatQuestion = toggleFlagSatQuestion;
+  window.teenLangViewTab = teenLangViewTab;
+  window.setTeenLangViewTab = setTeenLangViewTab;
   window.setTeenLangSubMode = setTeenLangSubMode;
   window.selectActiveLanguage = selectActiveLanguage;
   window.getActiveTeenCardList = getActiveTeenCardList;
   window.renderTeenLanguageStudio = renderTeenLanguageStudio;
+  window.renderTeenLanguageFlashcard = renderTeenLanguageFlashcard;
+  window.renderTeenLanguageQuiz = renderTeenLanguageQuiz;
   window.stepTeenLangCard = stepTeenLangCard;
   window.speakCurrentTeenWord = speakCurrentTeenWord;
+  window.speakTeenQuizPrompt = speakTeenQuizPrompt;
   window.checkTeenLangQuiz = checkTeenLangQuiz;
   window.nextTeenLangQuizQuestion = nextTeenLangQuizQuestion;
 })(window);
