@@ -78,7 +78,7 @@
       <button onclick="openTeenTab('${t.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
         activeTab === t.id
           ? 'bg-indigo-600 text-white shadow-2xs'
-          : 'text-slate-600 hover:bg-slate-200/70'
+          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
       }">${t.label}</button>
     `).join('');
   }
@@ -121,18 +121,18 @@
         const badgeLabel = leftCount === 0 ? '✓ Mastered' : `${leftCount} Left of ${totalCount}`;
         const badgeStyle = leftCount === 0 ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : `${theme.bg} ${theme.text} ${theme.border}`;
         return `
-          <div onclick="launchSatWithDomain('${domain.replace(/'/g, "\\'")}')" class="bg-white hover:bg-slate-50/80 rounded-3xl p-5 border border-slate-200/80 shadow-bento cursor-pointer transition group flex flex-col justify-between">
+          <div onclick="launchSatWithDomain('${domain.replace(/'/g, "\\'")}')" class="bg-white dark:bg-slate-900 hover:bg-slate-50/80 dark:hover:bg-slate-800 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-bento cursor-pointer transition group flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-3">
                 <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${badgeStyle} border">
                   ${badgeLabel}
                 </span>
-                <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i>
+                <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i>
               </div>
-              <h4 class="font-extrabold text-slate-900 text-base group-hover:text-indigo-600 transition">${escapeHtml(domain)}</h4>
-              <p class="text-xs text-slate-500 mt-1">${acc}</p>
+              <h4 class="font-extrabold text-slate-900 dark:text-slate-100 text-base group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">${escapeHtml(domain)}</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${acc}</p>
             </div>
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-indigo-600">
+            <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
               <span>${leftCount === 0 ? 'Review & Practice Again' : 'Start Timed Drill'}</span>
               <span>→</span>
             </div>
@@ -156,21 +156,21 @@
       calEl.innerHTML = history.map(d => {
         const done = (d.questionsAttempted || 0) >= (p.dailyGoalQuestions || 10);
         const hasWork = (d.questionsAttempted || 0) > 0 || (d.cardsViewed || 0) > 0;
-        let ring = 'border-slate-200 bg-white';
-        let badge = '<span class="text-slate-300">•</span>';
+        let ring = 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200';
+        let badge = '<span class="text-slate-300 dark:text-slate-600">•</span>';
         if (done) {
-          ring = 'border-emerald-400 bg-emerald-50/70 text-emerald-900';
+          ring = 'border-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300';
           badge = '<span>🔥</span>';
         } else if (hasWork) {
-          ring = 'border-amber-300 bg-amber-50/60 text-amber-900';
+          ring = 'border-amber-300 bg-amber-50/60 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300';
           badge = '<span>⚡</span>';
         }
         return `
           <div onclick="selectCalendarDay('${d.dateKey}')" class="p-2.5 rounded-2xl border-2 ${ring} text-center cursor-pointer transition transform hover:scale-105">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${d.shortDay}</div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">${d.shortDay}</div>
             <div class="font-mono font-bold text-xs my-0.5">${d.label}</div>
             <div class="text-xs">${badge}</div>
-            <div class="text-[10px] font-mono text-slate-500 mt-0.5">${d.questionsAttempted || 0} Qs</div>
+            <div class="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-0.5">${d.questionsAttempted || 0} Qs</div>
           </div>
         `;
       }).join('');
@@ -187,12 +187,12 @@
           const pct = stats.attempted > 0 ? Math.round((stats.correct / stats.attempted) * 100) : 100;
           const barColor = pct >= 80 ? 'bg-emerald-500' : (pct >= 60 ? 'bg-indigo-500' : 'bg-amber-500');
           return `
-            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/60">
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
               <div class="flex items-center justify-between text-xs font-bold mb-1">
-                <span class="text-slate-800 truncate">${escapeHtml(dom)}</span>
-                <span class="font-mono text-slate-600">${pct}% (${stats.correct}/${stats.attempted})</span>
+                <span class="text-slate-800 dark:text-slate-200 truncate">${escapeHtml(dom)}</span>
+                <span class="font-mono text-slate-600 dark:text-slate-400">${pct}% (${stats.correct}/${stats.attempted})</span>
               </div>
-              <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
+              <div class="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                 <div class="h-full rounded-full ${barColor}" style="width:${pct}%"></div>
               </div>
             </div>
@@ -509,17 +509,17 @@
       btn.onclick = () => handleSatOptionClick(letter);
       btn.className = `flex-1 text-left p-4 rounded-2xl border-2 transition-all flex items-start gap-3.5 ${
         isSelected
-          ? 'border-indigo-600 bg-indigo-50/70 shadow-xs'
-          : 'border-slate-200 hover:border-slate-300 bg-white'
+          ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/60 dark:border-indigo-500 shadow-xs'
+          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800'
       }`;
 
       btn.innerHTML = `
         <span class="w-7 h-7 rounded-xl font-mono font-bold text-xs flex items-center justify-center shrink-0 border ${
           isSelected
             ? 'bg-indigo-600 text-white border-indigo-600'
-            : 'bg-slate-100 text-slate-700 border-slate-200'
+            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-600'
         }">${letter}</span>
-        <span class="choice-content text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">${escapeHtml(choices[letter])}</span>
+        <span class="choice-content text-xs sm:text-sm text-slate-800 dark:text-slate-100 font-medium leading-relaxed">${escapeHtml(choices[letter])}</span>
       `;
 
       const strikeBtn = document.createElement('button');
@@ -528,7 +528,7 @@
         toggleOptionStrikeout(letter);
       };
       strikeBtn.title = "Cross out / restore option";
-      strikeBtn.className = "p-2.5 rounded-xl border border-slate-200 hover:bg-rose-50 hover:border-rose-200 text-slate-400 hover:text-rose-600 text-xs font-mono font-bold transition shrink-0";
+      strikeBtn.className = "p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:border-rose-200 dark:hover:border-rose-800 text-slate-400 hover:text-rose-600 text-xs font-mono font-bold transition shrink-0";
       strikeBtn.innerText = isEliminated ? 'Undo' : '̶A̶';
 
       wrapper.appendChild(btn);
@@ -1022,7 +1022,7 @@
       const choicesEl = document.getElementById('teenLangQuizChoices');
       if (choicesEl) {
         choicesEl.innerHTML = quiz.choices.map((c, i) => `
-          <button onclick="checkTeenLangQuiz(${i}, ${quiz.answer})" class="p-4 sm:p-5 rounded-2xl border-2 border-slate-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/50 text-left font-bold text-xs sm:text-sm text-slate-800 transition shadow-xs hover:shadow-sm">
+          <button onclick="checkTeenLangQuiz(${i}, ${quiz.answer})" class="p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 bg-white dark:bg-slate-800 hover:bg-indigo-50/50 dark:hover:bg-slate-700 text-left font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 transition shadow-xs hover:shadow-sm">
             ${escapeHtml(c)}
           </button>
         `).join('');
@@ -1330,7 +1330,7 @@
           `;
         }
         return `
-          <div class="w-9 h-11 sm:w-10 sm:h-12 rounded-xl border-2 ${idx === firstEmpty ? 'border-indigo-500 bg-indigo-50/70' : 'border-dashed border-slate-300 bg-white'} text-slate-400 font-mono font-bold text-base flex items-center justify-center">
+          <div class="w-9 h-11 sm:w-10 sm:h-12 rounded-xl border-2 ${idx === firstEmpty ? 'border-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/60' : 'border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'} text-slate-400 dark:text-slate-500 font-mono font-bold text-base flex items-center justify-center">
             _
           </div>
         `;
@@ -1340,10 +1340,10 @@
     if (trayRow) {
       trayRow.innerHTML = teenSpellTray.map((tile, tIdx) => {
         if (tile.used) {
-          return `<button disabled class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 text-slate-300 font-mono font-bold text-sm border border-slate-200 opacity-30">${tile.char}</button>`;
+          return `<button disabled class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 font-mono font-bold text-sm border border-slate-200 dark:border-slate-700 opacity-30">${tile.char}</button>`;
         }
         return `
-          <button onclick="placeTeenSpellingTile(${tIdx})" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white hover:bg-indigo-50 text-slate-900 font-mono font-extrabold text-sm sm:text-base border-2 border-slate-200 hover:border-indigo-400 shadow-xs transition btn-tactile">
+          <button onclick="placeTeenSpellingTile(${tIdx})" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-mono font-extrabold text-sm sm:text-base border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 shadow-xs transition btn-tactile">
             ${tile.char}
           </button>
         `;
@@ -1548,8 +1548,8 @@
     const choicesEl = document.getElementById('teenSpellQuizChoices');
     if (choicesEl) {
       choicesEl.innerHTML = choices.map((c, idx) => `
-        <button onclick="checkTeenSpellingQuiz(${idx}, ${correctIdx})" class="p-4 sm:p-5 rounded-2xl border-2 border-slate-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/50 text-left font-mono font-extrabold text-sm sm:text-base tracking-wider text-slate-900 transition shadow-xs">
-          <span class="inline-block w-6 h-6 rounded-lg bg-slate-100 text-slate-600 text-xs text-center leading-6 mr-2">${['A', 'B', 'C', 'D'][idx]}</span>
+        <button onclick="checkTeenSpellingQuiz(${idx}, ${correctIdx})" class="p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 bg-white dark:bg-slate-800 hover:bg-indigo-50/50 dark:hover:bg-slate-700 text-left font-mono font-extrabold text-sm sm:text-base tracking-wider text-slate-900 dark:text-slate-100 transition shadow-xs">
+          <span class="inline-block w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs text-center leading-6 mr-2">${['A', 'B', 'C', 'D'][idx]}</span>
           ${escapeHtml(c)}
         </button>
       `).join('');

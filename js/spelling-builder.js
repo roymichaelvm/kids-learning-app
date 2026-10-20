@@ -331,7 +331,7 @@
         } else {
           const isNext = (idx === firstEmptyIdx);
           return `
-            <div class="w-11 h-13 sm:w-14 sm:h-16 rounded-2xl border-4 ${isNext ? 'border-amber-400 bg-amber-50/80 animate-pulse' : 'border-dashed border-slate-300 bg-slate-50/60'} text-slate-400 font-extrabold text-2xl sm:text-3xl flex items-center justify-center select-none transition">
+            <div class="w-11 h-13 sm:w-14 sm:h-16 rounded-2xl border-4 ${isNext ? 'border-amber-400 bg-amber-50/80 dark:bg-amber-950/40 animate-pulse' : 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60'} text-slate-400 dark:text-slate-500 font-extrabold text-2xl sm:text-3xl flex items-center justify-center select-none transition">
               _
             </div>
           `;
@@ -344,7 +344,7 @@
       trayRow.innerHTML = currentSpellingTray.map((tile, tIdx) => {
         if (tile.used) {
           return `
-            <button disabled class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-slate-100 text-slate-300 font-black text-xl sm:text-2xl border-2 border-slate-200 opacity-25 pointer-events-none scale-90 flex items-center justify-center select-none transition">
+            <button disabled class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 font-black text-xl sm:text-2xl border-2 border-slate-200 dark:border-slate-700 opacity-25 pointer-events-none scale-90 flex items-center justify-center select-none transition">
               ${tile.char}
             </button>
           `;

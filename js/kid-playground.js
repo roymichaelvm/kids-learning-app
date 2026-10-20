@@ -691,9 +691,9 @@
       const choices = qObj.choices || {};
       grid.className = "grid grid-cols-1 sm:grid-cols-2 gap-3.5";
       grid.innerHTML = ['A', 'B', 'C', 'D'].filter(k => choices[k]).map(letter => `
-        <button id="kid-cloud-opt-${letter}" onclick="checkKidCloudQuizAnswer('${letter}')" class="p-4 sm:p-5 rounded-3xl bg-white hover:bg-sky-50 border-4 border-slate-200 hover:border-sky-400 shadow-kids-card btn-tactile flex items-center gap-3.5 text-left transition">
-          <span class="w-10 h-10 rounded-2xl bg-sky-100 text-sky-900 font-extrabold text-lg flex items-center justify-center shrink-0 border-2 border-sky-200">${letter}</span>
-          <span class="text-base sm:text-lg font-bold text-slate-800 leading-snug">${escapeHtml(choices[letter])}</span>
+        <button id="kid-cloud-opt-${letter}" onclick="checkKidCloudQuizAnswer('${letter}')" class="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-slate-700 border-4 border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 shadow-kids-card btn-tactile flex items-center gap-3.5 text-left transition">
+          <span class="w-10 h-10 rounded-2xl bg-sky-100 dark:bg-sky-950/80 text-sky-900 dark:text-sky-300 font-extrabold text-lg flex items-center justify-center shrink-0 border-2 border-sky-200 dark:border-sky-800">${letter}</span>
+          <span class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 leading-snug">${escapeHtml(choices[letter])}</span>
         </button>
       `).join('');
       return;
@@ -781,13 +781,13 @@
         // Options keep the English meaning (picture + English word/sentence)
         const en = opt.englishMeaning || (opt.meaning ? opt.meaning.split('\n')[0] : '');
         const sizeCls = kidSubMode === 'sentences' ? 'text-sm sm:text-base' : 'text-base';
-        labelHtml = `<span class="${sizeCls} font-bold text-slate-800 text-center leading-snug">${escapeHtml(en)}</span>`;
+        labelHtml = `<span class="${sizeCls} font-bold text-slate-800 dark:text-slate-100 text-center leading-snug">${escapeHtml(en)}</span>`;
       } else {
-        labelHtml = `<span class="text-base font-bold text-slate-800 text-center leading-snug">${escapeHtml(opt.meaning.split('\n')[0])}</span>`;
+        labelHtml = `<span class="text-base font-bold text-slate-800 dark:text-slate-100 text-center leading-snug">${escapeHtml(opt.meaning.split('\n')[0])}</span>`;
       }
 
       return `
-        <button onclick="checkKidQuizSelection(${idx})" data-primary="${escapeHtml(opt.primary)}" class="kid-pic-opt p-5 rounded-3xl bg-white hover:bg-sky-50 border-4 border-slate-200 hover:border-sky-400 shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-2 transition">
+        <button onclick="checkKidQuizSelection(${idx})" data-primary="${escapeHtml(opt.primary)}" class="kid-pic-opt p-5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-slate-700 border-4 border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-2 transition">
           <span class="${emojiClass}">${opt.emoji}</span>
           ${labelHtml}
         </button>

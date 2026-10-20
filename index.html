@@ -129,81 +129,81 @@
   <!-- =====================================================================
        TOP HEADER & MULTI-PROFILE COCKPIT
        ===================================================================== -->
-  <header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+  <header class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800 shadow-xs w-full transition-colors duration-200">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-[4rem] py-1.5 sm:py-0 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2.5 sm:gap-4">
       
       <!-- Brand & Mode Pill -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-amber-400 flex items-center justify-center text-white font-extrabold text-xl shadow-md">
+      <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-amber-400 flex items-center justify-center text-white font-extrabold text-xl shadow-md shrink-0">
           L
         </div>
         <div>
           <div class="flex items-center gap-2">
             <span class="font-extrabold text-lg tracking-tight text-slate-900 dark:text-slate-100">Lumina</span>
-            <span id="activeModeBadge" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800">
+            <span id="activeModeBadge" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800 whitespace-nowrap shrink-0">
               🎓 Teen Scholar
             </span>
           </div>
-          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Family Learning Hub • SAT Bluebook & 6+ Explorer</p>
+          <p class="text-[11px] text-slate-400 font-medium hidden xl:block">Family Learning Hub • SAT Bluebook &amp; 6+ Explorer</p>
         </div>
       </div>
 
       <!-- Live Gamification, Cloud Sync & Profile Cockpit -->
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="flex items-center flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 shrink-0">
         
         <!-- Total Questions Bank Counter -->
-        <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300" title="Total SAT & Language Questions in Question Bank">
+        <div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 shrink-0" title="Total SAT &amp; Language Questions in Question Bank">
           <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-500"></i>
           <span id="totalQuestionsCounter" class="font-bold text-slate-800 dark:text-slate-100">0</span>
           <span class="text-slate-400">Questions</span>
         </div>
 
         <!-- Streak Pill -->
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold shadow-xs" title="Daily study streak">
+        <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold shadow-xs shrink-0" title="Daily study streak">
           <span class="text-sm">🔥</span>
           <span id="headerStreakCount">0</span>
-          <span class="hidden sm:inline font-semibold text-amber-700 dark:text-amber-300">days</span>
+          <span class="hidden md:inline font-semibold text-amber-700 dark:text-amber-300">days</span>
         </div>
 
         <!-- XP Pill -->
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 text-xs font-bold shadow-xs" title="Total experience points">
+        <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 text-xs font-bold shadow-xs shrink-0" title="Total experience points">
           <span class="text-sm">⚡</span>
           <span id="headerXPCount">0</span>
-          <span class="hidden sm:inline font-semibold text-indigo-700 dark:text-indigo-300">XP</span>
+          <span class="hidden md:inline font-semibold text-indigo-700 dark:text-indigo-300">XP</span>
         </div>
 
-        <!-- Rewards Bazaar & Cash Allowance Pill -->
-        <button onclick="openRewardsModal()" id="headerRewardsPill" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs font-bold shadow-xs cursor-pointer btn-tactile" title="Learning Wallet & Prize Store">
+        <!-- Learning Wallet & Rewards Pill -->
+        <button onclick="openRewardsModal()" id="headerRewardsPill" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs font-bold shadow-xs cursor-pointer btn-tactile shrink-0" title="Learning Wallet &amp; Prize Store">
           <span class="text-sm">👛</span>
           <span id="headerRewardsCashText" class="font-black text-emerald-700 dark:text-emerald-300">$0.00</span>
-          <span class="hidden md:inline font-semibold text-emerald-600 dark:text-emerald-400">Wallet</span>
+          <span class="hidden lg:inline font-semibold text-emerald-600 dark:text-emerald-400">Wallet</span>
         </button>
 
         <!-- Family Leaderboard Button -->
-        <button onclick="openLeaderboardModal()" id="headerLeaderboardBtn" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-200 text-xs font-bold shadow-xs cursor-pointer btn-tactile" title="Family Leaderboard & Trophy Room">
+        <button onclick="openLeaderboardModal()" id="headerLeaderboardBtn" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-200 text-xs font-bold shadow-xs cursor-pointer btn-tactile shrink-0" title="Family Leaderboard &amp; Trophy Room">
           <span class="text-sm">🏆</span>
-          <span class="hidden sm:inline font-bold text-purple-700 dark:text-purple-300">Rankings</span>
+          <span class="hidden lg:inline font-bold text-purple-700 dark:text-purple-300">Rankings</span>
         </button>
 
         <!-- Dark / Light Theme Switcher Button -->
-        <button onclick="toggleTheme()" class="theme-toggle-btn p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-amber-300 transition cursor-pointer btn-tactile" title="Toggle Light / Dark Mode">
+        <button onclick="toggleTheme()" class="theme-toggle-btn p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-amber-300 transition cursor-pointer btn-tactile shrink-0" title="Toggle Light / Dark Mode">
           <span class="theme-toggle-icon text-sm">🌙</span>
         </button>
 
         <!-- Cloud Firestore Sync Status -->
-        <button onclick="manualCloudSync()" id="cloudStatusPill" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition cursor-pointer" title="Cloud Firestore sync status. Tap to force cloud sync.">
+        <button onclick="manualCloudSync()" id="cloudStatusPill" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition cursor-pointer shrink-0" title="Cloud Firestore sync status. Tap to force cloud sync.">
           <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span id="cloudStatusText" class="hidden md:inline font-semibold">Firebase Connected</span>
+          <span id="cloudStatusText" class="hidden 2xl:inline font-semibold">Firebase Connected</span>
         </button>
 
         <!-- Family Account Auth Pill -->
-        <button onclick="toggleFamilyAuthModal()" id="familyAuthPill" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition cursor-pointer" title="Family Account Login Status">
-          <i data-lucide="lock" id="familyAuthIcon" class="w-3.5 h-3.5 text-slate-500"></i>
-          <span id="familyAuthText" class="hidden md:inline font-semibold">Sign In</span>
+        <button onclick="toggleFamilyAuthModal()" id="familyAuthPill" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition cursor-pointer shrink-0" title="Family Account Login Status">
+          <i data-lucide="lock" id="familyAuthIcon" class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400"></i>
+          <span id="familyAuthText" class="hidden 2xl:inline font-semibold">Sign In</span>
         </button>
 
         <!-- Profile Switcher Button -->
-        <button onclick="showProfilePicker()" class="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white text-xs font-bold transition shadow-sm btn-tactile cursor-pointer">
+        <button onclick="showProfilePicker()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white text-xs font-bold transition shadow-sm btn-tactile cursor-pointer shrink-0">
           <i data-lucide="users" class="w-3.5 h-3.5 text-amber-300"></i>
           <span>Switch</span>
         </button>
@@ -213,10 +213,10 @@
   </header>
 
   <!-- Profile Quick-Bar (Always visible horizontal switcher once authenticated) -->
-  <section id="profileQuickBar" class="hidden bg-white border-b border-slate-200/60 px-4 py-2">
+  <section id="profileQuickBar" class="hidden bg-white dark:bg-slate-900 border-b border-slate-200/60 dark:border-slate-800 px-4 py-2 transition-colors">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
-      <div class="flex items-center gap-1.5 text-xs text-slate-500 font-semibold shrink-0">
-        <i data-lucide="user-check" class="w-3.5 h-3.5 text-indigo-500"></i>
+      <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold shrink-0">
+        <i data-lucide="user-check" class="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400"></i>
         <span>Active Learner:</span>
       </div>
       <div id="profileSwitcher" class="flex items-center gap-2"></div>
@@ -230,12 +230,12 @@
 
   <!-- SUB-NAVIGATION BAR (Mode-specific tabs & Instant Dictionary button) -->
   <nav id="subNavBar" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-1 w-full">
-    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3">
       <div id="subNavTabs" class="flex flex-wrap items-center gap-2"></div>
       
-      <div class="flex flex-wrap items-center gap-2.5 text-xs font-semibold text-slate-500">
+      <div class="flex flex-wrap items-center gap-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
         <!-- Instant Dictionary & Tough Words Vault Button -->
-        <button onclick="openDictionaryModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold transition text-xs border border-indigo-200 shadow-xs" title="Instant Dictionary lookup & Tough Words Vault">
+        <button onclick="openDictionaryModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold transition text-xs border border-indigo-200 dark:border-indigo-800 shadow-xs" title="Instant Dictionary lookup & Tough Words Vault">
           <span>📖</span>
           <span>Dictionary &amp; Vault</span>
         </button>
@@ -288,8 +288,8 @@
       <div>
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h2 class="text-lg font-extrabold text-slate-900 tracking-tight">SAT Topic Master Tracks</h2>
-            <p class="text-xs text-slate-500">Pick any domain to start target drills immediately</p>
+            <h2 class="text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">SAT Topic Master Tracks</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Pick any domain to start target drills immediately</p>
           </div>
         </div>
         <div id="teenTopicsBentoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
@@ -299,90 +299,90 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <!-- Left: 14-Day Streak Calendar Grid -->
-        <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 p-6 shadow-bento flex flex-col justify-between">
+        <div class="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-bento flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h3 class="font-extrabold text-slate-900 text-base">14-Day Study Consistency Calendar</h3>
-                <p class="text-xs text-slate-400">Tap any day to view detailed study records</p>
+                <h3 class="font-extrabold text-slate-900 dark:text-slate-100 text-base">14-Day Study Consistency Calendar</h3>
+                <p class="text-xs text-slate-400 dark:text-slate-400">Tap any day to view detailed study records</p>
               </div>
-              <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">Last 2 Weeks</span>
+              <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg">Last 2 Weeks</span>
             </div>
             <div id="teenStreakCalendarGrid" class="grid grid-cols-7 gap-2 my-2"></div>
           </div>
           
-          <div id="teenSelectedDayDetail" class="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-600"></div>
+          <div id="teenSelectedDayDetail" class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300"></div>
         </div>
 
         <!-- Right: Domain Mastery & Accuracy Breakdown -->
-        <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200/80 p-6 shadow-bento flex flex-col justify-between">
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-bento flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h3 class="font-extrabold text-slate-900 text-base">SAT Domain Mastery Rates</h3>
-                <p class="text-xs text-slate-400">Cumulative accuracy by topic</p>
+                <h3 class="font-extrabold text-slate-900 dark:text-slate-100 text-base">SAT Domain Mastery Rates</h3>
+                <p class="text-xs text-slate-400 dark:text-slate-400">Cumulative accuracy by topic</p>
               </div>
             </div>
             <div id="teenDomainMasteryList" class="space-y-3.5 my-2"></div>
           </div>
 
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+          <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-400">
             <span>Target Mastery: 80%+ Accuracy</span>
-            <span class="font-semibold text-emerald-600">Adaptive Target</span>
+            <span class="font-semibold text-emerald-600 dark:text-emerald-400">Adaptive Target</span>
           </div>
         </div>
 
       </div>
 
       <!-- Real-Time Second-Guess & Timing Telemetry Live Analytics -->
-      <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-bento space-y-5">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-bento space-y-5">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 class="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <span>⏱️ Precision Timing & Second-Guess Telemetry</span>
-              <span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold uppercase">Bluebook Analytics</span>
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
+              <span>⏱️ Precision Timing &amp; Second-Guess Telemetry</span>
+              <span class="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 text-[10px] font-bold uppercase">Bluebook Analytics</span>
             </h3>
-            <p class="text-xs text-slate-500">Tracks how fast you answer, whether your first instinct was right, and when second-guessing helped or hurt.</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Tracks how fast you answer, whether your first instinct was right, and when second-guessing helped or hurt.</p>
           </div>
-          <button onclick="resetSatTelemetry()" class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline">
+          <button onclick="resetSatTelemetry()" class="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline">
             Reset Logs
           </button>
         </div>
 
         <!-- 4 Bento Metric Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-          <div class="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-            <span class="text-[11px] font-bold uppercase text-indigo-500 tracking-wider">1st Instinct Accuracy</span>
-            <p id="bentoFirstClickAcc" class="text-2xl font-extrabold text-indigo-950 mt-1">—</p>
-            <p class="text-[10px] text-indigo-600/80 mt-0.5">Correct on initial click</p>
+          <div class="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60">
+            <span class="text-[11px] font-bold uppercase text-indigo-500 dark:text-indigo-400 tracking-wider">1st Instinct Accuracy</span>
+            <p id="bentoFirstClickAcc" class="text-2xl font-extrabold text-indigo-950 dark:text-indigo-200 mt-1">—</p>
+            <p class="text-[10px] text-indigo-600/80 dark:text-indigo-400/80 mt-0.5">Correct on initial click</p>
           </div>
-          <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100">
-            <span class="text-[11px] font-bold uppercase text-emerald-600 tracking-wider">Final Accuracy</span>
-            <p id="bentoFinalAcc" class="text-2xl font-extrabold text-emerald-950 mt-1">—</p>
-            <p class="text-[10px] text-emerald-600/80 mt-0.5">Accuracy upon submit</p>
+          <div class="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60">
+            <span class="text-[11px] font-bold uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">Final Accuracy</span>
+            <p id="bentoFinalAcc" class="text-2xl font-extrabold text-emerald-950 dark:text-emerald-200 mt-1">—</p>
+            <p class="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">Accuracy upon submit</p>
           </div>
-          <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-100">
-            <span class="text-[11px] font-bold uppercase text-amber-600 tracking-wider">Avg Time / Question</span>
-            <p id="bentoAvgTime" class="text-2xl font-extrabold text-amber-950 mt-1">0s</p>
-            <p class="text-[10px] text-amber-700/80 mt-0.5">SAT Target: ~71 seconds</p>
+          <div class="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/60">
+            <span class="text-[11px] font-bold uppercase text-amber-600 dark:text-amber-400 tracking-wider">Avg Time / Question</span>
+            <p id="bentoAvgTime" class="text-2xl font-extrabold text-amber-950 dark:text-amber-200 mt-1">0s</p>
+            <p class="text-[10px] text-amber-700/80 dark:text-amber-400/80 mt-0.5">SAT Target: ~71 seconds</p>
           </div>
-          <div class="p-4 rounded-2xl bg-purple-50/60 border border-purple-100">
-            <span class="text-[11px] font-bold uppercase text-purple-600 tracking-wider">Mind Changes</span>
-            <p id="bentoMindChanges" class="text-2xl font-extrabold text-purple-950 mt-1">0</p>
-            <p class="text-[10px] text-purple-700/80 mt-0.5">Answer revisions made</p>
+          <div class="p-4 rounded-2xl bg-purple-50/60 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/60">
+            <span class="text-[11px] font-bold uppercase text-purple-600 dark:text-purple-400 tracking-wider">Mind Changes</span>
+            <p id="bentoMindChanges" class="text-2xl font-extrabold text-purple-950 dark:text-purple-200 mt-1">0</p>
+            <p class="text-[10px] text-purple-700/80 dark:text-purple-400/80 mt-0.5">Answer revisions made</p>
           </div>
         </div>
 
         <!-- Second Guess Verdict Alert -->
-        <div id="secondGuessVerdict" class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700 font-medium">
+        <div id="secondGuessVerdict" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-medium">
           Answer questions in the SAT Simulator to generate second-guess telemetry insights!
         </div>
 
         <!-- Telemetry Logs Table -->
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600 border-collapse">
+          <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300 border-collapse">
             <thead>
-              <tr class="border-b border-slate-200 text-[11px] font-bold uppercase text-slate-400">
+              <tr class="border-b border-slate-200 dark:border-slate-700 text-[11px] font-bold uppercase text-slate-400">
                 <th class="py-2.5 px-3">Date</th>
                 <th class="py-2.5 px-3">Question ID</th>
                 <th class="py-2.5 px-3">Domain</th>
@@ -394,7 +394,7 @@
                 <th class="py-2.5 px-3">Diagnosis</th>
               </tr>
             </thead>
-            <tbody id="telemetryTableBody" class="divide-y divide-slate-100">
+            <tbody id="telemetryTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
               <tr>
                 <td colspan="9" class="py-6 text-center text-slate-400">No telemetry recorded yet. Launch the simulator to begin!</td>
               </tr>
@@ -413,24 +413,24 @@
       <!-- Bluebook Toolbar (Domain selector, Precision Stopwatch, Eliminator, Flag) -->
       <div class="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-bento flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3">
-          <button onclick="openTeenTab('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+          <button onclick="openTeenTab('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
             <span>Dashboard</span>
           </button>
           
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Domain:</span>
-            <select id="satDomainFilter" onchange="onFilterSatQuestions()" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-indigo-500 cursor-pointer">
+            <select id="satDomainFilter" onchange="onFilterSatQuestions()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-indigo-500 cursor-pointer">
               <option value="ALL">All Domains (Comprehensive Exam)</option>
             </select>
           </div>
 
-          <span id="satDifficultyPill" class="text-[11px] font-bold uppercase px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <span id="satDifficultyPill" class="text-[11px] font-bold uppercase px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
             Medium
           </span>
 
-          <span class="text-xs text-slate-500 font-mono">
-            Q <strong id="satCurrNum" class="text-slate-900">1</strong> / <span id="satTotalNum">0</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400 font-mono">
+            Q <strong id="satCurrNum" class="text-slate-900 dark:text-slate-100">1</strong> / <span id="satTotalNum">0</span>
           </span>
         </div>
 
@@ -441,76 +441,76 @@
             <span id="satStopwatch">00:00.0</span>
             <span id="satTimerDisplay" class="hidden">00:00.0</span>
           </div>
-          <span id="satPaceHint" class="hidden sm:inline text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">Pace: On Track</span>
+          <span id="satPaceHint" class="hidden sm:inline text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg">Pace: On Track</span>
 
           <!-- Choice Eliminator Mode Toggle Button -->
-          <button id="btnEliminatorTool" onclick="toggleEliminatorMode()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold transition flex items-center gap-1.5" title="Eliminate choices with strike-through">
+          <button id="btnEliminatorTool" onclick="toggleEliminatorMode()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition flex items-center gap-1.5" title="Eliminate choices with strike-through">
             <span>✂️</span>
             <span>Eliminator</span>
           </button>
 
           <!-- Flag for review button -->
-          <button id="btnFlagQuestion" onclick="toggleFlagSatQuestion()" class="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition" title="Flag this question for review">
+          <button id="btnFlagQuestion" onclick="toggleFlagSatQuestion()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 transition" title="Flag this question for review">
             <i data-lucide="bookmark" class="w-4 h-4"></i>
           </button>
         </div>
       </div>
 
       <!-- Eliminator Active Banner -->
-      <div id="eliminatorActiveHint" class="hidden p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center justify-between">
+      <div id="eliminatorActiveHint" class="hidden p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold flex items-center justify-between">
         <span class="flex items-center gap-2">
           <span>✂️ Eliminator Mode is Active:</span>
           <span class="font-normal">Click the strike button next to any choice to cross it out!</span>
         </span>
-        <button onclick="toggleEliminatorMode()" class="underline font-bold text-amber-800">Done</button>
+        <button onclick="toggleEliminatorMode()" class="underline font-bold text-amber-800 dark:text-amber-300">Done</button>
       </div>
 
       <!-- Split Screen: Left = Passage & Visual Context, Right = Question & 4 Choices -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- Left: Passage Card (Newsreader Font) -->
-        <div class="lg:col-span-6 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento">
-          <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
-            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600" id="satDomainLabel"><span id="satRightDomainTitle">Reading & Writing</span></span>
+        <div class="lg:col-span-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento">
+          <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400" id="satDomainLabel"><span id="satRightDomainTitle">Reading & Writing</span></span>
             <span class="text-xs font-mono text-slate-400" id="satQuestionIdTag"><span id="satQuestionIdBadge">Q #1</span></span>
           </div>
           
-          <div id="satPassageContent" class="font-serif text-slate-800 text-base sm:text-lg leading-relaxed space-y-4"></div>
+          <div id="satPassageContent" class="font-serif text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed space-y-4"></div>
 
           <!-- Optional Visual / Graph Data Box -->
-          <div id="satVisualContainer" class="hidden mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-mono"></div>
+          <div id="satVisualContainer" class="hidden mt-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-700 dark:text-slate-300"></div>
 
           <!-- First-Click Live Instinct Tracker -->
-          <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+          <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
             <div class="flex items-center gap-2">
               <span class="inline-block w-2 h-2 rounded-full bg-indigo-500"></span>
-              <span>First-Click Instinct: <strong id="liveFirstClickLabel" class="text-indigo-700 font-mono">Waiting for first click...</strong></span>
+              <span>First-Click Instinct: <strong id="liveFirstClickLabel" class="text-indigo-700 dark:text-indigo-400 font-mono">Waiting for first click...</strong></span>
             </div>
             <span id="liveFirstClickTimeLabel" class="font-mono text-[11px] text-slate-400"></span>
           </div>
         </div>
 
         <!-- Right: Question Prompt & 4 Interactive Choices -->
-        <div class="lg:col-span-6 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento flex flex-col justify-between">
+        <div class="lg:col-span-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between mb-3 text-xs font-bold text-slate-400">
               <span>Question Prompt</span>
               <span id="satQuestionCounterText">1 of 10</span>
             </div>
 
-            <div id="satQuestionPrompt" class="text-slate-900 font-extrabold text-base sm:text-lg leading-snug mb-6"></div>
+            <div id="satQuestionPrompt" class="text-slate-900 dark:text-slate-100 font-extrabold text-base sm:text-lg leading-snug mb-6"></div>
 
             <!-- Choice Options A, B, C, D with Strike-out Tools -->
             <div id="satOptionsList" class="space-y-3"></div>
           </div>
 
           <!-- Bottom Control Bar -->
-          <div class="mt-8 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <div class="mt-8 pt-5 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
-              <button onclick="navigateSat(-1)" id="btnSatPrev" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+              <button onclick="navigateSat(-1)" id="btnSatPrev" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition">
                 ← Prev
               </button>
-              <button onclick="navigateSat(1)" id="btnSatNext" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+              <button onclick="navigateSat(1)" id="btnSatNext" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition">
                 Next →
               </button>
             </div>
@@ -524,17 +524,17 @@
       </div>
 
       <!-- Comprehensive College Board Style Explanation Drawer -->
-      <div id="satExplanationDrawer" class="hidden bg-white rounded-3xl border-2 border-slate-200 p-6 sm:p-8 shadow-bento space-y-4 animate-fade">
+      <div id="satExplanationDrawer" class="hidden bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-700 p-6 sm:p-8 shadow-bento space-y-4 animate-fade">
         <div class="flex items-start justify-between gap-4">
           <div class="flex items-center gap-3">
             <div id="satResultIconBox" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"></div>
             <div>
               <div class="flex items-center gap-2">
-                <h3 id="satFeedbackHeadline" class="text-lg font-extrabold text-slate-900"></h3>
-                <span id="satOfficialKeyBadge" class="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 font-mono font-bold text-xs"></span>
+                <h3 id="satFeedbackHeadline" class="text-lg font-extrabold text-slate-900 dark:text-slate-100"></h3>
+                <span id="satOfficialKeyBadge" class="px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-mono font-bold text-xs"></span>
               </div>
-              <p id="satTimingFeedback" class="text-xs text-slate-500 font-mono mt-0.5"></p>
-              <p id="satFeedbackTelemetryLine" class="text-xs text-slate-500 font-mono mt-0.5"></p>
+              <p id="satTimingFeedback" class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5"></p>
+              <p id="satFeedbackTelemetryLine" class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5"></p>
             </div>
           </div>
           <button onclick="navigateSat(1)" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md">
@@ -542,9 +542,9 @@
           </button>
         </div>
 
-        <div class="pt-4 border-t border-slate-100">
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
           <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Rationale & Deep Explanation:</h4>
-          <p id="satExplanationText" class="text-sm text-slate-700 leading-relaxed font-serif"></p>
+          <p id="satExplanationText" class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-serif"></p>
         </div>
       </div>
 
@@ -558,20 +558,20 @@
       <!-- Language Pill Switcher & Sub-Navigation Header -->
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Trilingual Language Studio</h2>
-          <p class="text-xs text-slate-500">Native pronunciation, scripts, flashcards, and small sentences</p>
+          <h2 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Trilingual Language Studio</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Native pronunciation, scripts, flashcards, and small sentences</p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-2xl">
-          <button onclick="selectActiveLanguage('malayalam')" id="pill-malayalam" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl">
+          <button onclick="selectActiveLanguage('malayalam')" id="pill-malayalam" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-white dark:bg-indigo-900/80 text-slate-900 dark:text-indigo-200 shadow-xs flex items-center gap-2">
             <span>🌴</span>
             <span>Malayalam (മലയാളം)</span>
           </button>
-          <button onclick="selectActiveLanguage('hindi')" id="pill-hindi" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-2">
+          <button onclick="selectActiveLanguage('hindi')" id="pill-hindi" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-2">
             <span>🪔</span>
             <span>Hindi (हिंदी)</span>
           </button>
-          <button onclick="selectActiveLanguage('spanish')" id="pill-spanish" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-2">
+          <button onclick="selectActiveLanguage('spanish')" id="pill-spanish" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-2">
             <span>🇪🇸</span>
             <span>Spanish (Español)</span>
           </button>
@@ -579,10 +579,10 @@
       </div>
 
       <!-- Teen Sub-Navigation: Letters vs Words vs Sentences -->
-      <div id="teenLangSubNav" class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl w-fit">
-        <button onclick="setTeenLangSubMode('letters')" id="btn-teen-sub-letters" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">🔤 Alphabet Letters</button>
-        <button onclick="setTeenLangSubMode('words')" id="btn-teen-sub-words" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs">📖 Core Words</button>
-        <button onclick="setTeenLangSubMode('sentences')" id="btn-teen-sub-sentences" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">💬 Small Sentences</button>
+      <div id="teenLangSubNav" class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl w-fit">
+        <button onclick="setTeenLangSubMode('letters')" id="btn-teen-sub-letters" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">🔤 Alphabet Letters</button>
+        <button onclick="setTeenLangSubMode('words')" id="btn-teen-sub-words" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white dark:bg-indigo-900/80 text-slate-900 dark:text-indigo-200 shadow-xs">📖 Core Words</button>
+        <button onclick="setTeenLangSubMode('sentences')" id="btn-teen-sub-sentences" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">💬 Small Sentences</button>
       </div>
 
       <!-- Teen View Switcher Tabs: 🎮 Practice & Active Recall Quiz vs 🃏 Study Flashcards & 3D Deck (Only ONE section visible at a time) -->
@@ -591,23 +591,23 @@
           <span>🎮</span>
           <span>Practice &amp; Active Recall Quiz</span>
         </button>
-        <button id="tab-teen-flashcards" onclick="setTeenLangViewTab('flashcards')" class="flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-sm">
+        <button id="tab-teen-flashcards" onclick="setTeenLangViewTab('flashcards')" class="flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-sm">
           <span>🃏</span>
           <span>Study Flashcards &amp; 3D Deck</span>
         </button>
       </div>
 
       <!-- 1. FULL-WIDTH TEEN PRACTICE & MASTERY QUIZ SECTION (Active recall, small sentences & vocabulary) -->
-      <div id="teenSectionPractice" class="w-full max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento flex flex-col justify-between mb-8">
+      <div id="teenSectionPractice" class="w-full max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento flex flex-col justify-between mb-8">
         <div>
           <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div class="flex items-center gap-2">
-              <span id="teenQuizHeaderBadge" class="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs">
+              <span id="teenQuizHeaderBadge" class="px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold text-xs">
                 🎮 Active Recall Challenge
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="speakTeenQuizPrompt()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 transition">
+              <button onclick="speakTeenQuizPrompt()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
                 <i data-lucide="volume-2" class="w-4 h-4"></i>
                 <span>Listen Prompt</span>
               </button>
@@ -615,9 +615,9 @@
             </div>
           </div>
 
-          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/70 mb-5">
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700 mb-5">
             <p id="teenQuizPromptSub" class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Translate or Identify:</p>
-            <h3 id="teenLangQuizQuestion" class="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug"></h3>
+            <h3 id="teenLangQuizQuestion" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 leading-snug"></h3>
           </div>
 
           <div id="teenLangQuizChoices" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
@@ -627,19 +627,19 @@
       </div>
 
       <!-- 2. FULL-WIDTH TEEN STUDY FLASHCARDS & 3D DECK SECTION (Letters, Words, Small Sentences) -->
-      <div id="teenSectionFlashcards" class="hidden w-full max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento flex flex-col justify-between mb-8">
+      <div id="teenSectionFlashcards" class="hidden w-full max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento flex flex-col justify-between mb-8">
         <div>
           <div class="flex items-center justify-between mb-4">
-            <span id="teenDeckHeaderBadge" class="text-xs font-bold uppercase tracking-wider text-indigo-600">3D Script &amp; Phonetics Deck</span>
-            <span id="teenCardCounter" class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">1 / 100</span>
+            <span id="teenDeckHeaderBadge" class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">3D Script &amp; Phonetics Deck</span>
+            <span id="teenCardCounter" class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">1 / 100</span>
           </div>
 
           <div id="teenFlipCard" onclick="this.classList.toggle('flipped')" class="flip-card min-h-[280px] sm:h-72 w-full cursor-pointer select-none">
             <div class="flip-card-inner relative w-full h-full">
-              <div class="flip-card-front absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-white to-violet-50/80 border-2 border-indigo-100 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-inner">
+              <div class="flip-card-front absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-white to-violet-50/80 dark:from-slate-800 dark:via-slate-850 dark:to-slate-900 border-2 border-indigo-100 dark:border-indigo-800 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-inner">
                 <span class="text-[11px] font-bold uppercase tracking-widest text-indigo-400 mb-3">Tap Card to Flip</span>
-                <p id="teenLangScript" class="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 leading-snug max-w-2xl px-2">നമസ്കാരം</p>
-                <p id="teenLangTranslit" class="text-sm font-mono font-bold text-indigo-600 uppercase tracking-widest">Namaskaram</p>
+                <p id="teenLangScript" class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 mb-3 leading-snug max-w-2xl px-2">നമസ്കാരം</p>
+                <p id="teenLangTranslit" class="text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Namaskaram</p>
               </div>
               <div class="flip-card-back absolute inset-0 bg-slate-900 text-white rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center">
                 <span class="text-[11px] font-bold uppercase tracking-widest text-emerald-400 mb-2">English Meaning &amp; Context</span>
@@ -652,13 +652,13 @@
           </div>
         </div>
 
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
-          <button onclick="speakCurrentTeenWord()" class="px-5 py-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs sm:text-sm flex items-center gap-2 transition border border-indigo-200/60 shadow-xs">
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="speakCurrentTeenWord()" class="px-5 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs sm:text-sm flex items-center gap-2 transition border border-indigo-200/60 dark:border-indigo-800 shadow-xs">
             <i data-lucide="volume-2" class="w-4 h-4"></i>
             <span>Pronounce Audio</span>
           </button>
           <div class="flex items-center gap-2">
-            <button onclick="stepTeenLangCard(-1)" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition">← Prev Card</button>
+            <button onclick="stepTeenLangCard(-1)" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition">← Prev Card</button>
             <button onclick="stepTeenLangCard(1)" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition shadow-sm">Next Card →</button>
           </div>
         </div>
@@ -672,26 +672,26 @@
     <section id="section-teen-spelling" class="hidden space-y-6 animate-fade">
       
       <!-- Top Header & Tier Selector -->
-      <div class="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-bento flex flex-wrap items-center justify-between gap-4">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-bento flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <button onclick="openTeenTab('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+          <button onclick="openTeenTab('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
             <span>Dashboard</span>
           </button>
           <div>
-            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
               <span>🐝 SAT &amp; Academic Spelling &amp; Etymology Studio</span>
             </h2>
-            <p class="text-xs text-slate-500">Master high-school spelling traps, Greek/Latin roots, audio dictation, and Scripps Bee vocabulary</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Master high-school spelling traps, Greek/Latin roots, audio dictation, and Scripps Bee vocabulary</p>
           </div>
         </div>
 
         <!-- Tier Filter Pills -->
-        <div id="teenSpellingTierBar" class="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-2xl">
-          <button onclick="setTeenSpellingTier('all')" id="teenSpellTier-all" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs">All Tiers</button>
-          <button onclick="setTeenSpellingTier('core')" id="teenSpellTier-core" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">🎯 High School Core</button>
-          <button onclick="setTeenSpellingTier('sat')" id="teenSpellTier-sat" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">🎓 SAT Honors</button>
-          <button onclick="setTeenSpellingTier('bee')" id="teenSpellTier-bee" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">🏆 Scripps Bee</button>
+        <div id="teenSpellingTierBar" class="flex flex-wrap items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl">
+          <button onclick="setTeenSpellingTier('all')" id="teenSpellTier-all" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white dark:bg-indigo-900/80 text-slate-900 dark:text-indigo-200 shadow-xs">All Tiers</button>
+          <button onclick="setTeenSpellingTier('core')" id="teenSpellTier-core" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">🎯 High School Core</button>
+          <button onclick="setTeenSpellingTier('sat')" id="teenSpellTier-sat" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">🎓 SAT Honors</button>
+          <button onclick="setTeenSpellingTier('bee')" id="teenSpellTier-bee" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">🏆 Scripps Bee</button>
         </div>
       </div>
 
@@ -701,21 +701,21 @@
           <span>⌨️</span>
           <span>Audio Dictation &amp; Word Builder</span>
         </button>
-        <button id="tab-teen-spell-quiz" onclick="setTeenSpellingMode('quiz')" class="flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-sm">
+        <button id="tab-teen-spell-quiz" onclick="setTeenSpellingMode('quiz')" class="flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-sm">
           <span>📝</span>
           <span>4-Choice Spelling Trap Quiz</span>
         </button>
-        <button id="tab-teen-spell-flashcards" onclick="setTeenSpellingMode('flashcards')" class="flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-sm">
+        <button id="tab-teen-spell-flashcards" onclick="setTeenSpellingMode('flashcards')" class="flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-sm">
           <span>🃏</span>
           <span>Roots &amp; Etymology Flashcards</span>
         </button>
       </div>
 
       <!-- MODE 1: AUDIO DICTATION & INTERACTIVE LETTER BUILDER -->
-      <div id="teenSpellingBuilderCard" class="w-full max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento space-y-6">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+      <div id="teenSpellingBuilderCard" class="w-full max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
           <div class="flex items-center gap-2">
-            <span id="teenSpellBuilderBadge" class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-xs">
+            <span id="teenSpellBuilderBadge" class="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-bold text-xs">
               🎓 SAT Honors Tier
             </span>
             <span id="teenSpellBuilderRemaining" class="text-xs font-mono font-semibold text-slate-400"></span>
@@ -725,25 +725,25 @@
               <span>🔊</span>
               <span>Pronounce Word</span>
             </button>
-            <button onclick="speakTeenSpellingSentence()" class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 transition">
+            <button onclick="speakTeenSpellingSentence()" class="px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
               <span>🗣️</span>
               <span>Hear in Context</span>
             </button>
-            <button onclick="nextTeenSpellingWord()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+            <button onclick="nextTeenSpellingWord()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition">
               <span>Skip →</span>
             </button>
           </div>
         </div>
 
         <!-- Definition, Root & Blanked Context Sentence -->
-        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 space-y-2.5">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600" id="teenSpellRootText">Root / Etymology</span>
-            <span class="text-[11px] font-mono font-bold text-slate-500" id="teenSpellLengthBadge">11 Letters</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400" id="teenSpellRootText">Root / Etymology</span>
+            <span class="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400" id="teenSpellLengthBadge">11 Letters</span>
           </div>
-          <p id="teenSpellMeaningText" class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug"></p>
-          <p id="teenSpellSentenceText" class="text-xs sm:text-sm text-slate-600 italic font-serif pt-1 border-t border-slate-200/60"></p>
-          <p id="teenSpellTipBox" class="hidden text-xs font-bold text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2 mt-2"></p>
+          <p id="teenSpellMeaningText" class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 leading-snug"></p>
+          <p id="teenSpellSentenceText" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 italic font-serif pt-1 border-t border-slate-200/60 dark:border-slate-700"></p>
+          <p id="teenSpellTipBox" class="hidden text-xs font-bold text-amber-900 dark:text-amber-200 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-xl px-3.5 py-2 mt-2"></p>
         </div>
 
         <!-- Type-to-Spell Input Bar -->
@@ -754,12 +754,12 @@
               onkeydown="if(event.key==='Enter')submitTeenSpellingBuilder()"
               oninput="syncTeenSpellingInputToSlots(this.value)"
               placeholder="Type exact spelling here and press Enter..."
-              class="flex-1 bg-slate-50 border-2 border-slate-200 focus:border-indigo-600 rounded-2xl px-4 py-3 text-base sm:text-lg font-mono font-extrabold uppercase tracking-widest text-slate-900 outline-none transition" />
-            <button onclick="giveTeenSpellingHint()" class="px-4 py-3 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs border border-amber-300 transition flex items-center gap-1.5 shrink-0">
+              class="flex-1 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl px-4 py-3 text-base sm:text-lg font-mono font-extrabold uppercase tracking-widest text-slate-900 dark:text-slate-100 outline-none transition" />
+            <button onclick="giveTeenSpellingHint()" class="px-4 py-3 rounded-2xl bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-900 dark:text-amber-200 font-bold text-xs border border-amber-300 dark:border-amber-700 transition flex items-center gap-1.5 shrink-0">
               <span>💡</span>
               <span>Hint &amp; Tip</span>
             </button>
-            <button onclick="clearTeenSpellingBuilder()" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition shrink-0">
+            <button onclick="clearTeenSpellingBuilder()" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition shrink-0">
               Clear
             </button>
             <button onclick="submitTeenSpellingBuilder()" class="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md transition btn-tactile shrink-0">
@@ -770,8 +770,8 @@
 
         <!-- Visual Letter Slots & Scrambled Tile Picker -->
         <div class="space-y-3 pt-1">
-          <div id="teenSpellSlotsRow" class="flex flex-wrap items-center justify-center gap-1.5 min-h-[48px] p-3 bg-slate-50/80 rounded-2xl border-2 border-dashed border-slate-300"></div>
-          <div id="teenSpellTilesTray" class="flex flex-wrap items-center justify-center gap-1.5 min-h-[48px] p-3 bg-indigo-50/40 rounded-2xl border border-indigo-100"></div>
+          <div id="teenSpellSlotsRow" class="flex flex-wrap items-center justify-center gap-1.5 min-h-[48px] p-3 bg-slate-50/80 dark:bg-slate-900/80 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700"></div>
+          <div id="teenSpellTilesTray" class="flex flex-wrap items-center justify-center gap-1.5 min-h-[48px] p-3 bg-indigo-50/40 dark:bg-slate-800/40 rounded-2xl border border-indigo-100 dark:border-slate-700"></div>
         </div>
 
         <!-- Feedback Banner -->
@@ -779,21 +779,21 @@
       </div>
 
       <!-- MODE 2: 4-CHOICE SPELLING TRAP QUIZ -->
-      <div id="teenSpellingQuizCard" class="hidden w-full max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento space-y-5">
+      <div id="teenSpellingQuizCard" class="hidden w-full max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento space-y-5">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <span id="teenSpellQuizBadge" class="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs">
+          <span id="teenSpellQuizBadge" class="px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold text-xs">
             📝 High-Frequency Spelling Trap Challenge
           </span>
-          <button onclick="speakTeenSpellingWord()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 transition">
+          <button onclick="speakTeenSpellingWord()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
             <span>🔊</span>
             <span>Listen to Word</span>
           </button>
         </div>
 
-        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
-          <p id="teenSpellQuizRoot" class="text-xs font-bold uppercase tracking-wider text-indigo-600"></p>
-          <h3 id="teenSpellQuizPrompt" class="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug"></h3>
-          <p id="teenSpellQuizSentence" class="text-xs sm:text-sm text-slate-500 italic font-serif"></p>
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 space-y-2">
+          <p id="teenSpellQuizRoot" class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400"></p>
+          <h3 id="teenSpellQuizPrompt" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 leading-snug"></h3>
+          <p id="teenSpellQuizSentence" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 italic font-serif"></p>
         </div>
 
         <div id="teenSpellQuizChoices" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
@@ -801,18 +801,18 @@
       </div>
 
       <!-- MODE 3: 3D ETYMOLOGY & ROOT FLASHCARDS -->
-      <div id="teenSpellingFlashcardsCard" class="hidden w-full max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento space-y-6">
+      <div id="teenSpellingFlashcardsCard" class="hidden w-full max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento space-y-6">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">3D Etymology, Root &amp; Orthography Deck</span>
-          <span id="teenSpellCardCounter" class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">1 / 44</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">3D Etymology, Root &amp; Orthography Deck</span>
+          <span id="teenSpellCardCounter" class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">1 / 44</span>
         </div>
 
         <div id="teenSpellFlipCard" onclick="this.classList.toggle('flipped')" class="flip-card min-h-[280px] sm:h-72 w-full cursor-pointer select-none">
           <div class="flip-card-inner relative w-full h-full">
-            <div class="flip-card-front absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-white to-amber-50/60 border-2 border-indigo-100 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-inner">
+            <div class="flip-card-front absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-white to-amber-50/60 dark:from-slate-800 dark:via-slate-850 dark:to-slate-900 border-2 border-indigo-100 dark:border-indigo-800 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-inner">
               <span class="text-[11px] font-bold uppercase tracking-widest text-indigo-400 mb-2">Tap Card to Flip for Root &amp; Mnemonic</span>
-              <p id="teenSpellCardWord" class="text-3xl sm:text-4xl font-mono font-extrabold text-slate-900 tracking-wider mb-2">ACCOMMODATE</p>
-              <p id="teenSpellCardRoot" class="text-xs sm:text-sm font-semibold text-indigo-600"></p>
+              <p id="teenSpellCardWord" class="text-3xl sm:text-4xl font-mono font-extrabold text-slate-900 dark:text-slate-100 tracking-wider mb-2">ACCOMMODATE</p>
+              <p id="teenSpellCardRoot" class="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400"></p>
             </div>
             <div class="flip-card-back absolute inset-0 bg-slate-900 text-white rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center">
               <span class="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-2">Definition, Memory Tip &amp; Context</span>
@@ -825,13 +825,13 @@
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
-          <button onclick="speakTeenSpellingWord()" class="px-5 py-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs sm:text-sm flex items-center gap-2 transition border border-indigo-200/60">
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="speakTeenSpellingWord()" class="px-5 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs sm:text-sm flex items-center gap-2 transition border border-indigo-200/60 dark:border-indigo-800">
             <i data-lucide="volume-2" class="w-4 h-4"></i>
             <span>Pronounce Word</span>
           </button>
           <div class="flex items-center gap-2">
-            <button onclick="stepTeenSpellingCard(-1)" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition">← Prev Word</button>
+            <button onclick="stepTeenSpellingCard(-1)" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition">← Prev Word</button>
             <button onclick="stepTeenSpellingCard(1)" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition shadow-sm">Next Word →</button>
           </div>
         </div>
@@ -850,45 +850,45 @@
           <span class="text-3xl">🐝</span>
           <span>Spelling Bee</span>
         </button>
-        <button onclick="selectKidCategory('comprehension')" id="kidCat-comprehension" class="kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200">
+        <button onclick="selectKidCategory('comprehension')" id="kidCat-comprehension" class="kid-cat-btn p-3.5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-3xl">📖</span>
           <span>Story Reading</span>
         </button>
-        <button onclick="selectKidCategory('grammar')" id="kidCat-grammar" class="kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200">
+        <button onclick="selectKidCategory('grammar')" id="kidCat-grammar" class="kid-cat-btn p-3.5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-3xl">✏️</span>
           <span>Grammar</span>
         </button>
-        <button onclick="selectKidCategory('numbers')" id="kidCat-numbers" class="kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200">
+        <button onclick="selectKidCategory('numbers')" id="kidCat-numbers" class="kid-cat-btn p-3.5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-3xl">🔢</span>
-          <span>Numbers & Math</span>
+          <span>Numbers &amp; Math</span>
         </button>
-        <button onclick="selectKidCategory('phonics')" id="kidCat-phonics" class="kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200">
+        <button onclick="selectKidCategory('phonics')" id="kidCat-phonics" class="kid-cat-btn p-3.5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-3xl">🔤</span>
           <span>Sight Words</span>
         </button>
-        <button onclick="selectKidCategory('animals')" id="kidCat-animals" class="kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200">
+        <button onclick="selectKidCategory('animals')" id="kidCat-animals" class="kid-cat-btn p-3.5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-3xl">🦁</span>
           <span>Animals</span>
         </button>
-        <button onclick="selectKidCategory('malayalam')" id="kidCat-malayalam" class="kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200">
+        <button onclick="selectKidCategory('malayalam')" id="kidCat-malayalam" class="kid-cat-btn p-3.5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-3xl">🌴</span>
           <span>Malayalam</span>
         </button>
-        <button onclick="selectKidCategory('hindi')" id="kidCat-hindi" class="kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200">
+        <button onclick="selectKidCategory('hindi')" id="kidCat-hindi" class="kid-cat-btn p-3.5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-3xl">🪔</span>
           <span>Hindi</span>
         </button>
-        <button onclick="selectKidCategory('spanish')" id="kidCat-spanish" class="kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200">
+        <button onclick="selectKidCategory('spanish')" id="kidCat-spanish" class="kid-cat-btn p-3.5 rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-3xl">🇪🇸</span>
           <span>Spanish</span>
         </button>
       </div>
 
       <!-- Kid Language Sub-Navigation: Letters vs Words vs Sentences (Visible for Malayalam/Hindi/Spanish) -->
-      <div id="kidLangSubNav" class="hidden flex items-center justify-center gap-2 bg-amber-100/60 p-2 rounded-2xl mx-auto w-fit">
-        <button onclick="setKidSubMode('letters')" id="btn-kid-sub-letters" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-amber-900 hover:bg-white/60">🔤 Alphabet Letters</button>
-        <button onclick="setKidSubMode('words')" id="btn-kid-sub-words" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-white text-slate-950 shadow-xs">📖 Words (100+)</button>
-        <button onclick="setKidSubMode('sentences')" id="btn-kid-sub-sentences" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-amber-900 hover:bg-white/60">💬 Small Sentences (100+)</button>
+      <div id="kidLangSubNav" class="hidden flex items-center justify-center gap-2 bg-amber-100/60 dark:bg-slate-800 p-2 rounded-2xl mx-auto w-fit">
+        <button onclick="setKidSubMode('letters')" id="btn-kid-sub-letters" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-amber-900 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700">🔤 Alphabet Letters</button>
+        <button onclick="setKidSubMode('words')" id="btn-kid-sub-words" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-white dark:bg-indigo-900/80 text-slate-950 dark:text-indigo-200 shadow-xs">📖 Words (100+)</button>
+        <button onclick="setKidSubMode('sentences')" id="btn-kid-sub-sentences" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-amber-900 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700">💬 Small Sentences (100+)</button>
       </div>
 
       <!-- Kid View Switcher Tabs: 🎮 Practice & Quizzes vs 🃏 Study Flashcards & Deck (Only ONE section visible at a time) -->
@@ -897,38 +897,38 @@
           <span>🎮</span>
           <span>Practice &amp; Quizzes</span>
         </button>
-        <button id="tab-kid-flashcards" onclick="setKidViewTab('flashcards')" class="flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-white text-slate-700 hover:text-slate-950 border-2 border-slate-200 shadow-kids-card btn-tactile">
+        <button id="tab-kid-flashcards" onclick="setKidViewTab('flashcards')" class="flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm sm:text-base transition bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-slate-100 border-2 border-slate-200 dark:border-slate-700 shadow-kids-card btn-tactile">
           <span>🃏</span>
           <span>Study Flashcards &amp; Deck</span>
         </button>
       </div>
 
       <!-- 1. FULL-WIDTH INTERACTIVE CHALLENGE / PRACTICE & QUIZZES SECTION -->
-      <div id="kidSectionPractice" class="w-full max-w-4xl mx-auto bg-white rounded-[32px] border-4 border-sky-300 p-6 sm:p-8 shadow-xl flex flex-col justify-between mb-8">
+      <div id="kidSectionPractice" class="w-full max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-[32px] border-4 border-sky-300 dark:border-sky-800 p-6 sm:p-8 shadow-xl flex flex-col justify-between mb-8">
         <div>
           <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div class="flex items-center gap-2">
-              <span id="kidQuizHeaderBadge" class="px-4 py-1.5 rounded-full bg-sky-100 text-sky-900 font-bold text-sm">
+              <span id="kidQuizHeaderBadge" class="px-4 py-1.5 rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-900 dark:text-sky-300 font-bold text-sm">
                 🎮 Interactive Challenge!
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="speakKidQuizPrompt()" class="px-3.5 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-sm flex items-center gap-1 border border-sky-200">
+              <button onclick="speakKidQuizPrompt()" class="px-3.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-bold text-sm flex items-center gap-1 border border-sky-200 dark:border-sky-800">
                 🔊 Read Aloud
               </button>
-              <button onclick="handleKidNextQuizBtn()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">
+              <button onclick="handleKidNextQuizBtn()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm">
                 Next Question ➡️
               </button>
             </div>
           </div>
 
           <!-- Mode Toggle for Spelling Bee: Tile Picker vs Multiple Choice Quiz -->
-          <div id="spellingModeToggle" class="hidden flex items-center gap-2 mb-4 bg-sky-100/70 p-1.5 rounded-2xl w-fit">
-            <button onclick="setSpellingSubMode('tiles')" id="btn-spelling-sub-tiles" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-sky-950 shadow-xs flex items-center gap-1.5">
+          <div id="spellingModeToggle" class="hidden flex items-center gap-2 mb-4 bg-sky-100/70 dark:bg-slate-800 p-1.5 rounded-2xl w-fit">
+            <button onclick="setSpellingSubMode('tiles')" id="btn-spelling-sub-tiles" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white dark:bg-slate-700 text-sky-950 dark:text-sky-200 shadow-xs flex items-center gap-1.5">
               <span>🧩</span>
               <span>Build the Word (Letter Tiles)</span>
             </button>
-            <button onclick="setSpellingSubMode('quiz')" id="btn-spelling-sub-quiz" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-sky-800 hover:text-sky-950 flex items-center gap-1.5">
+            <button onclick="setSpellingSubMode('quiz')" id="btn-spelling-sub-quiz" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-sky-800 dark:text-sky-300 hover:text-sky-950 dark:hover:text-sky-100 flex items-center gap-1.5">
               <span>📝</span>
               <span>Multiple Choice Quiz</span>
             </button>
@@ -936,31 +936,31 @@
 
           <!-- Interactive Spelling Bee Tile Picker Zone ("Build the Word") -->
           <div id="spellingBuilderZone" class="hidden mb-5">
-            <div class="text-center py-4 px-5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl border-2 border-amber-200 mb-4 shadow-inner">
+            <div class="text-center py-4 px-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 rounded-3xl border-2 border-amber-200 dark:border-amber-800/80 mb-4 shadow-inner">
               <div id="spellingClueEmoji" class="text-6xl mb-2">🤝</div>
-              <p id="spellingClueMeaning" class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">Spell this word! Tap the scrambled letters below.</p>
-              <p class="text-xs font-bold text-amber-700 mt-1">Tap the scrambled letter tiles below to build the spelling!</p>
+              <p id="spellingClueMeaning" class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 leading-snug">Spell this word! Tap the scrambled letters below.</p>
+              <p class="text-xs font-bold text-amber-700 dark:text-amber-400 mt-1">Tap the scrambled letter tiles below to build the spelling!</p>
             </div>
 
             <!-- Target Word Slots -->
             <div class="mb-3">
               <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2 text-center">Spelling Target Slots</span>
-              <div id="spellingSlotsRow" class="flex flex-wrap items-center justify-center gap-2 min-h-[58px] p-2 bg-slate-50/80 rounded-2xl border-2 border-dashed border-slate-300"></div>
+              <div id="spellingSlotsRow" class="flex flex-wrap items-center justify-center gap-2 min-h-[58px] p-2 bg-slate-50/80 dark:bg-slate-900/80 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700"></div>
             </div>
 
             <!-- Scrambled Letter Tiles Tray -->
             <div class="mb-4">
               <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2 text-center">Scrambled Letter Tiles (Tap to Place)</span>
-              <div id="spellingTilesTray" class="flex flex-wrap items-center justify-center gap-2 min-h-[58px] p-2 bg-amber-50/60 rounded-2xl border border-amber-200"></div>
+              <div id="spellingTilesTray" class="flex flex-wrap items-center justify-center gap-2 min-h-[58px] p-2 bg-amber-50/60 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-800"></div>
             </div>
 
             <!-- Action Controls: Undo, Clear, Hint, Hear -->
             <div class="flex flex-wrap items-center justify-center gap-2">
-              <button onclick="undoSpellingLastSlot()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition">
+              <button onclick="undoSpellingLastSlot()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 transition">
                 <span>⌫</span>
                 <span>Backspace</span>
               </button>
-              <button onclick="clearSpellingSlots()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition">
+              <button onclick="clearSpellingSlots()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 transition">
                 <span>🔄</span>
                 <span>Clear All</span>
               </button>
@@ -968,7 +968,7 @@
                 <span>💡</span>
                 <span>Show Hint</span>
               </button>
-              <button onclick="speakSpellingTargetWord()" class="px-3.5 py-2 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold text-xs flex items-center gap-1.5 border border-sky-300 transition">
+              <button onclick="speakSpellingTargetWord()" class="px-3.5 py-2 rounded-xl bg-sky-100 hover:bg-sky-200 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 text-sky-900 dark:text-sky-300 font-bold text-xs flex items-center gap-1.5 border border-sky-300 dark:border-sky-800 transition">
                 <span>🔊</span>
                 <span>Pronounce Word</span>
               </button>
@@ -976,12 +976,12 @@
           </div>
 
           <!-- Story / Phonics Clue / Grammar Rule Box (shown for Spelling, Comprehension, Grammar) -->
-          <div id="kidQuizPassageBox" class="hidden mb-4 p-5 rounded-3xl bg-amber-50/90 border-2 border-amber-200 text-slate-800 text-base sm:text-lg font-semibold leading-relaxed"></div>
+          <div id="kidQuizPassageBox" class="hidden mb-4 p-5 rounded-3xl bg-amber-50/90 dark:bg-amber-950/40 border-2 border-amber-200 dark:border-amber-800 text-slate-800 dark:text-slate-100 text-base sm:text-lg font-semibold leading-relaxed"></div>
 
-          <div id="kidQuizPromptBox" class="text-center py-4 px-5 bg-sky-50/70 rounded-3xl border-2 border-sky-100 mb-5">
-            <p id="kidQuizTopPrompt" class="text-xs font-bold text-sky-600 uppercase tracking-wider">Question:</p>
-            <h3 id="kidQuizTargetLabel" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 leading-snug">പൂച്ച (Poocha)</h3>
-            <p id="kidQuizSubHint" class="hidden text-sm font-semibold text-slate-500 mt-1"></p>
+          <div id="kidQuizPromptBox" class="text-center py-4 px-5 bg-sky-50/70 dark:bg-sky-950/40 rounded-3xl border-2 border-sky-100 dark:border-sky-800/80 mb-5">
+            <p id="kidQuizTopPrompt" class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Question:</p>
+            <h3 id="kidQuizTargetLabel" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 mt-1 leading-snug">പൂച്ച (Poocha)</h3>
+            <p id="kidQuizSubHint" class="hidden text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1"></p>
             <div id="kidQuizHintContainer" class="mt-2.5 flex items-center justify-center">
               <button id="kidQuizHintBtn" onclick="revealKidQuizHint()" class="hidden px-4 py-2 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs sm:text-sm border-2 border-amber-500 shadow-kids-btn btn-tactile flex items-center gap-2 animate-bounce">
                 <span>💡</span>
@@ -998,22 +998,22 @@
       </div>
 
       <!-- 2. FULL-WIDTH STUDY FLASHCARDS & DECK SECTION -->
-      <div id="kidSectionFlashcards" class="hidden w-full max-w-2xl mx-auto bg-white rounded-[32px] border-4 border-amber-300 p-6 sm:p-8 shadow-xl flex flex-col justify-between text-center relative overflow-hidden mb-8">
+      <div id="kidSectionFlashcards" class="hidden w-full max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-[32px] border-4 border-amber-300 dark:border-amber-800 p-6 sm:p-8 shadow-xl flex flex-col justify-between text-center relative overflow-hidden mb-8">
         <div class="flex items-center justify-between">
-          <span id="kidLeftBadgeText" class="px-4 py-1.5 rounded-full bg-amber-100 text-amber-900 font-bold text-sm">
+          <span id="kidLeftBadgeText" class="px-4 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 font-bold text-sm">
             🔊 Tap Card to Hear!
           </span>
           <span id="kidCardProgressText" class="text-sm font-bold text-slate-400">Card 1</span>
         </div>
 
-        <div onclick="speakKidCurrentCard()" class="my-6 py-8 px-6 rounded-3xl bg-gradient-to-b from-amber-50/80 to-orange-50/50 border-2 border-amber-200/80 cursor-pointer group transition transform hover:scale-[1.02]">
+        <div onclick="speakKidCurrentCard()" class="my-6 py-8 px-6 rounded-3xl bg-gradient-to-b from-amber-50/80 to-orange-50/50 dark:from-amber-950/40 dark:to-orange-950/30 border-2 border-amber-200/80 dark:border-amber-800 cursor-pointer group transition transform hover:scale-[1.02]">
           <div id="kidCardEmoji" class="text-8xl sm:text-9xl mb-4 transition-transform group-hover:scale-110">🐘</div>
-          <h2 id="kidCardPrimaryText" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-wide">ആന (Aana)</h2>
-          <p id="kidCardMeaningText" class="text-xl sm:text-2xl font-bold text-orange-600 mt-3 leading-relaxed">Elephant</p>
+          <h2 id="kidCardPrimaryText" class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-wide">ആന (Aana)</h2>
+          <p id="kidCardMeaningText" class="text-xl sm:text-2xl font-bold text-orange-600 dark:text-orange-400 mt-3 leading-relaxed">Elephant</p>
         </div>
 
         <div class="grid grid-cols-3 gap-3">
-          <button onclick="stepKidCard(-1)" class="py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-base sm:text-lg shadow-kids-card btn-tactile">
+          <button onclick="stepKidCard(-1)" class="py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-base sm:text-lg shadow-kids-card btn-tactile">
             ⬅️ Back
           </button>
           <button onclick="speakKidCurrentCard()" class="py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-base sm:text-lg shadow-kids-btn btn-tactile flex items-center justify-center gap-2">
@@ -1026,10 +1026,10 @@
       </div>
 
       <!-- Kid's Daily Sticker Calendar & Topic Stars -->
-      <div class="bg-white rounded-[32px] border-4 border-amber-200 p-6 shadow-lg">
-        <h3 class="text-xl font-extrabold text-slate-900 mb-3 flex items-center gap-2">
+      <div class="bg-white dark:bg-slate-900 rounded-[32px] border-4 border-amber-200 dark:border-amber-800/80 p-6 shadow-lg">
+        <h3 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
           <span>🌟</span>
-          <span>My Daily Stickers & Subject Stars</span>
+          <span>My Daily Stickers &amp; Subject Stars</span>
         </h3>
         <div id="kidProgressSummaryGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-2.5"></div>
       </div>
@@ -1232,24 +1232,24 @@
        INSTANT DICTIONARY & TOUGH WORDS MODAL OVERLAY
        ===================================================================== -->
   <div id="dictionaryModalOverlay" onclick="if(event.target===this)closeDictionaryModal()" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[90vh] overflow-y-auto">
-      <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-2xl">
+          <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-2xl border border-indigo-200 dark:border-indigo-800">
             📖
           </div>
           <div>
-            <h2 class="text-xl font-extrabold text-slate-900">Instant Dictionary &amp; Tough Word Reference</h2>
-            <p class="text-xs text-slate-500">Single-click any word inside an SAT passage, story, or question!</p>
+            <h2 class="text-xl font-extrabold text-slate-900 dark:text-slate-100">Instant Dictionary &amp; Tough Word Reference</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Single-click any word inside an SAT passage, story, or question!</p>
           </div>
         </div>
-        <button onclick="closeDictionaryModal()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-lg flex items-center justify-center">&times;</button>
+        <button onclick="closeDictionaryModal()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-lg flex items-center justify-center cursor-pointer">&times;</button>
       </div>
 
       <!-- Search Bar -->
       <div class="mt-5 flex gap-2">
-        <input id="dictSearchInput" type="text" onkeydown="if(event.key==='Enter')lookupDictionaryWord()" placeholder="Type any tough word (e.g., ubiquitous, ephemeral, nocturnal, chrysalis)..." class="flex-1 bg-slate-50 border-2 border-slate-200 focus:border-indigo-500 rounded-2xl px-4 py-2.5 text-sm font-semibold outline-none transition">
-        <button onclick="lookupDictionaryWord()" class="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition">
+        <input id="dictSearchInput" type="text" onkeydown="if(event.key==='Enter')lookupDictionaryWord()" placeholder="Type any tough word (e.g., ubiquitous, ephemeral, nocturnal, chrysalis)..." class="flex-1 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-indigo-500 rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100 outline-none transition">
+        <button onclick="lookupDictionaryWord()" class="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition cursor-pointer">
           Lookup
         </button>
       </div>
@@ -1258,21 +1258,21 @@
       <div id="dictResultContainer" class="mt-5"></div>
 
       <!-- Curated High-Frequency Tough Words Quick Chips -->
-      <div class="mt-5 pt-4 border-t border-slate-100 space-y-3">
+      <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
         <div>
-          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 block mb-2">🎓 High-Frequency SAT Tough Words (Tap to View)</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-2">🎓 High-Frequency SAT Tough Words (Tap to View)</span>
           <div id="dictSatQuickChips" class="flex flex-wrap gap-1.5"></div>
         </div>
         <div>
-          <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-2">🦋 6+ Explorer Science &amp; Story Words (Tap to View)</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-2">🦋 6+ Explorer Science &amp; Story Words (Tap to View)</span>
           <div id="dictKidQuickChips" class="flex flex-wrap gap-1.5"></div>
         </div>
       </div>
 
       <!-- Saved Tough Words Vault for Active Profile -->
-      <div class="mt-6 pt-4 border-t border-slate-100">
+      <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-700">⭐ My Saved Tough Words Vault (<span id="dictSavedCount">0</span>)</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">⭐ My Saved Tough Words Vault (<span id="dictSavedCount">0</span>)</span>
         </div>
         <div id="dictSavedWordsList" class="flex flex-wrap gap-1.5 min-h-[32px]"></div>
       </div>
@@ -1281,49 +1281,49 @@
 
   <!-- FAMILY ACCOUNT SIGN-IN MODAL (MANDATORY AUTH GATE) -->
   <div id="familyAuthModal" class="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 animate-fade">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 animate-fade">
       <div class="text-center space-y-2">
-        <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mx-auto border border-indigo-100">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl mx-auto border border-indigo-100 dark:border-indigo-800">
           <i data-lucide="shield-check" class="w-6 h-6"></i>
         </div>
-        <h3 id="familyAuthTitle" class="text-xl font-extrabold text-slate-900">Sign In Required</h3>
-        <p class="text-xs text-slate-500">Enter your account email and password to unlock Lumina Learning Hub, built-in lessons, and cloud sync.</p>
+        <h3 id="familyAuthTitle" class="text-xl font-extrabold text-slate-900 dark:text-slate-100">Sign In Required</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Enter your account email and password to unlock Lumina Learning Hub, built-in lessons, and cloud sync.</p>
       </div>
 
       <div id="familyLoggedInView" class="hidden space-y-4">
-        <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
-          <p class="text-xs font-bold text-emerald-800">✓ Signed in as</p>
-          <p id="familyAuthUserEmail" class="font-mono text-sm font-bold text-emerald-950 mt-0.5"></p>
-          <p class="text-[11px] text-emerald-700 mt-1">Full access unlocked across all subjects.</p>
+        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-center">
+          <p class="text-xs font-bold text-emerald-800 dark:text-emerald-300">✓ Signed in as</p>
+          <p id="familyAuthUserEmail" class="font-mono text-sm font-bold text-emerald-950 dark:text-emerald-200 mt-0.5"></p>
+          <p class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1">Full access unlocked across all subjects.</p>
         </div>
         <div class="flex items-center gap-3">
-          <button onclick="toggleFamilyAuthModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+          <button onclick="toggleFamilyAuthModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition">
             Close
           </button>
-          <button onclick="handleFamilySignOut()" class="py-2.5 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition border border-rose-200">
+          <button onclick="handleFamilySignOut()" class="py-2.5 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-bold transition border border-rose-200 dark:border-rose-800">
             Sign Out
           </button>
         </div>
       </div>
 
       <form id="familyLoginForm" onsubmit="handleFamilyLoginSubmit(event)" class="space-y-3.5">
-        <div id="familyAuthError" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold"></div>
+        <div id="familyAuthError" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Account Email</label>
-          <input type="email" id="familyEmailInput" required placeholder="admin@lumina.app" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-indigo-500 font-mono" />
+          <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Account Email</label>
+          <input type="email" id="familyEmailInput" required placeholder="admin@lumina.app" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-indigo-500 font-mono" />
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
-          <input type="password" id="familyPasswordInput" required placeholder="Enter password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-indigo-500 font-mono" />
+          <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Password</label>
+          <input type="password" id="familyPasswordInput" required placeholder="Enter password" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-indigo-500 font-mono" />
         </div>
 
         <div class="pt-2 space-y-2">
           <button type="submit" id="btnFamilySignIn" class="w-full px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
             <span>Sign In to Unlock Hub</span>
           </button>
-          <button type="button" onclick="continueOfflineMode()" class="w-full px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition flex items-center justify-center gap-1.5">
+          <button type="button" onclick="continueOfflineMode()" class="w-full px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition flex items-center justify-center gap-1.5">
             <span>⚡ Continue in Local / Offline Mode</span>
           </button>
         </div>

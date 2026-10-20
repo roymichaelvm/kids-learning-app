@@ -375,9 +375,11 @@
     const activeId = appData.activeProfileId;
     container.innerHTML = window.LuminaDB.getAllProfiles().map(p => {
       const active = p.id === activeId;
-      const activeCls = p.ageGroup === 'kid' ? 'bg-amber-400 text-slate-950 shadow-xs' : 'bg-white text-indigo-950 shadow-xs';
+      const activeCls = p.ageGroup === 'kid' 
+        ? 'bg-amber-400 text-slate-950 shadow-xs' 
+        : 'bg-white dark:bg-indigo-900/80 text-indigo-950 dark:text-indigo-200 shadow-xs border border-indigo-200 dark:border-indigo-700';
       return `
-        <button onclick="switchProfile('${p.id}')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${active ? activeCls : 'text-slate-600 hover:text-slate-900'}">
+        <button onclick="switchProfile('${p.id}')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${active ? activeCls : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}">
           <span class="text-sm">${escapeHtml(p.avatar)}</span>
           <span>${escapeHtml(p.name)}</span>
         </button>`;
@@ -399,27 +401,27 @@
     const maxQ = Math.max(1, ...days.map(d => d.questionsAttempted));
 
     container.innerHTML = `
-      <div class="bg-white rounded-3xl border ${kid ? 'border-amber-200' : 'border-slate-200/80'} shadow-bento p-4 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border ${kid ? 'border-amber-200 dark:border-amber-900/50' : 'border-slate-200/80 dark:border-slate-800'} shadow-bento p-4 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
         <div class="md:col-span-4 flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl ${kid ? 'bg-amber-100' : 'bg-indigo-50'} flex items-center justify-center text-2xl shrink-0">${escapeHtml(p.avatar)}</div>
+          <div class="w-12 h-12 rounded-2xl ${kid ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300' : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300'} flex items-center justify-center text-2xl shrink-0">${escapeHtml(p.avatar)}</div>
           <div>
-            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(p.name)}'s Daily Activity Goal</p>
-            <p class="font-extrabold text-slate-900 leading-tight">${goalMet ? '🏆 All daily goals completed!' : `Keep going, ${escapeHtml(p.name)}!`}</p>
-            <p class="text-[11px] text-slate-500 font-semibold">${acc === null ? 'No questions answered yet today' : `Accuracy today: ${acc}% (${today.questionsCorrect}/${today.questionsAttempted})`} • ⚡ +${today.xpEarned || 0} XP today</p>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">${escapeHtml(p.name)}'s Daily Activity Goal</p>
+            <p class="font-extrabold text-slate-900 dark:text-slate-100 leading-tight">${goalMet ? '🏆 All daily goals completed!' : `Keep going, ${escapeHtml(p.name)}!`}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">${acc === null ? 'No questions answered yet today' : `Accuracy today: ${acc}% (${today.questionsCorrect}/${today.questionsAttempted})`} • ⚡ +${today.xpEarned || 0} XP today</p>
           </div>
         </div>
         <div class="md:col-span-3">
-          <div class="flex justify-between text-xs font-bold text-slate-600 mb-1"><span>📝 Questions Goal</span><span class="font-mono">${today.questionsAttempted} / ${p.dailyGoalQuestions || 10}</span></div>
-          <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-indigo-500 transition-all" style="width:${qPct}%"></div></div>
+          <div class="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 mb-1"><span>📝 Questions Goal</span><span class="font-mono text-slate-900 dark:text-slate-100">${today.questionsAttempted} / ${p.dailyGoalQuestions || 10}</span></div>
+          <div class="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full rounded-full bg-indigo-500 transition-all" style="width:${qPct}%"></div></div>
         </div>
         <div class="md:col-span-3">
-          <div class="flex justify-between text-xs font-bold text-slate-600 mb-1"><span>⏱️ Active Time Goal</span><span class="font-mono">${mins} / ${p.dailyGoalMinutes || 15} min</span></div>
-          <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-emerald-500 transition-all" style="width:${mPct}%"></div></div>
+          <div class="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 mb-1"><span>⏱️ Active Time Goal</span><span class="font-mono text-slate-900 dark:text-slate-100">${mins} / ${p.dailyGoalMinutes || 15} min</span></div>
+          <div class="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full rounded-full bg-emerald-500 transition-all" style="width:${mPct}%"></div></div>
         </div>
         <div class="md:col-span-2 flex items-end justify-between gap-1 h-12" title="Questions answered over the last 7 days">
           ${days.map(d => `
             <div class="flex-1 flex flex-col items-center gap-0.5" title="${d.label}: ${d.questionsAttempted} questions">
-              <div class="w-full rounded-md ${d.isToday ? 'bg-indigo-600' : (d.questionsAttempted > 0 ? 'bg-indigo-300' : 'bg-slate-200')}" style="height:${Math.max(4, Math.round((d.questionsAttempted / maxQ) * 32))}px"></div>
+              <div class="w-full rounded-md ${d.isToday ? 'bg-indigo-600' : (d.questionsAttempted > 0 ? 'bg-indigo-300 dark:bg-indigo-700' : 'bg-slate-200 dark:bg-slate-800')}" style="height:${Math.max(4, Math.round((d.questionsAttempted / maxQ) * 32))}px"></div>
               <span class="text-[9px] font-bold text-slate-400">${d.shortDay.slice(0, 2)}</span>
             </div>`).join('')}
         </div>
@@ -469,11 +471,11 @@
     grid.innerHTML = window.LuminaDB.getAllProfiles().map(p => {
       const today = window.LuminaDB.getLastNDaysSummary(p.id, 1)[0];
       return `
-        <button onclick="switchProfile('${p.id}')" class="p-6 rounded-3xl border-4 ${p.ageGroup === 'kid' ? 'border-amber-300 bg-amber-50 hover:bg-amber-100' : 'border-indigo-200 bg-indigo-50 hover:bg-indigo-100'} btn-tactile transition flex flex-col items-center gap-2">
+        <button onclick="switchProfile('${p.id}')" class="p-6 rounded-3xl border-4 ${p.ageGroup === 'kid' ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50' : 'border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50'} btn-tactile transition flex flex-col items-center gap-2">
           <span class="text-6xl">${escapeHtml(p.avatar)}</span>
-          <span class="font-extrabold text-xl text-slate-900 font-kids">${escapeHtml(p.name)}</span>
-          <span class="text-xs font-bold text-slate-600">${escapeHtml(p.ageLabel || '')}</span>
-          <span class="text-xs font-bold px-3 py-1 rounded-full bg-white/80 text-slate-700 mt-1">
+          <span class="font-extrabold text-xl text-slate-900 dark:text-slate-100 font-kids">${escapeHtml(p.name)}</span>
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">${escapeHtml(p.ageLabel || '')}</span>
+          <span class="text-xs font-bold px-3 py-1 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 mt-1">
             🔥 ${window.LuminaDB.getCurrentStreak(p)}d streak • 📝 ${today.questionsAttempted}/${p.dailyGoalQuestions} today
           </span>
         </button>
@@ -1141,22 +1143,22 @@
 
     if (isTeenProfile(p)) {
       if (badge) {
-        badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60";
-        badge.innerText = `${p.avatar || '🎓'} ${p.name || 'Scholar'} (${p.ageLabel || 'Teen Scholar'})`;
+        badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/80 whitespace-nowrap shrink-0";
+        badge.innerText = `${p.avatar || '🎓'} ${p.name || 'Scholar'} • Teen`;
       }
       const appBody = document.getElementById('appBody');
-      if (appBody) appBody.className = "bg-[#F8FAFC] text-slate-900 min-h-screen flex flex-col font-sans transition-colors duration-300";
+      if (appBody) appBody.className = "bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300";
       if (typeof window.openTeenTab === 'function') {
         window.openTeenTab(appData.teenSubTab || 'dashboard');
       }
     } else {
       if (typeof window.stopSatTimer === 'function') window.stopSatTimer();
       if (badge) {
-        badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300";
-        badge.innerText = `${p.avatar || '🌟'} ${p.name || 'Explorer'} (${p.ageLabel || 'Little Explorer'})`;
+        badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/80 whitespace-nowrap shrink-0";
+        badge.innerText = `${p.avatar || '🌟'} ${p.name || 'Explorer'} • 6+`;
       }
       const appBody = document.getElementById('appBody');
-      if (appBody) appBody.className = "bg-[#FFFBEB] text-slate-900 min-h-screen flex flex-col font-kids transition-colors duration-300";
+      if (appBody) appBody.className = "bg-[#FFFBEB] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-kids transition-colors duration-300";
       if (kidSec) kidSec.classList.remove('hidden');
       renderSubNavForKid();
       if (typeof window.initKidPlayground === 'function') {
@@ -1180,11 +1182,11 @@
 
     const practiceCls = isPractice
       ? "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition bg-amber-400 text-slate-950 border border-amber-500 shadow-xs"
-      : "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-700 hover:text-slate-950 hover:bg-slate-100";
+      : "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800";
 
     const flashCls = isFlash
       ? "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition bg-amber-400 text-slate-950 border border-amber-500 shadow-xs"
-      : "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-700 hover:text-slate-950 hover:bg-slate-100";
+      : "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800";
 
     container.innerHTML = `
       <div class="flex items-center gap-2">
@@ -1388,12 +1390,12 @@
 
     const badge = document.getElementById('activeModeBadge');
     if (badge) {
-      badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-900 text-amber-300 border border-slate-700";
+      badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-900 dark:bg-indigo-950 text-amber-300 border border-slate-700 dark:border-indigo-800 whitespace-nowrap shrink-0";
       badge.innerText = '⚙️ Parent Admin Portal';
     }
 
     const appBody = document.getElementById('appBody');
-    if (appBody) appBody.className = "bg-[#F8FAFC] text-slate-900 min-h-screen flex flex-col font-sans transition-colors duration-300";
+    if (appBody) appBody.className = "bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300";
 
     const allProfiles = (window.LuminaDB && typeof window.LuminaDB.getAllProfiles === 'function')
       ? window.LuminaDB.getAllProfiles()
@@ -1691,12 +1693,12 @@
         const finishedCount = tracks.filter(t => t.isCompleted).length;
         const cls = active
           ? "px-4 py-2 rounded-2xl bg-indigo-600 text-white font-extrabold text-xs shadow-md border-2 border-indigo-700 flex items-center gap-2 transition btn-tactile"
-          : "px-4 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-2 transition btn-tactile";
+          : "px-4 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 flex items-center gap-2 transition btn-tactile";
         return `
           <button onclick="selectAdminStudent('${p.id}')" class="${cls}">
             <span class="text-base">${p.avatar || '👤'}</span>
             <span>${escapeHtml(p.name || 'Student')}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${active ? 'bg-indigo-700 text-indigo-100' : 'bg-slate-200 text-slate-700'}">${finishedCount} completed</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${active ? 'bg-indigo-700 text-indigo-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}">${finishedCount} completed</span>
           </button>
         `;
       }).join('');
@@ -1709,7 +1711,7 @@
     const resetAllBox = document.getElementById('adminStudentResetAllBtnContainer');
     if (resetAllBox) {
       resetAllBox.innerHTML = `
-        <button onclick="resetStudentAllCompletedAreas('${student.id}')" class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-extrabold text-xs border border-rose-200 shadow-xs flex items-center gap-1.5 transition btn-tactile">
+        <button onclick="resetStudentAllCompletedAreas('${student.id}')" class="px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 font-extrabold text-xs border border-rose-200 dark:border-rose-800 shadow-xs flex items-center gap-1.5 transition btn-tactile">
           <span>🔄</span>
           <span>Reset All Completed Tracks</span>
         </button>
@@ -1724,7 +1726,7 @@
 
     if (badgeEl) {
       badgeEl.innerHTML = `
-        <span class="px-3 py-1 rounded-full text-xs font-black ${completedTracks.length > 0 ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-slate-100 text-slate-600'}">
+        <span class="px-3 py-1 rounded-full text-xs font-black ${completedTracks.length > 0 ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}">
           ${completedTracks.length} of ${tracks.length} Tracks Finished
         </span>
       `;
@@ -1732,32 +1734,32 @@
 
     if (completedGrid) {
       if (completedTracks.length === 0) {
-        completedGrid.className = "col-span-full py-8 text-center text-slate-400 bg-slate-50/60 rounded-2xl border border-dashed border-slate-200";
+        completedGrid.className = "col-span-full py-8 text-center text-slate-400 bg-slate-50/60 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700";
         completedGrid.innerHTML = `
           <div class="text-4xl mb-2">🌱</div>
-          <p class="text-sm font-bold text-slate-700">${escapeHtml(student.name || 'Student')} has not completely finished any full track yet.</p>
-          <p class="text-xs text-slate-500 mt-1">As questions and matching cards are completed, finished tracks will appear right here with one-click question expansion!</p>
+          <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${escapeHtml(student.name || 'Student')} has not completely finished any full track yet.</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">As questions and matching cards are completed, finished tracks will appear right here with one-click question expansion!</p>
         `;
       } else {
         completedGrid.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
         completedGrid.innerHTML = completedTracks.map(t => `
-          <div class="p-5 rounded-3xl bg-gradient-to-br from-emerald-50/90 to-teal-50/60 border-2 border-emerald-300 shadow-sm flex flex-col justify-between">
+          <div class="p-5 rounded-3xl bg-gradient-to-br from-emerald-50/90 to-teal-50/60 dark:from-emerald-950/40 dark:to-teal-950/30 border-2 border-emerald-300 dark:border-emerald-700 shadow-sm flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between gap-2 mb-2">
-                <span class="px-2.5 py-0.5 rounded-full bg-emerald-200/80 text-emerald-950 font-black text-[10px] uppercase tracking-wider">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-200/80 dark:bg-emerald-900/80 text-emerald-950 dark:text-emerald-200 font-black text-[10px] uppercase tracking-wider">
                   ✓ 100% Completed
                 </span>
-                <span class="text-xs font-extrabold text-emerald-900">${t.completedCount} / ${t.total} Done</span>
+                <span class="text-xs font-extrabold text-emerald-900 dark:text-emerald-300">${t.completedCount} / ${t.total} Done</span>
               </div>
-              <h4 class="text-base font-black text-slate-900">${escapeHtml(t.title)}</h4>
-              <p class="text-xs font-semibold text-emerald-800 mt-1">Student has answered all questions in this track! Ready for new questions.</p>
+              <h4 class="text-base font-black text-slate-900 dark:text-slate-100">${escapeHtml(t.title)}</h4>
+              <p class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 mt-1">Student has answered all questions in this track! Ready for new questions.</p>
             </div>
-            <div class="mt-4 pt-3 border-t border-emerald-200/70 flex flex-wrap items-center gap-2">
+            <div class="mt-4 pt-3 border-t border-emerald-200/70 dark:border-emerald-800/70 flex flex-wrap items-center gap-2">
               <button onclick="prefillAdminQuestionCreator('${escapeHtml(t.domain)}', '${t.targetProfile}')" class="flex-1 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm flex items-center justify-center gap-1.5 transition btn-tactile">
                 <span>➕</span>
                 <span>Add Questions to This Track</span>
               </button>
-              <button onclick="resetStudentArea('${student.id}', '${t.key}')" class="px-3 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-700 font-bold text-xs border border-rose-200 transition btn-tactile">
+              <button onclick="resetStudentArea('${student.id}', '${t.key}')" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold text-xs border border-rose-200 dark:border-rose-800 transition btn-tactile">
                 <span>🔄 Reset</span>
               </button>
             </div>
@@ -1778,27 +1780,27 @@
 
       allTracksGrid.innerHTML = tracks.map(t => {
         const isDone = t.isCompleted;
-        const barColor = isDone ? 'bg-emerald-500' : (t.percent > 0 ? 'bg-indigo-600' : 'bg-slate-300');
+        const barColor = isDone ? 'bg-emerald-500' : (t.percent > 0 ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600');
         return `
-          <div class="p-4 rounded-2xl bg-white border ${isDone ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200'} shadow-xs flex flex-col justify-between">
+          <div class="p-4 rounded-2xl bg-white dark:bg-slate-800/80 border ${isDone ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/20 dark:bg-emerald-950/20' : 'border-slate-200 dark:border-slate-700'} shadow-xs flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between gap-1 mb-1.5">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(t.category)}</span>
-                <span class="text-xs font-black ${isDone ? 'text-emerald-700' : 'text-slate-700'}">${t.completedCount} / ${t.total} (${t.percent}%)</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">${escapeHtml(t.category)}</span>
+                <span class="text-xs font-black ${isDone ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200'}">${t.completedCount} / ${t.total} (${t.percent}%)</span>
               </div>
-              <h5 class="text-sm font-extrabold text-slate-900 leading-snug">${escapeHtml(t.title)}</h5>
+              <h5 class="text-sm font-extrabold text-slate-900 dark:text-slate-100 leading-snug">${escapeHtml(t.title)}</h5>
               
               <!-- Progress Bar -->
-              <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden my-2.5">
+              <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden my-2.5">
                 <div class="h-full rounded-full transition-all duration-500 ${barColor}" style="width: ${t.percent}%"></div>
               </div>
             </div>
 
-            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
-              <button onclick="prefillAdminQuestionCreator('${escapeHtml(t.domain)}', '${t.targetProfile}')" class="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold transition flex items-center gap-1">
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-2 text-xs">
+              <button onclick="prefillAdminQuestionCreator('${escapeHtml(t.domain)}', '${t.targetProfile}')" class="px-2.5 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold transition flex items-center gap-1">
                 <span>➕ Add Q</span>
               </button>
-              <button onclick="resetStudentArea('${student.id}', '${t.key}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 font-semibold transition" title="Reset this section for ${escapeHtml(student.name)}">
+              <button onclick="resetStudentArea('${student.id}', '${t.key}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 dark:text-slate-300 hover:text-rose-700 dark:hover:text-rose-300 font-semibold transition" title="Reset this section for ${escapeHtml(student.name)}">
                 <span>🔄 Reset</span>
               </button>
             </div>
@@ -2122,19 +2124,19 @@
         : (isHighXP ? "bg-amber-100 text-amber-950 border-amber-300" : "bg-indigo-50 text-indigo-800 border-indigo-200");
 
       return `
-        <div class="p-5 rounded-3xl bg-slate-50/80 border-2 ${isHighXP ? 'border-amber-300/80 bg-amber-50/30' : 'border-slate-200'} shadow-sm flex flex-col justify-between transition hover:border-indigo-300">
+        <div class="p-5 rounded-3xl bg-slate-50/80 dark:bg-slate-850 dark:bg-slate-800/60 border-2 ${isHighXP ? 'border-amber-300/80 dark:border-amber-700/80 bg-amber-50/30 dark:bg-amber-950/20' : 'border-slate-200 dark:border-slate-700'} shadow-sm flex flex-col justify-between transition hover:border-indigo-300 dark:hover:border-indigo-600">
           <div>
             <div class="flex items-center justify-between gap-2 mb-2">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">${escapeHtml(sec.group)}</span>
-              ${sec.isTough ? '<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200 text-[10px] font-extrabold flex items-center gap-1"><span>🔥</span><span>Tough Topic</span></span>' : ''}
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">${escapeHtml(sec.group)}</span>
+              ${sec.isTough ? '<span class="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-900 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-[10px] font-extrabold flex items-center gap-1"><span>🔥</span><span>Tough Topic</span></span>' : ''}
             </div>
-            <h4 class="text-sm font-extrabold text-slate-900 leading-snug">${escapeHtml(sec.title)}</h4>
-            <p class="text-[11px] text-slate-500 mt-1">${escapeHtml(sec.hint)}</p>
+            <h4 class="text-sm font-extrabold text-slate-900 dark:text-slate-100 leading-snug">${escapeHtml(sec.title)}</h4>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">${escapeHtml(sec.hint)}</p>
           </div>
 
-          <div class="mt-4 pt-3 border-t border-slate-200/70">
+          <div class="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700">
             <div class="flex items-center justify-between gap-2 mb-2.5">
-              <span class="text-xs font-bold text-slate-600">Reward:</span>
+              <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Reward:</span>
               <span class="px-3 py-1 rounded-full text-xs font-black border ${badgeCls} flex items-center gap-1 shadow-2xs">
                 <span>${isSuperHigh ? '🚀' : (isHighXP ? '🔥' : '⚡')}</span>
                 <span>+${currentXP} XP</span>
@@ -2143,18 +2145,18 @@
 
             <!-- Preset buttons -->
             <div class="grid grid-cols-4 gap-1.5 mb-2.5">
-              <button onclick="setSectionXP('${sec.key}', 10)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 10 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'}">10</button>
-              <button onclick="setSectionXP('${sec.key}', 20)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 20 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'}">20</button>
-              <button onclick="setSectionXP('${sec.key}', 50)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 50 ? 'bg-amber-500 text-white shadow-xs' : 'bg-white hover:bg-amber-100 text-amber-800 border border-amber-200'}">50 🌟</button>
-              <button onclick="setSectionXP('${sec.key}', 100)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 100 ? 'bg-rose-600 text-white shadow-xs' : 'bg-white hover:bg-rose-100 text-rose-800 border border-rose-200'}">100 🔥</button>
+              <button onclick="setSectionXP('${sec.key}', 10)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 10 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600'}">10</button>
+              <button onclick="setSectionXP('${sec.key}', 20)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 20 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600'}">20</button>
+              <button onclick="setSectionXP('${sec.key}', 50)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 50 ? 'bg-amber-500 text-white shadow-xs' : 'bg-white dark:bg-slate-700 hover:bg-amber-100 dark:hover:bg-slate-600 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-slate-600'}">50 🌟</button>
+              <button onclick="setSectionXP('${sec.key}', 100)" class="py-1 px-1.5 rounded-lg text-[11px] font-bold transition ${currentXP === 100 ? 'bg-rose-600 text-white shadow-xs' : 'bg-white dark:bg-slate-700 hover:bg-rose-100 dark:hover:bg-slate-600 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-slate-600'}">100 🔥</button>
             </div>
 
             <!-- Custom input -->
             <div class="flex items-center justify-between gap-2 text-xs">
-              <span class="text-slate-500 font-semibold text-[11px]">Custom XP:</span>
+              <span class="text-slate-500 dark:text-slate-400 font-semibold text-[11px]">Custom XP:</span>
               <div class="flex items-center gap-1">
-                <input type="number" min="5" max="500" step="5" value="${currentXP}" onchange="setSectionXP('${sec.key}', this.value)" class="w-16 px-2 py-1 text-center font-bold text-xs bg-white border border-slate-300 rounded-lg focus:outline-indigo-500" />
-                <span class="font-bold text-slate-500">XP</span>
+                <input type="number" min="5" max="500" step="5" value="${currentXP}" onchange="setSectionXP('${sec.key}', this.value)" class="w-16 px-2 py-1 text-center font-bold text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-100 rounded-lg focus:outline-indigo-500" />
+                <span class="font-bold text-slate-500 dark:text-slate-400">XP</span>
               </div>
             </div>
           </div>

@@ -166,14 +166,14 @@
       </div>
 
       <!-- Student Selector Bar -->
-      <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
-            <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
               <span>👥</span>
               <span>Select Student to Inspect &amp; Manage</span>
             </h3>
-            <p class="text-xs text-slate-500">Pick a student profile below to review completed areas, add questions, or reset tracks.</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Pick a student profile below to review completed areas, add questions, or reset tracks.</p>
           </div>
           <div id="adminStudentResetAllBtnContainer"></div>
         </div>
@@ -181,15 +181,15 @@
       </div>
 
       <!-- COMPLETED AREAS HIGHLIGHT SECTION -->
-      <div class="bg-white rounded-3xl border-2 border-emerald-300 p-6 sm:p-8 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-emerald-100">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-emerald-300 dark:border-emerald-700 p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-emerald-100 dark:border-emerald-900/60">
           <div>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold mb-1">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 text-xs font-bold mb-1">
               <span>🏆</span>
               <span>Finished Tracks Ready for Expansion</span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900">Completed Areas for <span id="adminActiveStudentName">Student</span></h3>
-            <p class="text-xs text-slate-500">These tracks have been 100% completed by the student. Click <strong>"➕ Add Questions"</strong> to grow the curriculum, or <strong>"🔄 Reset"</strong> to let them practice again.</p>
+            <h3 class="text-xl font-extrabold text-slate-900 dark:text-slate-100">Completed Areas for <span id="adminActiveStudentName">Student</span></h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">These tracks have been 100% completed by the student. Click <strong>"➕ Add Questions"</strong> to grow the curriculum, or <strong>"🔄 Reset"</strong> to let them practice again.</p>
           </div>
           <div id="adminCompletedAreasCountBadge"></div>
         </div>
@@ -197,35 +197,35 @@
       </div>
 
       <!-- ALL CURRICULUM TRACKS PROGRESS & RESET CONTROL -->
-      <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
           <div>
-            <h3 class="text-xl font-extrabold text-slate-900">All Curriculum Areas &amp; Track Status</h3>
-            <p class="text-xs text-slate-500">Full breakdown across Math, Spelling, Story Reading, Phonics, Languages, and SAT Bluebook.</p>
+            <h3 class="text-xl font-extrabold text-slate-900 dark:text-slate-100">All Curriculum Areas &amp; Track Status</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Full breakdown across Math, Spelling, Story Reading, Phonics, Languages, and SAT Bluebook.</p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-xs font-semibold text-slate-500">Total Progress:</span>
-            <span id="adminStudentOverallProgressText" class="font-extrabold text-indigo-700 text-sm">0%</span>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Progress:</span>
+            <span id="adminStudentOverallProgressText" class="font-extrabold text-indigo-700 dark:text-indigo-400 text-sm">0%</span>
           </div>
         </div>
         <div id="adminAllTracksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
       <!-- CUSTOM XP REWARDS & TOPIC INCENTIVES (PROMOTE TOUGH TRACKS WITH BONUS POINTS) -->
-      <div class="bg-white rounded-3xl border-2 border-amber-300 p-6 sm:p-8 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-amber-100">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-amber-300 dark:border-amber-700 p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-amber-100 dark:border-amber-900/60">
           <div>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-950 text-xs font-bold mb-1">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-300 text-xs font-bold mb-1">
               <span>⚡</span>
               <span>XP Reward Multipliers &amp; Difficulty Incentives</span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900">Custom Section Points &amp; Motivation Multipliers</h3>
-            <p class="text-xs text-slate-500 max-w-2xl">
+            <h3 class="text-xl font-extrabold text-slate-900 dark:text-slate-100">Custom Section Points &amp; Motivation Multipliers</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-2xl">
               Promote challenging sections (such as <strong>➗ Division</strong>, <strong>🐝 Big Words Spelling</strong>, or <strong>💬 Malayalam Small Sentences</strong>) with bonus XP points to inspire kids to take on tough learning goals!
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="resetAllSectionXPToDefaults()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+            <button onclick="resetAllSectionXPToDefaults()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
               <span>↺</span>
               <span>Reset to Defaults</span>
             </button>
@@ -403,17 +403,17 @@
       </div>
 
       <!-- QUESTION CREATOR DRAWER / CARD -->
-      <div id="adminQuestionCreatorBox" class="bg-gradient-to-br from-indigo-50/70 to-sky-50/60 rounded-3xl border-2 border-indigo-200 p-6 sm:p-8 shadow-sm">
+      <div id="adminQuestionCreatorBox" class="bg-gradient-to-br from-indigo-50/70 to-sky-50/60 dark:from-slate-900 dark:to-indigo-950/40 rounded-3xl border-2 border-indigo-200 dark:border-indigo-800 p-6 sm:p-8 shadow-sm">
         <div class="flex items-start justify-between gap-3 mb-4">
           <div>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-bold mb-1">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-300 text-xs font-bold mb-1">
               <span>➕</span>
               <span>Fast Question Creator &amp; Cloud Sync</span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900">Add Questions to Cloud Question Bank</h3>
-            <p class="text-xs text-slate-600">Create new 4-choice questions with explanations and instant Cloud Firestore synchronization.</p>
+            <h3 class="text-xl font-extrabold text-slate-900 dark:text-slate-100">Add Questions to Cloud Question Bank</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400">Create new 4-choice questions with explanations and instant Cloud Firestore synchronization.</p>
           </div>
-          <button onclick="resetAdminQuestionForm()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-600 text-xs font-semibold border border-slate-200">
+          <button onclick="resetAdminQuestionForm()" class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-700 cursor-pointer">
             Clear Form
           </button>
         </div>
@@ -421,51 +421,51 @@
         <form id="adminNewQuestionForm" onsubmit="handleAdminCreateQuestionSubmit(event)" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Target Learner Profile</label>
-              <select id="adminNewQProfile" onchange="updateAdminDomainDropdown()" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-indigo-500">
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Target Learner Profile</label>
+              <select id="adminNewQProfile" onchange="updateAdminDomainDropdown()" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-indigo-500">
                 <option value="kid">🌟 Little Explorer (6+ / Elementary)</option>
                 <option value="teen">🎓 Teen Scholar (13+ / SAT Bluebook)</option>
               </select>
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Learning Track / Domain</label>
-              <select id="adminNewQDomain" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-indigo-500"></select>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Learning Track / Domain</label>
+              <select id="adminNewQDomain" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-indigo-500"></select>
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Passage, Story or Math Clue (Optional)</label>
-            <textarea id="adminNewQParagraph" rows="2" placeholder="e.g. Maya bought 6 red apples and 5 green apples at the farm market..." class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-indigo-500"></textarea>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Passage, Story or Math Clue (Optional)</label>
+            <textarea id="adminNewQParagraph" rows="2" placeholder="e.g. Maya bought 6 red apples and 5 green apples at the farm market..." class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-100 focus:outline-indigo-500"></textarea>
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Question Prompt <span class="text-rose-500">*</span></label>
-            <input type="text" id="adminNewQText" required placeholder="e.g. How many apples does Maya have in total?" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-indigo-500" />
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Question Prompt <span class="text-rose-500">*</span></label>
+            <input type="text" id="adminNewQText" required placeholder="e.g. How many apples does Maya have in total?" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-indigo-500" />
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Choice A <span class="text-rose-500">*</span></label>
-              <input type="text" id="adminNewQChoiceA" required placeholder="Option A text" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 focus:outline-indigo-500" />
+              <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Choice A <span class="text-rose-500">*</span></label>
+              <input type="text" id="adminNewQChoiceA" required placeholder="Option A text" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-indigo-500" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Choice B <span class="text-rose-500">*</span></label>
-              <input type="text" id="adminNewQChoiceB" required placeholder="Option B text" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 focus:outline-indigo-500" />
+              <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Choice B <span class="text-rose-500">*</span></label>
+              <input type="text" id="adminNewQChoiceB" required placeholder="Option B text" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-indigo-500" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Choice C <span class="text-rose-500">*</span></label>
-              <input type="text" id="adminNewQChoiceC" required placeholder="Option C text" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 focus:outline-indigo-500" />
+              <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Choice C <span class="text-rose-500">*</span></label>
+              <input type="text" id="adminNewQChoiceC" required placeholder="Option C text" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-indigo-500" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Choice D <span class="text-rose-500">*</span></label>
-              <input type="text" id="adminNewQChoiceD" required placeholder="Option D text" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 focus:outline-indigo-500" />
+              <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Choice D <span class="text-rose-500">*</span></label>
+              <input type="text" id="adminNewQChoiceD" required placeholder="Option D text" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-indigo-500" />
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Correct Answer Letter <span class="text-rose-500">*</span></label>
-              <select id="adminNewQCorrectAnswer" required class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-indigo-700 focus:outline-indigo-500">
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Correct Answer Letter <span class="text-rose-500">*</span></label>
+              <select id="adminNewQCorrectAnswer" required class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-bold text-indigo-700 dark:text-indigo-400 focus:outline-indigo-500">
                 <option value="A">Choice A</option>
                 <option value="B">Choice B</option>
                 <option value="C">Choice C</option>
@@ -473,13 +473,13 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Explanation or Hint</label>
-              <input type="text" id="adminNewQExplanation" placeholder="e.g. 6 + 5 = 11 apples in total!" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-indigo-500" />
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Explanation or Hint</label>
+              <input type="text" id="adminNewQExplanation" placeholder="e.g. 6 + 5 = 11 apples in total!" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-indigo-500" />
             </div>
           </div>
 
           <div class="pt-2 flex items-center justify-end gap-3">
-            <button type="submit" class="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2 btn-tactile">
+            <button type="submit" class="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2 btn-tactile cursor-pointer">
               <span>💾 Save &amp; Sync Question to Cloud</span>
             </button>
           </div>
