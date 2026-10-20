@@ -24,6 +24,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js" onerror="/* optional custom config */"></script>
+  <script src="data/questions.data.js"></script>
+  <script src="data/curriculum.data.js"></script>
+  <script src="data/spelling.data.js"></script>
+  <script src="js/seed-data.js"></script>
   <script src="firebase-db.js"></script>
 
   <script>
@@ -159,12 +163,6 @@
           <span id="familyAuthText" class="hidden sm:inline font-semibold">Sign In</span>
         </button>
 
-        <!-- Parent / Admin Portal Button -->
-        <button onclick="openParentAdminPortal()" id="btnHeaderParentAdmin" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm btn-tactile" title="Parent & Admin Portal — View Completed Student Areas, Add Questions, and Reset Tracks">
-          <span>⚙️</span>
-          <span class="hidden sm:inline">Parent Portal</span>
-        </button>
-
         <!-- Profile Switcher Button -->
         <button onclick="showProfilePicker()" class="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm btn-tactile">
           <i data-lucide="users" class="w-3.5 h-3.5 text-amber-300"></i>
@@ -235,9 +233,13 @@
               <i data-lucide="play" class="w-3.5 h-3.5 text-indigo-600 fill-indigo-600"></i>
               <span>Launch SAT Exam Simulator</span>
             </button>
+            <button onclick="openTeenTab('spelling')" class="px-5 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition shadow-md btn-tactile flex items-center gap-2">
+              <span>🐝</span>
+              <span>SAT &amp; Academic Spelling Bee</span>
+            </button>
             <button onclick="openTeenTab('languages')" class="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition backdrop-blur-sm flex items-center gap-2 border border-white/15">
               <span>🌏</span>
-              <span>Trilingual Studio (100+ Words & Sentences)</span>
+              <span>Trilingual Studio (100+ Words &amp; Sentences)</span>
             </button>
           </div>
         </div>
@@ -626,6 +628,179 @@
     </section>
 
     <!-- ===================================================================
+         3B. 13+ TEEN SCHOLAR: SAT & ACADEMIC SPELLING & ETYMOLOGY BEE
+         =================================================================== -->
+    <section id="section-teen-spelling" class="hidden space-y-6 animate-fade">
+      
+      <!-- Top Header & Tier Selector -->
+      <div class="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-bento flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <button onclick="openTeenTab('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            <span>Dashboard</span>
+          </button>
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+              <span>🐝 SAT &amp; Academic Spelling &amp; Etymology Studio</span>
+            </h2>
+            <p class="text-xs text-slate-500">Master high-school spelling traps, Greek/Latin roots, audio dictation, and Scripps Bee vocabulary</p>
+          </div>
+        </div>
+
+        <!-- Tier Filter Pills -->
+        <div id="teenSpellingTierBar" class="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-2xl">
+          <button onclick="setTeenSpellingTier('all')" id="teenSpellTier-all" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs">All Tiers</button>
+          <button onclick="setTeenSpellingTier('core')" id="teenSpellTier-core" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">🎯 High School Core</button>
+          <button onclick="setTeenSpellingTier('sat')" id="teenSpellTier-sat" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">🎓 SAT Honors</button>
+          <button onclick="setTeenSpellingTier('bee')" id="teenSpellTier-bee" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">🏆 Scripps Bee</button>
+        </div>
+      </div>
+
+      <!-- Mode Switcher Tabs: Dictation & Builder vs 4-Choice Quiz vs Etymology Flashcards -->
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <button id="tab-teen-spell-builder" onclick="setTeenSpellingMode('builder')" class="flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-indigo-600 text-white shadow-md">
+          <span>⌨️</span>
+          <span>Audio Dictation &amp; Word Builder</span>
+        </button>
+        <button id="tab-teen-spell-quiz" onclick="setTeenSpellingMode('quiz')" class="flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-sm">
+          <span>📝</span>
+          <span>4-Choice Spelling Trap Quiz</span>
+        </button>
+        <button id="tab-teen-spell-flashcards" onclick="setTeenSpellingMode('flashcards')" class="flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-sm">
+          <span>🃏</span>
+          <span>Roots &amp; Etymology Flashcards</span>
+        </button>
+      </div>
+
+      <!-- MODE 1: AUDIO DICTATION & INTERACTIVE LETTER BUILDER -->
+      <div id="teenSpellingBuilderCard" class="w-full max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div class="flex items-center gap-2">
+            <span id="teenSpellBuilderBadge" class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-xs">
+              🎓 SAT Honors Tier
+            </span>
+            <span id="teenSpellBuilderRemaining" class="text-xs font-mono font-semibold text-slate-400"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="speakTeenSpellingWord()" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-xs btn-tactile">
+              <span>🔊</span>
+              <span>Pronounce Word</span>
+            </button>
+            <button onclick="speakTeenSpellingSentence()" class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 transition">
+              <span>🗣️</span>
+              <span>Hear in Context</span>
+            </button>
+            <button onclick="nextTeenSpellingWord()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+              <span>Skip →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Definition, Root & Blanked Context Sentence -->
+        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600" id="teenSpellRootText">Root / Etymology</span>
+            <span class="text-[11px] font-mono font-bold text-slate-500" id="teenSpellLengthBadge">11 Letters</span>
+          </div>
+          <p id="teenSpellMeaningText" class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug"></p>
+          <p id="teenSpellSentenceText" class="text-xs sm:text-sm text-slate-600 italic font-serif pt-1 border-t border-slate-200/60"></p>
+          <p id="teenSpellTipBox" class="hidden text-xs font-bold text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2 mt-2"></p>
+        </div>
+
+        <!-- Type-to-Spell Input Bar -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Type the Spelling (or tap scrambled letter tiles below):</label>
+          <div class="flex flex-wrap sm:flex-nowrap gap-2.5">
+            <input id="teenSpellTypedInput" type="text" autocomplete="off" spellcheck="false"
+              onkeydown="if(event.key==='Enter')submitTeenSpellingBuilder()"
+              oninput="syncTeenSpellingInputToSlots(this.value)"
+              placeholder="Type exact spelling here and press Enter..."
+              class="flex-1 bg-slate-50 border-2 border-slate-200 focus:border-indigo-600 rounded-2xl px-4 py-3 text-base sm:text-lg font-mono font-extrabold uppercase tracking-widest text-slate-900 outline-none transition" />
+            <button onclick="giveTeenSpellingHint()" class="px-4 py-3 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs border border-amber-300 transition flex items-center gap-1.5 shrink-0">
+              <span>💡</span>
+              <span>Hint &amp; Tip</span>
+            </button>
+            <button onclick="clearTeenSpellingBuilder()" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition shrink-0">
+              Clear
+            </button>
+            <button onclick="submitTeenSpellingBuilder()" class="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md transition btn-tactile shrink-0">
+              Submit Spelling
+            </button>
+          </div>
+        </div>
+
+        <!-- Visual Letter Slots & Scrambled Tile Picker -->
+        <div class="space-y-3 pt-1">
+          <div id="teenSpellSlotsRow" class="flex flex-wrap items-center justify-center gap-1.5 min-h-[48px] p-3 bg-slate-50/80 rounded-2xl border-2 border-dashed border-slate-300"></div>
+          <div id="teenSpellTilesTray" class="flex flex-wrap items-center justify-center gap-1.5 min-h-[48px] p-3 bg-indigo-50/40 rounded-2xl border border-indigo-100"></div>
+        </div>
+
+        <!-- Feedback Banner -->
+        <div id="teenSpellFeedbackBanner" class="hidden p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between"></div>
+      </div>
+
+      <!-- MODE 2: 4-CHOICE SPELLING TRAP QUIZ -->
+      <div id="teenSpellingQuizCard" class="hidden w-full max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span id="teenSpellQuizBadge" class="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs">
+            📝 High-Frequency Spelling Trap Challenge
+          </span>
+          <button onclick="speakTeenSpellingWord()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 transition">
+            <span>🔊</span>
+            <span>Listen to Word</span>
+          </button>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+          <p id="teenSpellQuizRoot" class="text-xs font-bold uppercase tracking-wider text-indigo-600"></p>
+          <h3 id="teenSpellQuizPrompt" class="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug"></h3>
+          <p id="teenSpellQuizSentence" class="text-xs sm:text-sm text-slate-500 italic font-serif"></p>
+        </div>
+
+        <div id="teenSpellQuizChoices" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+        <div id="teenSpellQuizBanner" class="hidden p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between"></div>
+      </div>
+
+      <!-- MODE 3: 3D ETYMOLOGY & ROOT FLASHCARDS -->
+      <div id="teenSpellingFlashcardsCard" class="hidden w-full max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-bento space-y-6">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">3D Etymology, Root &amp; Orthography Deck</span>
+          <span id="teenSpellCardCounter" class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">1 / 44</span>
+        </div>
+
+        <div id="teenSpellFlipCard" onclick="this.classList.toggle('flipped')" class="flip-card min-h-[280px] sm:h-72 w-full cursor-pointer select-none">
+          <div class="flip-card-inner relative w-full h-full">
+            <div class="flip-card-front absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-white to-amber-50/60 border-2 border-indigo-100 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-inner">
+              <span class="text-[11px] font-bold uppercase tracking-widest text-indigo-400 mb-2">Tap Card to Flip for Root &amp; Mnemonic</span>
+              <p id="teenSpellCardWord" class="text-3xl sm:text-4xl font-mono font-extrabold text-slate-900 tracking-wider mb-2">ACCOMMODATE</p>
+              <p id="teenSpellCardRoot" class="text-xs sm:text-sm font-semibold text-indigo-600"></p>
+            </div>
+            <div class="flip-card-back absolute inset-0 bg-slate-900 text-white rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center">
+              <span class="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-2">Definition, Memory Tip &amp; Context</span>
+              <p id="teenSpellCardMeaning" class="text-lg sm:text-xl font-extrabold text-white mb-3 max-w-2xl"></p>
+              <p id="teenSpellCardTip" class="text-xs sm:text-sm font-bold text-emerald-300 mb-3"></p>
+              <div class="p-3 rounded-2xl bg-white/10 text-xs text-indigo-100 italic max-w-xl mx-auto border border-white/10">
+                <p id="teenSpellCardSentence"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <button onclick="speakTeenSpellingWord()" class="px-5 py-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs sm:text-sm flex items-center gap-2 transition border border-indigo-200/60">
+            <i data-lucide="volume-2" class="w-4 h-4"></i>
+            <span>Pronounce Word</span>
+          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="stepTeenSpellingCard(-1)" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition">← Prev Word</button>
+            <button onclick="stepTeenSpellingCard(1)" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition shadow-sm">Next Word →</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ===================================================================
          4. 6-YEAR-OLD "LITTLE EXPLORER" PLAYGROUND (TACTILE, BOUNCY, VOICE)
          =================================================================== -->
     <section id="section-kid-playground" class="hidden space-y-8 font-kids animate-fade">
@@ -822,187 +997,6 @@
 
     </section>
 
-    <!-- ===================================================================
-         5. PARENT & ADMIN PORTAL: STUDENT COMPLETED AREAS, CURRICULUM PROGRESS,
-            TRACK RESETS & QUESTION CREATOR
-         =================================================================== -->
-    <section id="section-parent-admin" class="hidden space-y-8 animate-fade">
-      
-      <!-- Top Hero / Banner -->
-      <div class="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-semibold mb-2 backdrop-blur-sm">
-            <span>⚙️ Parent &amp; Admin Command Center</span>
-            <span class="w-1 h-1 rounded-full bg-indigo-300"></span>
-            <span id="adminActiveStatusText">Full Access</span>
-          </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Student Progress, Completed Areas &amp; Curriculum Control</h2>
-          <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-            Monitor each student's completed learning areas, add new questions to finished tracks, and reset practice sections when ready.
-          </p>
-        </div>
-        <div class="flex items-center gap-3">
-          <button onclick="closeParentAdminPortal()" class="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition border border-white/20 flex items-center gap-2 btn-tactile">
-            <span>← Return to Learning Hub</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Student Selector Bar -->
-      <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div>
-            <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <span>👥</span>
-              <span>Select Student to Inspect &amp; Manage</span>
-            </h3>
-            <p class="text-xs text-slate-500">Pick a student profile below to review completed areas, add questions, or reset tracks.</p>
-          </div>
-          <div id="adminStudentResetAllBtnContainer"></div>
-        </div>
-        <div id="adminStudentPillsBar" class="flex flex-wrap items-center gap-2.5"></div>
-      </div>
-
-      <!-- COMPLETED AREAS HIGHLIGHT SECTION -->
-      <div class="bg-white rounded-3xl border-2 border-emerald-300 p-6 sm:p-8 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-emerald-100">
-          <div>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold mb-1">
-              <span>🏆</span>
-              <span>Finished Tracks Ready for Expansion</span>
-            </div>
-            <h3 class="text-xl font-extrabold text-slate-900">Completed Areas for <span id="adminActiveStudentName">Student</span></h3>
-            <p class="text-xs text-slate-500">These tracks have been 100% completed by the student. Click <strong>"➕ Add Questions"</strong> to grow the curriculum, or <strong>"🔄 Reset"</strong> to let them practice again.</p>
-          </div>
-          <div id="adminCompletedAreasCountBadge"></div>
-        </div>
-        <div id="adminCompletedAreasGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-      </div>
-
-      <!-- ALL CURRICULUM TRACKS PROGRESS & RESET CONTROL -->
-      <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
-          <div>
-            <h3 class="text-xl font-extrabold text-slate-900">All Curriculum Areas &amp; Track Status</h3>
-            <p class="text-xs text-slate-500">Full breakdown across Math, Spelling, Story Reading, Phonics, Languages, and SAT Bluebook.</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-semibold text-slate-500">Total Progress:</span>
-            <span id="adminStudentOverallProgressText" class="font-extrabold text-indigo-700 text-sm">0%</span>
-          </div>
-        </div>
-        <div id="adminAllTracksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </div>
-
-      <!-- CUSTOM XP REWARDS & TOPIC INCENTIVES (PROMOTE TOUGH TRACKS WITH BONUS POINTS) -->
-      <div class="bg-white rounded-3xl border-2 border-amber-300 p-6 sm:p-8 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-amber-100">
-          <div>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-950 text-xs font-bold mb-1">
-              <span>⚡</span>
-              <span>XP Reward Multipliers &amp; Difficulty Incentives</span>
-            </div>
-            <h3 class="text-xl font-extrabold text-slate-900">Custom Section Points &amp; Motivation Multipliers</h3>
-            <p class="text-xs text-slate-500 max-w-2xl">
-              Promote challenging sections (such as <strong>➗ Division</strong>, <strong>🐝 Big Words Spelling</strong>, or <strong>💬 Malayalam Small Sentences</strong>) with bonus XP points to inspire kids to take on tough learning goals!
-            </p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="resetAllSectionXPToDefaults()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
-              <span>↺</span>
-              <span>Reset to Defaults</span>
-            </button>
-          </div>
-        </div>
-        <div id="adminSectionXPGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </div>
-
-      <!-- QUESTION CREATOR DRAWER / CARD -->
-      <div id="adminQuestionCreatorBox" class="bg-gradient-to-br from-indigo-50/70 to-sky-50/60 rounded-3xl border-2 border-indigo-200 p-6 sm:p-8 shadow-sm">
-        <div class="flex items-start justify-between gap-3 mb-4">
-          <div>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-bold mb-1">
-              <span>➕</span>
-              <span>Fast Question Creator &amp; Cloud Sync</span>
-            </div>
-            <h3 class="text-xl font-extrabold text-slate-900">Add Questions to Cloud Question Bank</h3>
-            <p class="text-xs text-slate-600">Create new 4-choice questions with explanations and instant Cloud Firestore synchronization.</p>
-          </div>
-          <button onclick="resetAdminQuestionForm()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-600 text-xs font-semibold border border-slate-200">
-            Clear Form
-          </button>
-        </div>
-
-        <form id="adminNewQuestionForm" onsubmit="handleAdminCreateQuestionSubmit(event)" class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Target Learner Profile</label>
-              <select id="adminNewQProfile" onchange="updateAdminDomainDropdown()" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-indigo-500">
-                <option value="kid">🌟 Little Explorer (6+ / Elementary)</option>
-                <option value="teen">🎓 Teen Scholar (13+ / SAT Bluebook)</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Learning Track / Domain</label>
-              <select id="adminNewQDomain" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-indigo-500"></select>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Passage, Story or Math Clue (Optional)</label>
-            <textarea id="adminNewQParagraph" rows="2" placeholder="e.g. Maya bought 6 red apples and 5 green apples at the farm market..." class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-indigo-500"></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Question Prompt <span class="text-rose-500">*</span></label>
-            <input type="text" id="adminNewQText" required placeholder="e.g. How many apples does Maya have in total?" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-indigo-500" />
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Choice A <span class="text-rose-500">*</span></label>
-              <input type="text" id="adminNewQChoiceA" required placeholder="Option A text" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 focus:outline-indigo-500" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Choice B <span class="text-rose-500">*</span></label>
-              <input type="text" id="adminNewQChoiceB" required placeholder="Option B text" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 focus:outline-indigo-500" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Choice C <span class="text-rose-500">*</span></label>
-              <input type="text" id="adminNewQChoiceC" required placeholder="Option C text" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 focus:outline-indigo-500" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Choice D <span class="text-rose-500">*</span></label>
-              <input type="text" id="adminNewQChoiceD" required placeholder="Option D text" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 focus:outline-indigo-500" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Correct Answer Letter <span class="text-rose-500">*</span></label>
-              <select id="adminNewQCorrectAnswer" required class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-indigo-700 focus:outline-indigo-500">
-                <option value="A">Choice A</option>
-                <option value="B">Choice B</option>
-                <option value="C">Choice C</option>
-                <option value="D">Choice D</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Explanation or Hint</label>
-              <input type="text" id="adminNewQExplanation" placeholder="e.g. 6 + 5 = 11 apples in total!" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-indigo-500" />
-            </div>
-          </div>
-
-          <div class="pt-2 flex items-center justify-end gap-3">
-            <button type="submit" class="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2 btn-tactile">
-              <span>💾 Save &amp; Sync Question to Cloud</span>
-            </button>
-          </div>
-        </form>
-      </div>
-
-    </section>
-
   </main>
 
   <!-- =====================================================================
@@ -1110,9 +1104,12 @@
           <input type="password" id="familyPasswordInput" required placeholder="Enter password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-indigo-500 font-mono" />
         </div>
 
-        <div class="pt-2">
+        <div class="pt-2 space-y-2">
           <button type="submit" id="btnFamilySignIn" class="w-full px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
             <span>Sign In to Unlock Hub</span>
+          </button>
+          <button type="button" onclick="continueOfflineMode()" class="w-full px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition flex items-center justify-center gap-1.5">
+            <span>⚡ Continue in Local / Offline Mode</span>
           </button>
         </div>
       </form>
@@ -1123,7 +1120,6 @@
        APPLICATION SCRIPTS (MODULAR ARCHITECTURE)
        ===================================================================== -->
   <script src="js/utils.js"></script>
-  <script src="js/seed-data.js"></script>
   <script src="js/speech.js"></script>
   <script src="js/dictionary.js"></script>
   <script src="js/spelling-builder.js"></script>

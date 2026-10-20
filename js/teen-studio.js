@@ -33,11 +33,11 @@
 
   function openTeenTab(tabName) {
     if (window.appData) window.appData.teenSubTab = tabName;
-    document.getElementById('section-teen-dashboard').classList.add('hidden');
-    document.getElementById('section-teen-sat').classList.add('hidden');
-    document.getElementById('section-languages').classList.add('hidden');
-    const adminSec = document.getElementById('section-parent-admin');
-    if (adminSec) adminSec.classList.add('hidden');
+    ['section-teen-dashboard', 'section-teen-sat', 'section-languages', 'section-teen-spelling', 'section-kid-playground', 'section-parent-admin']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
 
     renderSubNavForTeen(tabName);
 
@@ -49,6 +49,11 @@
       document.getElementById('section-teen-sat').classList.remove('hidden');
       populateDomainFilterDropdown();
       loadSatQuestionByIndex(satCurrentIndex);
+    } else if (tabName === 'spelling') {
+      stopSatTimer();
+      const spellSec = document.getElementById('section-teen-spelling');
+      if (spellSec) spellSec.classList.remove('hidden');
+      renderTeenSpellingStudio();
     } else if (tabName === 'languages') {
       stopSatTimer();
       document.getElementById('section-languages').classList.remove('hidden');
@@ -66,6 +71,7 @@
     const tabs = [
       { id: 'dashboard', label: '📊 Analytics, Streak Calendar & Topics' },
       { id: 'sat', label: '📝 Digital SAT & Topic Simulator' },
+      { id: 'spelling', label: '🐝 SAT & Academic Spelling Bee' },
       { id: 'languages', label: '🌏 Trilingual Studio (Mal / Hin / Spa)' }
     ];
     container.innerHTML = tabs.map(t => `
@@ -1127,6 +1133,535 @@
     renderTeenLanguageQuiz();
   }
 
+  /* ---------------------------------------------------------------------
+     13+ TEEN SCHOLAR: SAT & ACADEMIC SPELLING & ETYMOLOGY BEE
+     --------------------------------------------------------------------- */
+  let teenSpellingTier = 'all';      // 'all' | 'core' | 'sat' | 'bee'
+  let teenSpellingMode = 'builder';  // 'builder' | 'quiz' | 'flashcards'
+  let currentTeenSpellItem = null;
+  let teenSpellSlots = [];           // array of { char, trayIdx } or null
+  let teenSpellTray = [];            // array of { char, origIdx, used }
+  let teenSpellCardIdx = 0;
+
+  function getTeenSpellingWords() {
+    return Array.isArray(window.TEEN_SPELLING_WORDS) ? window.TEEN_SPELLING_WORDS : [];
+  }
+
+  function getFilteredTeenSpellingWords(excludeCompleted) {
+    const all = getTeenSpellingWords().filter(item => {
+      if (teenSpellingTier === 'all') return true;
+      return item.tier === teenSpellingTier;
+    });
+    if (!excludeCompleted) return all;
+    const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+      ? window.LuminaDB.getActiveProfile()
+      : null;
+    const completed = new Set((p && p.completedQuestionIds) || []);
+    return all.filter(item => !completed.has('teen_spelling_' + item.word.toUpperCase()));
+  }
+
+  function makeTeenMisspellings(word) {
+    const w = word.toUpperCase();
+    const out = new Set();
+    // 1. Common double-consonant traps (drop a doubled letter or double a single consonant)
+    for (let i = 0; i < w.length - 1; i++) {
+      if (w[i] === w[i + 1]) {
+        out.add(w.slice(0, i) + w.slice(i + 1));
+      }
+    }
+    // 2. Classic suffix & vowel swaps (-ance/-ence, -ible/-able, ei/ie, -sede/-cede)
+    if (w.includes('ANCE')) out.add(w.replace('ANCE', 'ENCE'));
+    if (w.includes('ENCE')) out.add(w.replace('ENCE', 'ANCE'));
+    if (w.includes('EI')) out.add(w.replace('EI', 'IE'));
+    if (w.includes('IE')) out.add(w.replace('IE', 'EI'));
+    if (w.includes('SEDE')) out.add(w.replace('SEDE', 'CEDE'));
+    if (w.includes('SC')) out.add(w.replace('SC', 'S'));
+    if (w.includes('PH')) out.add(w.replace('PH', 'F'));
+    // 3. Adjacent letter transposition or vowel swap
+    const vowels = ['A', 'E', 'I', 'O', 'U'];
+    for (let i = 1; i < w.length - 1; i++) {
+      if (vowels.includes(w[i])) {
+        vowels.forEach(v => {
+          if (v !== w[i]) out.add(w.slice(0, i) + v + w.slice(i + 1));
+        });
+      }
+      if (w[i] !== w[i + 1]) {
+        out.add(w.slice(0, i) + w[i + 1] + w[i] + w.slice(i + 2));
+      }
+    }
+    out.delete(w);
+    return Array.from(out).slice(0, 3);
+  }
+
+  function setTeenSpellingTier(tier) {
+    teenSpellingTier = tier;
+    ['all', 'core', 'sat', 'bee'].forEach(t => {
+      const btn = document.getElementById(`teenSpellTier-${t}`);
+      if (!btn) return;
+      if (t === tier) {
+        btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs";
+      } else {
+        btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900";
+      }
+    });
+    teenSpellCardIdx = 0;
+    renderTeenSpellingStudio();
+  }
+
+  function setTeenSpellingMode(mode) {
+    teenSpellingMode = mode;
+    const modes = ['builder', 'quiz', 'flashcards'];
+    modes.forEach(m => {
+      const btn = document.getElementById(`tab-teen-spell-${m}`);
+      if (btn) {
+        btn.className = (m === mode)
+          ? "flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-indigo-600 text-white shadow-md"
+          : "flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-sm";
+      }
+    });
+    const bCard = document.getElementById('teenSpellingBuilderCard');
+    const qCard = document.getElementById('teenSpellingQuizCard');
+    const fCard = document.getElementById('teenSpellingFlashcardsCard');
+    if (bCard) bCard.classList.toggle('hidden', mode !== 'builder');
+    if (qCard) qCard.classList.toggle('hidden', mode !== 'quiz');
+    if (fCard) fCard.classList.toggle('hidden', mode !== 'flashcards');
+
+    renderTeenSpellingStudio();
+  }
+
+  function renderTeenSpellingStudio() {
+    if (teenSpellingMode === 'builder') {
+      loadNextTeenSpellingBuilderRound();
+    } else if (teenSpellingMode === 'quiz') {
+      renderTeenSpellingQuizRound();
+    } else {
+      renderTeenSpellingFlashcard();
+    }
+  }
+
+  function loadNextTeenSpellingBuilderRound() {
+    const uncompleted = getFilteredTeenSpellingWords(true);
+    const allInTier = getFilteredTeenSpellingWords(false);
+    const pool = uncompleted.length > 0 ? uncompleted : allInTier;
+    if (pool.length === 0) {
+      const banner = document.getElementById('teenSpellFeedbackBanner');
+      if (banner) {
+        banner.className = "p-4 rounded-2xl bg-amber-50 text-amber-900 border border-amber-200 text-xs sm:text-sm font-bold text-center";
+        banner.innerText = "No words found in this tier. Switch to 'All Words' to continue!";
+        banner.classList.remove('hidden');
+      }
+      return;
+    }
+
+    const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+      ? window.LuminaDB.getActiveProfile()
+      : null;
+    const item = (typeof window.getNextFromDeck === 'function')
+      ? window.getNextFromDeck('teen_spell_builder_' + (p ? p.id : 'teen') + '_' + teenSpellingTier, pool, i => i.word)
+      : pool[Math.floor(Math.random() * pool.length)];
+
+    currentTeenSpellItem = item;
+    const w = item.word.toUpperCase();
+    teenSpellSlots = new Array(w.length).fill(null);
+
+    const tiles = w.split('').map((char, idx) => ({ char, origIdx: idx, used: false }));
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = tiles[i]; tiles[i] = tiles[j]; tiles[j] = tmp;
+    }
+    teenSpellTray = tiles;
+
+    const inputEl = document.getElementById('teenSpellTypedInput');
+    if (inputEl) inputEl.value = '';
+
+    const tipBox = document.getElementById('teenSpellTipBox');
+    if (tipBox) tipBox.classList.add('hidden');
+
+    const banner = document.getElementById('teenSpellFeedbackBanner');
+    if (banner) banner.classList.add('hidden');
+
+    const tierLabels = {
+      core: '🎯 High School Core Tier',
+      sat: '🎓 SAT Honors Vocabulary',
+      bee: '🏆 Scripps Bee & Etymology Challenge'
+    };
+    const badgeEl = document.getElementById('teenSpellBuilderBadge');
+    if (badgeEl) {
+      const xpVal = (typeof window.getSectionXP === 'function') ? window.getSectionXP('teen_spelling', item.tier) : 35;
+      badgeEl.innerText = `${tierLabels[item.tier] || '🎓 Teen Spelling'} • +${xpVal} XP`;
+    }
+
+    const remEl = document.getElementById('teenSpellBuilderRemaining');
+    if (remEl) {
+      remEl.innerText = uncompleted.length > 0
+        ? `${uncompleted.length} of ${allInTier.length} words remaining`
+        : `All ${allInTier.length} words mastered in this tier!`;
+    }
+
+    const rootEl = document.getElementById('teenSpellRootText');
+    if (rootEl) rootEl.innerText = `Etymology: ${item.root || 'Classical Root'}`;
+
+    const lenEl = document.getElementById('teenSpellLengthBadge');
+    if (lenEl) lenEl.innerText = `${w.length} Letters`;
+
+    const meanEl = document.getElementById('teenSpellMeaningText');
+    if (meanEl) meanEl.innerText = item.meaning || '';
+
+    const sentEl = document.getElementById('teenSpellSentenceText');
+    if (sentEl) {
+      const regex = new RegExp(item.word, 'gi');
+      sentEl.innerText = `"${(item.sentence || '').replace(regex, '___________')}"`;
+    }
+
+    renderTeenSpellingSlotsAndTray();
+  }
+
+  function renderTeenSpellingSlotsAndTray() {
+    const slotsRow = document.getElementById('teenSpellSlotsRow');
+    const trayRow = document.getElementById('teenSpellTilesTray');
+    if (slotsRow) {
+      const firstEmpty = teenSpellSlots.findIndex(s => s === null);
+      slotsRow.innerHTML = teenSpellSlots.map((slot, idx) => {
+        if (slot) {
+          return `
+            <button onclick="removeTeenSpellingSlot(${idx})" title="Remove letter" class="w-9 h-11 sm:w-10 sm:h-12 rounded-xl bg-indigo-600 text-white font-mono font-extrabold text-base sm:text-lg border-2 border-indigo-700 shadow-xs flex items-center justify-center transition hover:bg-rose-600">
+              ${slot.char}
+            </button>
+          `;
+        }
+        return `
+          <div class="w-9 h-11 sm:w-10 sm:h-12 rounded-xl border-2 ${idx === firstEmpty ? 'border-indigo-500 bg-indigo-50/70' : 'border-dashed border-slate-300 bg-white'} text-slate-400 font-mono font-bold text-base flex items-center justify-center">
+            _
+          </div>
+        `;
+      }).join('');
+    }
+
+    if (trayRow) {
+      trayRow.innerHTML = teenSpellTray.map((tile, tIdx) => {
+        if (tile.used) {
+          return `<button disabled class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 text-slate-300 font-mono font-bold text-sm border border-slate-200 opacity-30">${tile.char}</button>`;
+        }
+        return `
+          <button onclick="placeTeenSpellingTile(${tIdx})" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white hover:bg-indigo-50 text-slate-900 font-mono font-extrabold text-sm sm:text-base border-2 border-slate-200 hover:border-indigo-400 shadow-xs transition btn-tactile">
+            ${tile.char}
+          </button>
+        `;
+      }).join('');
+    }
+  }
+
+  function placeTeenSpellingTile(tIdx) {
+    const tile = teenSpellTray[tIdx];
+    if (!tile || tile.used) return;
+    const slotIdx = teenSpellSlots.findIndex(s => s === null);
+    if (slotIdx === -1) return;
+    tile.used = true;
+    teenSpellSlots[slotIdx] = { char: tile.char, trayIdx: tIdx };
+    const inputEl = document.getElementById('teenSpellTypedInput');
+    if (inputEl) {
+      inputEl.value = teenSpellSlots.map(s => (s ? s.char : '')).join('');
+    }
+    renderTeenSpellingSlotsAndTray();
+    if (!teenSpellSlots.some(s => s === null)) {
+      submitTeenSpellingBuilder();
+    }
+  }
+
+  function removeTeenSpellingSlot(slotIdx) {
+    const slot = teenSpellSlots[slotIdx];
+    if (!slot) return;
+    if (teenSpellTray[slot.trayIdx]) teenSpellTray[slot.trayIdx].used = false;
+    teenSpellSlots[slotIdx] = null;
+    const inputEl = document.getElementById('teenSpellTypedInput');
+    if (inputEl) {
+      inputEl.value = teenSpellSlots.map(s => (s ? s.char : '')).join('');
+    }
+    renderTeenSpellingSlotsAndTray();
+  }
+
+  function syncTeenSpellingInputToSlots(rawVal) {
+    if (!currentTeenSpellItem) return;
+    const targetLen = currentTeenSpellItem.word.length;
+    const clean = String(rawVal || '').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, targetLen);
+    teenSpellSlots = new Array(targetLen).fill(null);
+    teenSpellTray.forEach(t => { t.used = false; });
+
+    for (let i = 0; i < clean.length; i++) {
+      const ch = clean[i];
+      const tIdx = teenSpellTray.findIndex(t => !t.used && t.char === ch);
+      if (tIdx !== -1) {
+        teenSpellTray[tIdx].used = true;
+        teenSpellSlots[i] = { char: ch, trayIdx: tIdx };
+      } else {
+        teenSpellSlots[i] = { char: ch, trayIdx: -1 };
+      }
+    }
+    renderTeenSpellingSlotsAndTray();
+  }
+
+  function clearTeenSpellingBuilder() {
+    if (!currentTeenSpellItem) return;
+    teenSpellSlots = new Array(currentTeenSpellItem.word.length).fill(null);
+    teenSpellTray.forEach(t => { t.used = false; });
+    const inputEl = document.getElementById('teenSpellTypedInput');
+    if (inputEl) inputEl.value = '';
+    renderTeenSpellingSlotsAndTray();
+  }
+
+  function giveTeenSpellingHint() {
+    if (!currentTeenSpellItem) return;
+    const tipBox = document.getElementById('teenSpellTipBox');
+    if (tipBox) {
+      tipBox.innerText = `💡 Orthography Tip: ${currentTeenSpellItem.tip || currentTeenSpellItem.root}`;
+      tipBox.classList.remove('hidden');
+    }
+    const target = currentTeenSpellItem.word.toUpperCase();
+    for (let i = 0; i < target.length; i++) {
+      if (!teenSpellSlots[i] || teenSpellSlots[i].char !== target[i]) {
+        const ch = target[i];
+        const tIdx = teenSpellTray.findIndex(t => !t.used && t.char === ch);
+        teenSpellSlots[i] = { char: ch, trayIdx: tIdx };
+        if (tIdx !== -1) teenSpellTray[tIdx].used = true;
+        break;
+      }
+    }
+    const inputEl = document.getElementById('teenSpellTypedInput');
+    if (inputEl) {
+      inputEl.value = teenSpellSlots.map(s => (s ? s.char : '')).join('');
+    }
+    renderTeenSpellingSlotsAndTray();
+  }
+
+  function submitTeenSpellingBuilder() {
+    if (!currentTeenSpellItem) return;
+    const inputEl = document.getElementById('teenSpellTypedInput');
+    const typed = (inputEl && inputEl.value.trim().toUpperCase()) || teenSpellSlots.map(s => (s ? s.char : '')).join('');
+    const target = currentTeenSpellItem.word.toUpperCase();
+    const banner = document.getElementById('teenSpellFeedbackBanner');
+
+    if (!typed) {
+      showToast('Type the spelling or click the letter tiles first!');
+      return;
+    }
+
+    const isCorrect = (typed === target);
+    const baseXP = (typeof window.getSectionXP === 'function')
+      ? window.getSectionXP('teen_spelling', currentTeenSpellItem.tier)
+      : 35;
+    const earnedXP = isCorrect ? baseXP : 5;
+
+    const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+      ? window.LuminaDB.getActiveProfile()
+      : null;
+
+    if (typeof window.trackActivity === 'function') {
+      window.trackActivity({
+        type: 'teen_spelling',
+        domain: '13+ SAT & Academic Spelling',
+        title: `Spell: ${target}`,
+        questionId: 'teen_spelling_' + target,
+        isCorrect: isCorrect,
+        xp: earnedXP,
+        durationSec: 12,
+        detail: `${typed} (${isCorrect ? 'Correct' : 'Target: ' + target})`
+      });
+    }
+
+    if (banner) banner.classList.remove('hidden');
+
+    if (isCorrect) {
+      if (p && window.LuminaDB && typeof window.LuminaDB.markQuestionCompleted === 'function') {
+        window.LuminaDB.markQuestionCompleted(p.id, 'teen_spelling_' + target);
+      }
+      if (typeof window.confetti === 'function') {
+        window.confetti({ particleCount: 80, spread: 70, origin: { y: 0.65 } });
+      }
+      if (banner) {
+        banner.className = "p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-emerald-50 text-emerald-900 border-2 border-emerald-300";
+        banner.innerHTML = `
+          <span>✓ Spot On! <strong>${target}</strong> — ${escapeHtml(currentTeenSpellItem.tip || '')} (+${baseXP} XP)</span>
+          <button onclick="nextTeenSpellingWord()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition">Next Word →</button>
+        `;
+      }
+    } else {
+      const tipBox = document.getElementById('teenSpellTipBox');
+      if (tipBox) {
+        tipBox.innerText = `💡 Orthography Tip: ${currentTeenSpellItem.tip || currentTeenSpellItem.root}`;
+        tipBox.classList.remove('hidden');
+      }
+      if (banner) {
+        banner.className = "p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-rose-50 text-rose-900 border-2 border-rose-200";
+        banner.innerHTML = `
+          <span>✗ You entered <strong>${escapeHtml(typed)}</strong>. Check the Orthography Tip above and try again!</span>
+        `;
+      }
+    }
+  }
+
+  function nextTeenSpellingWord() {
+    loadNextTeenSpellingBuilderRound();
+  }
+
+  function renderTeenSpellingQuizRound() {
+    const uncompleted = getFilteredTeenSpellingWords(true);
+    const allInTier = getFilteredTeenSpellingWords(false);
+    const pool = uncompleted.length > 0 ? uncompleted : allInTier;
+    if (pool.length === 0) {
+      const banner = document.getElementById('teenSpellQuizBanner');
+      if (banner) {
+        banner.className = "p-4 rounded-2xl bg-amber-50 text-amber-900 border border-amber-200 text-xs sm:text-sm font-bold text-center";
+        banner.innerText = "No words found in this tier. Switch to 'All Words' to continue!";
+        banner.classList.remove('hidden');
+      }
+      return;
+    }
+
+    const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+      ? window.LuminaDB.getActiveProfile()
+      : null;
+    const item = (typeof window.getNextFromDeck === 'function')
+      ? window.getNextFromDeck('teen_spell_quiz_' + (p ? p.id : 'teen') + '_' + teenSpellingTier, pool, i => i.word)
+      : pool[Math.floor(Math.random() * pool.length)];
+
+    currentTeenSpellItem = item;
+    const correctWord = item.word.toUpperCase();
+    const wrongs = makeTeenMisspellings(correctWord);
+    const choices = [correctWord, ...wrongs].sort(() => Math.random() - 0.5);
+    const correctIdx = choices.indexOf(correctWord);
+
+    const rootEl = document.getElementById('teenSpellQuizRoot');
+    if (rootEl) rootEl.innerText = `Etymology: ${item.root || 'Academic Vocabulary'}`;
+
+    const promptEl = document.getElementById('teenSpellQuizPrompt');
+    if (promptEl) promptEl.innerText = `Select the standard orthography for: "${item.meaning}"`;
+
+    const sentEl = document.getElementById('teenSpellQuizSentence');
+    if (sentEl) {
+      const regex = new RegExp(item.word, 'gi');
+      sentEl.innerText = `"${(item.sentence || '').replace(regex, '___________')}"`;
+    }
+
+    const banner = document.getElementById('teenSpellQuizBanner');
+    if (banner) banner.classList.add('hidden');
+
+    const choicesEl = document.getElementById('teenSpellQuizChoices');
+    if (choicesEl) {
+      choicesEl.innerHTML = choices.map((c, idx) => `
+        <button onclick="checkTeenSpellingQuiz(${idx}, ${correctIdx})" class="p-4 sm:p-5 rounded-2xl border-2 border-slate-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/50 text-left font-mono font-extrabold text-sm sm:text-base tracking-wider text-slate-900 transition shadow-xs">
+          <span class="inline-block w-6 h-6 rounded-lg bg-slate-100 text-slate-600 text-xs text-center leading-6 mr-2">${['A', 'B', 'C', 'D'][idx]}</span>
+          ${escapeHtml(c)}
+        </button>
+      `).join('');
+    }
+  }
+
+  function checkTeenSpellingQuiz(chosenIdx, correctIdx) {
+    if (!currentTeenSpellItem) return;
+    const isCorrect = (chosenIdx === correctIdx);
+    const target = currentTeenSpellItem.word.toUpperCase();
+    const baseXP = (typeof window.getSectionXP === 'function')
+      ? window.getSectionXP('teen_spelling', currentTeenSpellItem.tier)
+      : 35;
+    const earnedXP = isCorrect ? baseXP : 5;
+
+    const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
+      ? window.LuminaDB.getActiveProfile()
+      : null;
+
+    if (typeof window.trackActivity === 'function') {
+      window.trackActivity({
+        type: 'teen_spelling_quiz',
+        domain: '13+ SAT & Academic Spelling',
+        title: `Spelling Quiz: ${target}`,
+        questionId: 'teen_spelling_' + target,
+        isCorrect: isCorrect,
+        xp: earnedXP,
+        durationSec: 10
+      });
+    }
+
+    const banner = document.getElementById('teenSpellQuizBanner');
+    if (banner) banner.classList.remove('hidden');
+
+    if (isCorrect) {
+      if (p && window.LuminaDB && typeof window.LuminaDB.markQuestionCompleted === 'function') {
+        window.LuminaDB.markQuestionCompleted(p.id, 'teen_spelling_' + target);
+      }
+      if (typeof window.confetti === 'function') {
+        window.confetti({ particleCount: 70, spread: 65, origin: { y: 0.7 } });
+      }
+      if (banner) {
+        banner.className = "p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-emerald-50 text-emerald-900 border border-emerald-300";
+        banner.innerHTML = `
+          <span>🎉 Correct! <strong>${target}</strong> — ${escapeHtml(currentTeenSpellItem.tip || '')} (+${baseXP} XP)</span>
+          <button onclick="renderTeenSpellingQuizRound()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition">Next Question →</button>
+        `;
+      }
+    } else {
+      if (banner) {
+        banner.className = "p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-rose-50 text-rose-900 border border-rose-200";
+        banner.innerHTML = `
+          <span>Not quite! Tip: ${escapeHtml(currentTeenSpellItem.tip || currentTeenSpellItem.root)}</span>
+        `;
+      }
+    }
+  }
+
+  function renderTeenSpellingFlashcard() {
+    const list = getFilteredTeenSpellingWords(false);
+    if (list.length === 0) {
+      const wEl = document.getElementById('teenSpellCardWord');
+      if (wEl) wEl.innerText = 'NO WORDS';
+      const mEl = document.getElementById('teenSpellCardMeaning');
+      if (mEl) mEl.innerText = 'No words found in this tier. Switch to "All Words" to explore!';
+      return;
+    }
+    const item = list[teenSpellCardIdx % list.length];
+    currentTeenSpellItem = item;
+
+    const flipCard = document.getElementById('teenSpellFlipCard');
+    if (flipCard) flipCard.classList.remove('flipped');
+
+    const counter = document.getElementById('teenSpellCardCounter');
+    if (counter) counter.innerText = `${(teenSpellCardIdx % list.length) + 1} / ${list.length}`;
+
+    const wEl = document.getElementById('teenSpellCardWord');
+    if (wEl) wEl.innerText = item.word.toUpperCase();
+
+    const rEl = document.getElementById('teenSpellCardRoot');
+    if (rEl) rEl.innerText = item.root || '';
+
+    const mEl = document.getElementById('teenSpellCardMeaning');
+    if (mEl) mEl.innerText = item.meaning || '';
+
+    const tEl = document.getElementById('teenSpellCardTip');
+    if (tEl) tEl.innerText = `💡 ${item.tip || ''}`;
+
+    const sEl = document.getElementById('teenSpellCardSentence');
+    if (sEl) sEl.innerText = `"${item.sentence || ''}"`;
+  }
+
+  function stepTeenSpellingCard(delta) {
+    const list = getFilteredTeenSpellingWords(false);
+    if (list.length === 0) return;
+    teenSpellCardIdx = (teenSpellCardIdx + delta + list.length) % list.length;
+    renderTeenSpellingFlashcard();
+    speakTeenSpellingWord();
+  }
+
+  function speakTeenSpellingWord() {
+    if (currentTeenSpellItem && typeof window.speakNativeAudio === 'function') {
+      window.speakNativeAudio(currentTeenSpellItem.word, 'en-US');
+    }
+  }
+
+  function speakTeenSpellingSentence() {
+    if (currentTeenSpellItem && typeof window.speakNativeAudio === 'function') {
+      window.speakNativeAudio(`${currentTeenSpellItem.word}. ${currentTeenSpellItem.sentence || currentTeenSpellItem.meaning}`, 'en-US');
+    }
+  }
+
   window.openTeenTab = openTeenTab;
   window.renderSubNavForTeen = renderSubNavForTeen;
   window.renderTeenDashboard = renderTeenDashboard;
@@ -1159,4 +1694,19 @@
   window.speakTeenQuizPrompt = speakTeenQuizPrompt;
   window.checkTeenLangQuiz = checkTeenLangQuiz;
   window.nextTeenLangQuizQuestion = nextTeenLangQuizQuestion;
+  window.setTeenSpellingTier = setTeenSpellingTier;
+  window.setTeenSpellingMode = setTeenSpellingMode;
+  window.renderTeenSpellingStudio = renderTeenSpellingStudio;
+  window.placeTeenSpellingTile = placeTeenSpellingTile;
+  window.removeTeenSpellingSlot = removeTeenSpellingSlot;
+  window.syncTeenSpellingInputToSlots = syncTeenSpellingInputToSlots;
+  window.clearTeenSpellingBuilder = clearTeenSpellingBuilder;
+  window.giveTeenSpellingHint = giveTeenSpellingHint;
+  window.submitTeenSpellingBuilder = submitTeenSpellingBuilder;
+  window.nextTeenSpellingWord = nextTeenSpellingWord;
+  window.renderTeenSpellingQuizRound = renderTeenSpellingQuizRound;
+  window.checkTeenSpellingQuiz = checkTeenSpellingQuiz;
+  window.stepTeenSpellingCard = stepTeenSpellingCard;
+  window.speakTeenSpellingWord = speakTeenSpellingWord;
+  window.speakTeenSpellingSentence = speakTeenSpellingSentence;
 })(window);

@@ -16,136 +16,16 @@
   let spellingHintRevealed = false;
   let spellingLengthFilter = '3'; // '3' | '4' | '5' | '6' | 'big' (7+) | 'all'
 
-  // Expanded 120+ spelling words across 3, 4, 5, 6, and 7+ letters: [WORD, emoji, kid-friendly clue]
-  const SHORT_SPELLING_WORDS = [
-    // 3 letters (45 words)
-    ['CAT', '🐱', 'A furry pet that says meow!'], ['DOG', '🐶', 'A friendly pet that barks and wags its tail!'],
-    ['SUN', '☀️', 'The big bright star that gives us daylight!'], ['HAT', '🎩', 'You wear it on your head!'],
-    ['BUS', '🚌', 'A big vehicle that takes kids to school!'], ['PIG', '🐷', 'A pink farm animal that says oink!'],
-    ['CUP', '☕', 'You drink from it!'], ['BED', '🛏️', 'Where you sleep at night!'],
-    ['BAT', '🦇', 'An animal that flies at night!'], ['COW', '🐄', 'A farm animal that gives us milk!'],
-    ['FOX', '🦊', 'A clever orange animal with a bushy tail!'], ['BEE', '🐝', 'A buzzing insect that makes honey!'],
-    ['EGG', '🥚', 'Hens lay it, and chicks hatch from it!'], ['KEY', '🔑', 'It opens a lock!'],
-    ['MAP', '🗺️', 'It shows you where places are!'], ['PEN', '🖊️', 'You write with ink using it!'],
-    ['BOX', '📦', 'You can pack things inside it!'], ['ANT', '🐜', 'A tiny insect that works very hard!'],
-    ['OWL', '🦉', 'A wise bird that hoots at night!'], ['CAR', '🚗', 'It has four wheels and you ride in it!'],
-    ['BUG', '🐞', 'A little crawling or flying insect!'], ['JAM', '🍓', 'Sweet fruit spread you put on toast!'],
-    ['NET', '🥅', 'Used to catch fish or score a goal!'], ['RUG', '🧶', 'A soft mat on the floor!'],
-    ['TOP', '陀', 'A toy that spins round and round!'], ['VAN', '🚐', 'A boxy vehicle that carries people or cargo!'],
-    ['WEB', '🕸️', 'What a spider spins to catch flies!'], ['ZIP', '🤐', 'To close up a jacket fast!'],
-    ['JET', '✈️', 'A super fast airplane in the sky!'], ['FAN', '🪭', 'It blows cool air on a warm day!'],
-    ['MOP', '🧹', 'Used to clean spills off the floor!'], ['POT', '🍲', 'Used for cooking yummy soup on the stove!'],
-    ['PIN', '🧷', 'A small metal fastener!'], ['LID', '🫙', 'The cover that closes a jar or pot!'],
-    ['LOG', '🪵', 'A thick cut piece of wood from a tree!'], ['HEN', '🐔', 'A mother chicken that clucks and lays eggs!'],
-    ['TUB', '🛁', 'Where you take a bubbly warm bath!'], ['NUT', '🥜', 'A crunchy little snack squirrels love!'],
-    ['CUB', '🐻', 'A cute little baby bear or tiger!'], ['MUG', '☕', 'A cup with a handle for hot cocoa!'],
-    ['PAN', '🍳', 'You fry eggs and pancakes in it!'], ['LIP', '👄', 'One of the soft edges of your mouth!'],
-    ['DOT', '🔴', 'A small round spot!'], ['BOW', '🎀', 'A pretty knot of ribbon!'],
-    ['FOG', '🌫️', 'A thick low cloud that makes it hard to see!'],
-    // 4 letters (45 words)
-    ['FISH', '🐟', 'It swims in water and has fins!'], ['BIRD', '🐦', 'It has feathers and can fly!'],
-    ['CAKE', '🎂', 'A sweet treat for birthdays!'], ['BOOK', '📖', 'You read stories in it!'],
-    ['TREE', '🌳', 'A tall plant with leaves and branches!'], ['MOON', '🌙', 'It shines in the night sky!'],
-    ['STAR', '⭐', 'It twinkles in the night sky!'], ['FROG', '🐸', 'A green animal that hops and says ribbit!'],
-    ['DUCK', '🦆', 'A bird that swims and says quack!'], ['BEAR', '🐻', 'A big furry animal that loves honey!'],
-    ['LION', '🦁', 'The king of the jungle that roars!'], ['BALL', '⚽', 'You kick it or throw it to play!'],
-    ['MILK', '🥛', 'A white drink that makes bones strong!'], ['SHIP', '🚢', 'A huge boat that sails the sea!'],
-    ['KITE', '🪁', 'It flies high in the wind on a string!'], ['RAIN', '🌧️', 'Water drops falling from clouds!'],
-    ['CORN', '🌽', 'A yellow vegetable on a cob!'], ['DRUM', '🥁', 'You bang it to make music!'],
-    ['HAND', '✋', 'It has five fingers!'], ['BOAT', '⛵', 'It floats on water!'],
-    ['BELL', '🔔', 'It rings with a ding-dong sound!'], ['COAT', '🧥', 'You wear it to stay warm outside!'],
-    ['DEER', '🦌', 'A gentle forest animal with antlers!'], ['FIRE', '🔥', 'It is hot and gives light and warmth!'],
-    ['GOAT', '🐐', 'A farm animal with horns that climbs hills!'], ['KING', '🤴', 'A royal ruler who wears a crown!'],
-    ['LEAF', '🍃', 'A green part that grows on a tree branch!'], ['NEST', '🪺', 'A cozy home a bird builds for its eggs!'],
-    ['RING', '💍', 'A little circle of metal worn on a finger!'], ['SNOW', '❄️', 'Soft white flakes that fall in winter!'],
-    ['DOOR', '🚪', 'You open it to walk into a room!'], ['WIND', '💨', 'Moving air you feel outside!'],
-    ['SAND', '🏖️', 'Tiny soft grains on the beach!'], ['PARK', '🏞️', 'A green place where kids play on swings!'],
-    ['SEAL', '🦭', 'A playful sea animal that claps its flippers!'], ['LAMB', '🐑', 'A gentle baby sheep with white wool!'],
-    ['CRAB', '🦀', 'A sea creature with pincers that walks sideways!'], ['PEAR', '🍐', 'A sweet and juicy green fruit!'],
-    ['GOLD', '🪙', 'A shiny yellow precious metal!'], ['ROSE', '🌹', 'A pretty red flower with a sweet smell!'],
-    ['BABY', '👶', 'A tiny newborn person!'], ['WOLF', '🐺', 'A wild dog that howls at the full moon!'],
-    ['SOUP', '🥣', 'A warm bowl of broth and veggies!'], ['SOCK', '🧦', 'You wear it on your foot inside your shoe!'],
-    ['TENT', '⛺', 'A portable shelter you sleep in while camping!'],
-    // 5 letters (45 words)
-    ['APPLE', '🍎', 'A crunchy red or green fruit!'], ['HOUSE', '🏠', 'The place where a family lives!'],
-    ['TRAIN', '🚆', 'It runs on tracks and goes choo-choo!'], ['HORSE', '🐴', 'An animal you can ride that says neigh!'],
-    ['MOUSE', '🐭', 'A tiny animal that squeaks!'], ['TIGER', '🐯', 'A big orange cat with black stripes!'],
-    ['ZEBRA', '🦓', 'A horse-like animal with black and white stripes!'], ['SNAKE', '🐍', 'A long animal with no legs that hisses!'],
-    ['CLOUD', '☁️', 'A fluffy white shape in the sky!'], ['PIZZA', '🍕', 'A cheesy round food cut into slices!'],
-    ['LEMON', '🍋', 'A sour yellow fruit!'], ['GRAPE', '🍇', 'A small round fruit that grows in bunches!'],
-    ['CHAIR', '🪑', 'You sit on it!'], ['CLOCK', '⏰', 'It tells you the time!'],
-    ['PLANT', '🪴', 'It grows in soil and needs water!'], ['WATER', '💧', 'You drink it when you are thirsty!'],
-    ['BREAD', '🍞', 'You make sandwiches with it!'], ['SHEEP', '🐑', 'A woolly farm animal that says baa!'],
-    ['TRUCK', '🚚', 'A big vehicle that carries heavy things!'], ['SMILE', '😊', 'What your face does when you are happy!'],
-    ['BEACH', '🏖️', 'A sandy shore right by the ocean!'], ['BRUSH', '🪥', 'You use it to clean your teeth or paint!'],
-    ['CROWN', '👑', 'A golden hat worn by a king or queen!'], ['EARTH', '🌍', 'The blue and green planet we live on!'],
-    ['HEART', '❤️', 'It beats inside your chest and means love!'], ['KOALA', '🐨', 'A cute Australian animal that hugs eucalyptus trees!'],
-    ['PANDA', '🐼', 'A black and white bear that munches bamboo!'], ['QUEEN', '👸', 'A royal lady who wears a crown!'],
-    ['SHARK', '🦈', 'A big ocean fish with sharp teeth!'], ['WHALE', '🐋', 'The biggest animal in the ocean!'],
-    ['RIVER', '🏞️', 'A wide stream of fresh water flowing to the sea!'], ['GRASS', '🌱', 'The green plant carpet covering lawns and meadows!'],
-    ['CHEST', '📦', 'A treasure box or the front of your body!'], ['GHOST', '👻', 'A spooky, friendly sheet that says boo!'],
-    ['FLUTE', '🪈', 'A long thin musical pipe you blow into!'], ['PIANO', '🎹', 'An instrument with black and white keys!'],
-    ['BERRY', '🫐', 'A small sweet juicy fruit like a blueberry!'], ['CHICK', '🐥', 'A fluffy yellow baby bird!'],
-    ['STAMP', '📮', 'A little sticker you put on a letter to mail it!'], ['SPOON', '🥄', 'You eat soup and cereal with it!'],
-    ['STORM', '⛈️', 'Thunder, lightning, and heavy rain!'], ['TOWEL', '🧖', 'Used to dry yourself after a swim or bath!'],
-    ['SKATE', '🛼', 'A boot with wheels or a blade on the bottom!'], ['IGLOO', '🧊', 'A dome house built of snow blocks!'],
-    ['CANDY', '🍬', 'A sweet sugary treat!'],
-    // 6 letters (45 words)
-    ['ORANGE', '🍊', 'A round juicy fruit, and also a color!'], ['RABBIT', '🐰', 'A fluffy animal with long ears that hops!'],
-    ['MONKEY', '🐒', 'A playful animal that swings in trees!'], ['TURTLE', '🐢', 'A slow animal that carries its shell!'],
-    ['PENCIL', '✏️', 'You write and draw with it, and can erase!'], ['FLOWER', '🌸', 'A pretty, colorful part of a plant!'],
-    ['BANANA', '🍌', 'A long yellow fruit monkeys love!'], ['CARROT', '🥕', 'An orange vegetable bunnies love!'],
-    ['ROCKET', '🚀', 'It blasts off into space!'], ['CASTLE', '🏰', 'A big stone home for kings and queens!'],
-    ['SPIDER', '🕷️', 'It has eight legs and spins a web!'], ['PURPLE', '🟣', 'The color you get mixing red and blue!'],
-    ['CHEESE', '🧀', 'A yellow food made from milk!'], ['BUTTON', '🔘', 'It keeps your shirt closed!'],
-    ['GARDEN', '🌻', 'A place where flowers and vegetables grow!'], ['WINDOW', '🪟', 'You look outside through it!'],
-    ['BRIDGE', '🌉', 'It helps you cross over a river!'], ['PARROT', '🦜', 'A colorful bird that can talk!'],
-    ['TOMATO', '🍅', 'A red juicy fruit used in ketchup!'], ['COOKIE', '🍪', 'A sweet round baked treat!'],
-    ['BASKET', '🧺', 'A woven container for carrying picnic food!'], ['CANDLE', '🕯️', 'A wax stick with a wick that glows when lit!'],
-    ['DOCTOR', '🩺', 'A helper who takes care of you when you are sick!'], ['DRAGON', '🐉', 'A fairy-tale creature with wings that breathes fire!'],
-    ['FINGER', '☝️', 'One of the five parts on your hand!'], ['GUITAR', '🎸', 'A musical instrument with strings you strum!'],
-    ['JACKET', '🧥', 'A short coat you wear in cool weather!'], ['PLANET', '🪐', 'A large world that orbits around a star!'],
-    ['TROPHY', '🏆', 'A shiny cup you win for doing your best!'], ['YELLOW', '💛', 'The bright color of lemons and the sun!'],
-    ['SILVER', '🥈', 'A shiny grayish-white metal second to gold!'], ['FOREST', '🌲', 'A large area dense with tall trees!'],
-    ['PIGEON', '🐦', 'A friendly city bird that pecks at bread crumbs!'], ['CHERRY', '🍒', 'A small round bright red fruit with a stem!'],
-    ['KITTEN', '🐱', 'A playful little baby cat that purrs!'], ['MAGNET', '🧲', 'A piece of metal that attracts iron objects!'],
-    ['PUPPET', '🧸', 'A doll moved by hand strings or fingers!'], ['WIZARD', '🧙', 'A magical person with a wand and starry hat!'],
-    ['CIRCUS', '🎪', 'A big show with acrobats and clowns in a giant tent!'], ['DONKEY', '🫏', 'A hardworking animal with long ears that brays hee-haw!'],
-    ['PARCEL', '📦', 'A wrapped package delivered in the mail!'], ['CRAYON', '🖍️', 'A stick of colored wax used for coloring!'],
-    ['ROBOTS', '🤖', 'Smart mechanical machines that follow computer code!'], ['ISLAND', '🏝️', 'A piece of land surrounded by water on all sides!'],
-    ['SAFARI', '🦁', 'An expedition to observe wild animals in their habitat!'],
-    // 7+ letters (30 big words)
-    ['TEACHER', '👩‍🏫', 'Someone who helps students learn at school!'],
-    ['AIRPLANE', '🛩️', 'A flying machine with wings that carries passengers!'],
-    ['SANDWICH', '🥪', 'Two slices of bread with yummy filling in between!'],
-    ['BACKPACK', '🎒', 'A bag you wear on your back to carry books!'],
-    ['SNOWFLAKE', '❄️', 'A six-sided ice crystal falling from winter clouds!'],
-    ['PINEAPPLE', '🍍', 'A tropical fruit with a spiky crown and sweet yellow inside!'],
-    ['STRAWBERRY', '🍓', 'A sweet red berry with tiny seeds on the outside!'],
-    ['WATERMELON', '🍉', 'A giant green fruit that is pink and juicy inside!'],
-    ['CATERPILLAR', '🐛', 'A hungry little larva that turns into a butterfly!'],
-    ['FIRETRUCK', '🚒', 'A bright red truck that firefighters drive!'],
-    ['DOLPHIN', '🐬', 'A friendly, smart sea mammal that leaps from waves!'],
-    ['OCTOPUS', '🐙', 'An ocean animal with eight flexible arms!'],
-    ['HAMBURGER', '🍔', 'A round patty inside a toasted bun with lettuce!'],
-    ['SUNFLOWER', '🌻', 'A tall yellow flower that turns towards the sun!'],
-    ['BUTTERFLY', '🦋', 'A delicate winged insect with vibrant colors!'],
-    ['CROCODILE', '🐊', 'A large reptile with sharp teeth that swims in rivers!'],
-    ['HELICOPTER', '🚁', 'An aircraft with spinning blades on top!'],
-    ['TELESCOPE', '🔭', 'An instrument that lets you see far-away stars and planets!'],
-    ['MOUNTAIN', '⛰️', 'A giant landform that rises high into the clouds!'],
-    ['SUBMARINE', '🚢', 'A naval ship that travels deep underwater!'],
-    ['KANGAROO', '🦘', 'An Australian animal that carries its joey in a pouch!'],
-    ['FLAMINGO', '🦩', 'A tall pink wading bird that balances on one leg!'],
-    ['DINOSAUR', '🦕', 'Prehistoric creatures that lived millions of years ago!'],
-    ['ASTRONAUT', '👨‍🚀', 'A brave explorer who travels in outer space!'],
-    ['LIGHTNING', '⚡', 'A giant electric flash that streaks across stormy skies!']
-  ].map(([w, emoji, clue]) => ({
-    emoji,
-    primary: w.split('').join(' - '),
-    meaning: `${w} • ${clue}`,
-    speech: `${w.charAt(0) + w.slice(1).toLowerCase()}. ${w.split('').join(', ')}.`
-  }));
+  // Spelling words loaded externally from data/spelling.json (via js/seed-data.js)
+  function getShortSpellingWords() {
+    const raw = window.SHORT_SPELLING_WORDS_RAW || [];
+    return raw.map(([w, emoji, clue]) => ({
+      emoji,
+      primary: w.split('').join(' - '),
+      meaning: `${w} • ${clue}`,
+      speech: `${w.charAt(0) + w.slice(1).toLowerCase()}. ${w.split('').join(', ')}.`
+    }));
+  }
 
   function spellingWordOf(item) {
     return (item.primary || '').replace(/[^A-Za-z]/g, '').toUpperCase();
@@ -182,7 +62,7 @@
     const pack = window.multiLangData && window.multiLangData.spelling;
     const base = (pack && pack.kidItems) || [];
     const seen = new Set(base.map(spellingWordOf));
-    SHORT_SPELLING_WORDS.forEach(item => {
+    getShortSpellingWords().forEach(item => {
       const w = spellingWordOf(item);
       if (!seen.has(w)) {
         seen.add(w);

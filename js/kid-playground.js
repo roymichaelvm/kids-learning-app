@@ -453,12 +453,24 @@
   }
 
   function renderKidFlashcard() {
-    const pack = window.multiLangData[window.appData.kidCategory];
+    const pack = window.multiLangData && window.multiLangData[window.appData.kidCategory];
     const items = getActiveKidItemList();
-    const item = items[kidCardIdx % items.length];
+    if (!items || items.length === 0) {
+      const emojiEl = document.getElementById('kidCardEmoji');
+      if (emojiEl) emojiEl.innerText = '🌱';
+      const primEl = document.getElementById('kidCardPrimaryText');
+      if (primEl) primEl.innerText = 'Deck Ready';
+      const meanEl = document.getElementById('kidCardMeaningText');
+      if (meanEl) meanEl.innerText = 'Select a category above to start exploring flashcards!';
+      const progEl = document.getElementById('kidCardProgressText');
+      if (progEl) progEl.innerText = '0 of 0';
+      return;
+    }
+    const item = items[kidCardIdx % items.length] || items[0];
+    if (!item) return;
 
     const badgeEl = document.getElementById('kidLeftBadgeText');
-    if (badgeEl) {
+    if (badgeEl && pack) {
       if (kidSubMode === 'letters') {
         badgeEl.innerText = `🔤 ${pack.label} Letter Sound (Tap to Hear!)`;
       } else if (kidSubMode === 'sentences') {
@@ -467,21 +479,26 @@
         badgeEl.innerText = pack.cloudDomain ? `📚 ${pack.label} Study Card (Tap to Hear!)` : '🔊 Tap Picture to Hear!';
       }
     }
-    document.getElementById('kidCardProgressText').innerText = `Card ${(kidCardIdx % items.length) + 1} of ${items.length}`;
-    document.getElementById('kidCardEmoji').innerText = item.emoji;
-    document.getElementById('kidCardPrimaryText').innerText = item.primary;
-    document.getElementById('kidCardMeaningText').innerText = item.meaning;
+    const progTextEl = document.getElementById('kidCardProgressText');
+    if (progTextEl) progTextEl.innerText = `Card ${(kidCardIdx % items.length) + 1} of ${items.length}`;
+    const emojiEl = document.getElementById('kidCardEmoji');
+    if (emojiEl) emojiEl.innerText = item.emoji || '🌟';
+    const primTextEl = document.getElementById('kidCardPrimaryText');
+    if (primTextEl) primTextEl.innerText = item.primary || '';
+    const meanTextEl = document.getElementById('kidCardMeaningText');
+    if (meanTextEl) meanTextEl.innerText = item.meaning || '';
   }
 
   function stepKidCard(delta) {
-    const pack = window.multiLangData[window.appData.kidCategory];
+    const pack = window.multiLangData && window.multiLangData[window.appData.kidCategory];
     const items = getActiveKidItemList();
+    if (!items || items.length === 0) return;
     kidCardIdx = (kidCardIdx + delta + items.length) % items.length;
-    if (window.LuminaDB && typeof window.LuminaDB.recordActivity === 'function') {
+    if (window.LuminaDB && typeof window.LuminaDB.recordActivity === 'function' && items[kidCardIdx]) {
       window.LuminaDB.recordActivity({
         type: 'flashcard',
         isQuestion: false,
-        domain: pack.label,
+        domain: (pack && pack.label) || 'Learning',
         title: items[kidCardIdx].primary,
         xp: 3,
         durationSec: 4
@@ -493,11 +510,13 @@
   }
 
   function speakKidCurrentCard() {
-    const pack = window.multiLangData[window.appData.kidCategory];
+    const pack = window.multiLangData && window.multiLangData[window.appData.kidCategory];
     const items = getActiveKidItemList();
-    const item = items[kidCardIdx % items.length];
+    if (!items || items.length === 0) return;
+    const item = items[kidCardIdx % items.length] || items[0];
+    if (!item) return;
     if (typeof window.speakNativeAudio === 'function') {
-      window.speakNativeAudio(item.speech || item.primary, pack.langCode);
+      window.speakNativeAudio(item.speech || item.primary, (pack && pack.langCode) || 'en-US');
     }
   }
 
@@ -718,10 +737,19 @@
     }
 
     const targetPool = uncompletedItems.length > 0 ? uncompletedItems : items;
+    if (!targetPool || targetPool.length === 0) {
+      if (grid) {
+        grid.className = "flex justify-center mt-4";
+        grid.innerHTML = `<div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm font-bold text-center">Ready to play! Select a category above to start.</div>`;
+      }
+      return;
+    }
     // Zero-repeat target selection from uncompleted pool!
     const target = (typeof window.getNextFromDeck === 'function')
       ? window.getNextFromDeck('kid_target_' + (p ? p.id : 'default') + '_' + window.appData.kidCategory + '_' + kidSubMode, targetPool, i => i.primary)
       : targetPool[Math.floor(Math.random() * targetPool.length)];
+
+    if (!target) return;
 
     currentKidQuizAnswer = target;
     const isLangPack = (window.appData.kidCategory === 'malayalam' || window.appData.kidCategory === 'hindi' || window.appData.kidCategory === 'spanish');

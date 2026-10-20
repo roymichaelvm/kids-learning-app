@@ -1,8 +1,9 @@
-# Keep Parent Admin Studio, Admin Auth Credentials, Question JSON files & Local Scripts strictly local (never pushed to public repo)
+# Keep Parent Admin Studio, Admin Auth Credentials & Local Scripts strictly local (never pushed to public repo)
 admin.html
 admin-secret.js
 firebase-config.js
 .env*
 SAT.json
 *.json
+!data/*.json
 scripts/
