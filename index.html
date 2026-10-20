@@ -31,6 +31,18 @@
   <script src="firebase-db.js"></script>
 
   <script>
+    (function () {
+      const saved = localStorage.getItem('lumina_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
+
+  <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -101,14 +113,23 @@
     .tile-shake-anim {
       animation: tileShake 0.4s ease-in-out;
     }
+
+    @keyframes pinShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .animate-shake {
+      animation: pinShake 0.35s ease-in-out;
+    }
   </style>
 </head>
-<body id="appBody" class="bg-[#F8FAFC] text-slate-900 min-h-screen flex flex-col font-sans transition-colors duration-300">
+<body id="appBody" class="bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
 
   <!-- =====================================================================
        TOP HEADER & MULTI-PROFILE COCKPIT
        ===================================================================== -->
-  <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200/80 shadow-xs">
+  <header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
       
       <!-- Brand & Mode Pill -->
@@ -118,8 +139,8 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-extrabold text-lg tracking-tight text-slate-900">Lumina</span>
-            <span id="activeModeBadge" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+            <span class="font-extrabold text-lg tracking-tight text-slate-900 dark:text-slate-100">Lumina</span>
+            <span id="activeModeBadge" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800">
               🎓 Teen Scholar
             </span>
           </div>
@@ -131,40 +152,58 @@
       <div class="flex items-center gap-2 sm:gap-3">
         
         <!-- Total Questions Bank Counter -->
-        <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs font-semibold text-slate-600" title="Total SAT & Language Questions in Question Bank">
+        <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300" title="Total SAT & Language Questions in Question Bank">
           <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-500"></i>
-          <span id="totalQuestionsCounter" class="font-bold text-slate-800">0</span>
+          <span id="totalQuestionsCounter" class="font-bold text-slate-800 dark:text-slate-100">0</span>
           <span class="text-slate-400">Questions</span>
         </div>
 
         <!-- Streak Pill -->
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold shadow-xs" title="Daily study streak">
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold shadow-xs" title="Daily study streak">
           <span class="text-sm">🔥</span>
           <span id="headerStreakCount">0</span>
-          <span class="hidden sm:inline font-semibold text-amber-700">days</span>
+          <span class="hidden sm:inline font-semibold text-amber-700 dark:text-amber-300">days</span>
         </div>
 
         <!-- XP Pill -->
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-bold shadow-xs" title="Total experience points">
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 text-xs font-bold shadow-xs" title="Total experience points">
           <span class="text-sm">⚡</span>
           <span id="headerXPCount">0</span>
-          <span class="hidden sm:inline font-semibold text-indigo-700">XP</span>
+          <span class="hidden sm:inline font-semibold text-indigo-700 dark:text-indigo-300">XP</span>
         </div>
 
+        <!-- Rewards Bazaar & Cash Allowance Pill -->
+        <button onclick="openRewardsModal()" id="headerRewardsPill" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs font-bold shadow-xs cursor-pointer btn-tactile" title="XP Rewards Bazaar & Cash Allowance">
+          <span class="text-sm">🎁</span>
+          <span id="headerRewardsCashText" class="font-black text-emerald-700 dark:text-emerald-300">$0.00</span>
+          <span class="hidden md:inline font-semibold text-emerald-600 dark:text-emerald-400">Rewards</span>
+        </button>
+
+        <!-- Family Leaderboard Button -->
+        <button onclick="openLeaderboardModal()" id="headerLeaderboardBtn" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-200 text-xs font-bold shadow-xs cursor-pointer btn-tactile" title="Family Leaderboard & Trophy Room">
+          <span class="text-sm">🏆</span>
+          <span class="hidden sm:inline font-bold text-purple-700 dark:text-purple-300">Rankings</span>
+        </button>
+
+        <!-- Dark / Light Theme Switcher Button -->
+        <button onclick="toggleTheme()" class="theme-toggle-btn p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-amber-300 transition cursor-pointer btn-tactile" title="Toggle Light / Dark Mode">
+          <span class="theme-toggle-icon text-sm">🌙</span>
+        </button>
+
         <!-- Cloud Firestore Sync Status -->
-        <button onclick="manualCloudSync()" id="cloudStatusPill" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer" title="Cloud Firestore sync status. Tap to force cloud sync.">
+        <button onclick="manualCloudSync()" id="cloudStatusPill" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition cursor-pointer" title="Cloud Firestore sync status. Tap to force cloud sync.">
           <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span id="cloudStatusText" class="hidden sm:inline font-semibold">Firebase Connected</span>
+          <span id="cloudStatusText" class="hidden md:inline font-semibold">Firebase Connected</span>
         </button>
 
         <!-- Family Account Auth Pill -->
-        <button onclick="toggleFamilyAuthModal()" id="familyAuthPill" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer" title="Family Account Login Status">
+        <button onclick="toggleFamilyAuthModal()" id="familyAuthPill" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition cursor-pointer" title="Family Account Login Status">
           <i data-lucide="lock" id="familyAuthIcon" class="w-3.5 h-3.5 text-slate-500"></i>
-          <span id="familyAuthText" class="hidden sm:inline font-semibold">Sign In</span>
+          <span id="familyAuthText" class="hidden md:inline font-semibold">Sign In</span>
         </button>
 
         <!-- Profile Switcher Button -->
-        <button onclick="showProfilePicker()" class="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm btn-tactile">
+        <button onclick="showProfilePicker()" class="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white text-xs font-bold transition shadow-sm btn-tactile cursor-pointer">
           <i data-lucide="users" class="w-3.5 h-3.5 text-amber-300"></i>
           <span>Switch</span>
         </button>
@@ -1003,12 +1042,161 @@
        "WHO'S LEARNING TODAY?" PROFILE PICKER OVERLAY
        ===================================================================== -->
   <div id="profilePickerOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-[32px] max-w-2xl w-full p-8 shadow-2xl text-center animate-fade">
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-kids">Who's learning today? 👋</h2>
-      <p class="text-sm text-slate-500 mt-1">Choose your profile so we save your streak, stars, and daily progress</p>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-8 shadow-2xl text-center animate-fade">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Who's learning today? 👋</h2>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Choose your profile so we save your streak, stars, and daily progress</p>
       <div id="profilePickerGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6"></div>
-      <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center text-xs text-slate-500">
-        <button onclick="hideProfilePicker()" class="font-semibold hover:text-slate-800">Continue as current profile</button>
+      <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center text-xs text-slate-500 dark:text-slate-400">
+        <button onclick="hideProfilePicker()" class="font-semibold hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer">Continue as current profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       PROFILE PIN AUTHENTICATION MODAL (PROTECT PROFILES)
+       ===================================================================== -->
+  <div id="profilePinModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-sm w-full p-6 sm:p-8 shadow-2xl text-center space-y-5 animate-fade">
+      
+      <div class="flex justify-between items-center -mt-2 -mr-2">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Profile Lock</span>
+        <button onclick="closeProfilePinModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+
+      <div>
+        <div id="pinModalProfileAvatar" class="w-20 h-20 rounded-3xl bg-indigo-50 dark:bg-indigo-950/60 border-2 border-indigo-200 dark:border-indigo-800 text-4xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+          👤
+        </div>
+        <h3 class="text-xl font-black text-slate-900 dark:text-slate-100">Enter 4-Digit PIN</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Switching to <span id="pinModalProfileName" class="font-extrabold text-indigo-600 dark:text-indigo-400">Scholar</span></p>
+      </div>
+
+      <!-- 4 PIN Dots -->
+      <div id="pinDotsContainer" class="flex items-center justify-center gap-3 py-2">
+        <div id="pinDot0" class="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 transition-all duration-150"></div>
+        <div id="pinDot1" class="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 transition-all duration-150"></div>
+        <div id="pinDot2" class="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 transition-all duration-150"></div>
+        <div id="pinDot3" class="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 transition-all duration-150"></div>
+      </div>
+
+      <!-- Error message -->
+      <div id="pinModalError" class="hidden text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-xl p-2.5"></div>
+
+      <!-- Keypad -->
+      <div class="grid grid-cols-3 gap-2.5 max-w-[240px] mx-auto">
+        <button type="button" onclick="handlePinInput(1)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">1</button>
+        <button type="button" onclick="handlePinInput(2)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">2</button>
+        <button type="button" onclick="handlePinInput(3)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">3</button>
+        <button type="button" onclick="handlePinInput(4)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">4</button>
+        <button type="button" onclick="handlePinInput(5)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">5</button>
+        <button type="button" onclick="handlePinInput(6)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">6</button>
+        <button type="button" onclick="handlePinInput(7)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">7</button>
+        <button type="button" onclick="handlePinInput(8)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">8</button>
+        <button type="button" onclick="handlePinInput(9)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">9</button>
+        <button type="button" onclick="handlePinClear()" class="h-12 py-2.5 rounded-2xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs transition btn-tactile cursor-pointer">CLR</button>
+        <button type="button" onclick="handlePinInput(0)" class="h-12 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-black text-xl transition btn-tactile cursor-pointer">0</button>
+        <button type="button" onclick="handlePinBackspace()" class="h-12 py-2.5 rounded-2xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 font-black text-lg transition btn-tactile cursor-pointer">⌫</button>
+      </div>
+
+      <p class="text-[11px] text-slate-400 font-medium">Default PIN: 1234 • Master PIN: 0000</p>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       FAMILY LEADERBOARD & TROPHY ROOM MODAL
+       ===================================================================== -->
+  <div id="leaderboardModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto animate-fade">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-300 text-xs font-bold mb-1">
+            <span>🏆</span>
+            <span>Family Champions &amp; Trophy Room</span>
+          </div>
+          <h3 class="text-2xl font-black text-slate-900 dark:text-slate-100">Family Leaderboard</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Celebrate learning milestones! Check total points, streaks, cash allowances, and redeemed prizes.</p>
+        </div>
+        <button onclick="closeLeaderboardModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+
+      <!-- Rankings List -->
+      <div id="leaderboardList" class="space-y-3"></div>
+
+      <!-- Footer Info -->
+      <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+        <span>💡 Points are earned by answering questions and completing tracks daily.</span>
+        <button onclick="closeLeaderboardModal()" class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold transition cursor-pointer">
+          Close Leaderboard
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       REWARDS BAZAAR & CASH REDEMPTION MODAL
+       ===================================================================== -->
+  <div id="rewardsModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto animate-fade">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 text-xs font-bold mb-1">
+            <span>🎁</span>
+            <span>Milestone Prize Shop &amp; Cash Allowance</span>
+          </div>
+          <h3 id="rewardsModalStudentName" class="text-2xl font-black text-slate-900 dark:text-slate-100">Scholar's Prize Bazaar</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Redeem your hard-earned XP for awesome treats, TV time, or real cash allowance!</p>
+        </div>
+        <button onclick="closeRewardsModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+
+      <!-- Student Stats Banner -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 block">Available to Spend</span>
+          <span id="rewardsModalAvailableXP" class="text-2xl font-black text-indigo-700 dark:text-indigo-300">⚡ 0 XP</span>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">Answer questions to earn more</span>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Current Cash Balance</span>
+          <span id="rewardsModalCashBalance" class="text-2xl font-black text-emerald-700 dark:text-emerald-300">$0.00</span>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">Collect from parent at payout</span>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Total XP Redeemed</span>
+          <span id="rewardsModalTotalSpent" class="text-2xl font-black text-slate-700 dark:text-slate-300">⚡ 0 XP</span>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">Lifetime prizes redeemed</span>
+        </div>
+      </div>
+
+      <!-- Milestone Tiers Grid -->
+      <div>
+        <h4 class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+          <span>🎯</span>
+          <span>Choose a Milestone to Redeem</span>
+        </h4>
+        <div id="rewardsTiersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- Redemption History -->
+      <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+        <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+          <span>📜</span>
+          <span>My Redemption History</span>
+        </h4>
+        <div id="rewardsHistoryList" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- Footer -->
+      <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+        <button onclick="closeRewardsModal()" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition cursor-pointer">
+          Close Prize Bazaar
+        </button>
       </div>
     </div>
   </div>

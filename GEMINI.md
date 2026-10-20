@@ -11,7 +11,12 @@
 
 ### 1. HTML Pages
 - **[`index.html`](file:///c:/Users/nikhi/code/kids-learning-app/index.html)** — Student Learning Hub (Teen Scholar 13+ & Little Explorer 6+):
-  - **Header**: Gamification counters (`#totalQuestionsCounter`, `#headerStreakCount`, `#headerXPCount`), Cloud status (`#cloudStatusPill`), Family Auth (`#familyAuthPill`), Profile Switcher (`showProfilePicker()`). *(Note: Parent Portal is intentionally excluded from `index.html`).*
+  - **Header**: Gamification counters (`#totalQuestionsCounter`, `#headerStreakCount`, `#headerXPCount`), Rewards & Cash Balance Pill (`#headerRewardsPill`, `#headerRewardsCashText`), Family Leaderboard (`#headerLeaderboardBtn`), Theme Switcher (`.theme-toggle-btn`), Cloud status (`#cloudStatusPill`), Family Auth (`#familyAuthPill`), Profile Switcher (`showProfilePicker()`). *(Note: Parent Portal is intentionally excluded from `index.html`).*
+  - **Modals & Overlays**:
+    - `#profilePickerOverlay`: "Who's learning today?" selector.
+    - `#profilePinModal`: 4-digit PIN authentication pad preventing students from viewing/editing each other's profiles (default PIN `1234`, master PIN `0000`).
+    - `#leaderboardModal`: Public family leaderboard and trophy room showing total points, current streaks, cash allowances, and recently redeemed prizes.
+    - `#rewardsModal`: XP Rewards Bazaar allowing students to redeem points for treats, screen time, or cash allowance (with automated cash balance accumulation and redemption audit history).
   - **Main Content (`#mainAppContent`)**:
     - `#section-teen-dashboard`: Teen Hero banner, `#teenTopicsBentoGrid`, 14-day streak calendar (`#teenStreakCalendarGrid`), domain mastery (`#teenDomainMasteryList`), and Bluebook second-guess telemetry (`#telemetryTableBody`).
     - `#section-teen-sat`: Digital SAT Bluebook Exam Simulator (split passage/question layout, `#satDomainFilter`, stopwatch `#satStopwatch`, Eliminator tool, `#satExplanationDrawer`).
@@ -21,8 +26,15 @@
       - `#teenSpellingQuizCard`: 4-choice orthography trap quiz.
       - `#teenSpellingFlashcardsCard`: 3D flip flashcards for roots, mnemonics, and context sentences.
     - `#section-kid-playground`: 6+ Little Explorer Playground with 9 categories (`spelling`, `comprehension`, `grammar`, `numbers`, `phonics`, `animals`, `malayalam`, `hindi`, `spanish`), `#kidSectionPractice` (with `#spellingBuilderZone`), and `#kidSectionFlashcards`.
-- **[`parent.html`](file:///c:/Users/nikhi/code/kids-learning-app/parent.html)** — Standalone Parent & Admin Portal (`#section-parent-admin`):
-  - Student Selector (`#adminStudentPillsBar`), Completed Areas Highlight (`#adminCompletedAreasGrid`), All Curriculum Tracks (`#adminAllTracksGrid`), Custom XP Multipliers (`#adminSectionXPGrid`), and Fast Cloud Question Creator (`#adminNewQuestionForm`).
+- **[`parent.html`](file:///c:/Users/nikhi\code\kids-learning-app\parent.html)** — Standalone Parent & Admin Portal (`#section-parent-admin`):
+  - Student Selector (`#adminStudentPillsBar`), Completed Areas Highlight (`#adminCompletedAreasGrid`), All Curriculum Tracks (`#adminAllTracksGrid`), Custom XP Multipliers (`#adminSectionXPGrid`).
+  - **Rewards, Cash Allowances & Profile PIN Management**:
+    - Student Cash Balances & Mark Paid settlement (`#adminStudentCashGrid`).
+    - Profile PIN Manager (view & edit 4-digit PIN per child).
+    - Popular Presets Multi-Select Toolbar (Ring Pop, Snickers, $1, $2, $3, $4, $5, $30, 1 hr TV time, 10K/20K/30K cash options) with one-click assignment to target tiers.
+    - Customizable XP Milestone Tiers & Options Editor (`#adminRewardTiersEditorGrid`).
+    - Family Redemptions Audit Log (`#adminRedemptionsAuditLog`).
+  - Fast Cloud Question Creator (`#adminNewQuestionForm`).
 - **[`admin.html`](file:///c:/Users/nikhi/code/kids-learning-app/admin.html)** — Advanced Parent Progress, Profile Manager & Firebase DB Studio:
   - Profile CRUD modal (`#profileModal`), 14-day heatmap inspector, bulk `SAT.json` uploader, and full question bank table.
 
@@ -42,9 +54,15 @@ All static questions, language packs, and spelling word banks are stored **outsi
 ### 3. JavaScript Modules (`firebase-db.js` & `js/*.js`)
 - **[`js/seed-data.js`](file:///c:/Users/nikhi/code/kids-learning-app/js/seed-data.js)** — Lightweight data loader (`hydrateDataFromJson()`) that hydrates questions, curriculum, and spelling banks (supporting both in-memory script objects, `localStorage` cache fallback, and async `fetch()` on HTTP/HTTPS).
 - **[`firebase-db.js`](file:///c:/Users/nikhi/code/kids-learning-app/firebase-db.js)** — `window.LuminaDB` Cloud Firestore & `localStorage` engine:
-  - Manages `profiles`, `dailyActivity`, `completedQuestionIds`, `question_chunks`, `language_packs`, and `sectionXP`.
-  - Key methods: `init()`, `signIn()`, `signOut()`, `pullFromCloud()`, `pushToCloud()`, `getAllProfiles()`, `getActiveProfile()`, `setActiveProfile()`, `recordActivity()`, `markQuestionCompleted()`, `resetCompletedQuestions()`, `addQuestion()`, `mergeQuestions()`.
-- **[`js/app.js`](file:///c:/Users/nikhi/code/kids-learning-app/js/app.js)** — Core app coordinator, profile view switcher (`applyActiveProfileView()`), header/streak UI (`refreshHeaderUI()`, `renderTodayStrip()`, `trackActivity()`), Parent Portal controller (`renderAdminPortal()`, `getStudentTrackProgressList()`, `resetStudentArea()`), and Section XP Multiplier system (`DEFAULT_SECTION_XP`, `ADMIN_XP_SECTIONS`, `getSectionXP()`, `setSectionXP()`). Includes local/offline mode fallback (`continueOfflineMode()`).
+  - Manages `profiles`, `dailyActivity`, `completedQuestionIds`, `question_chunks`, `language_packs`, `sectionXP`, and `rewardTiers`.
+  - Key methods: `init()`, `signIn()`, `signOut()`, `pullFromCloud()`, `pushToCloud()`, `getAllProfiles()`, `getActiveProfile()`, `setActiveProfile()`, `recordActivity()`, `markQuestionCompleted()`, `resetCompletedQuestions()`, `addQuestion()`, `mergeQuestions()`, `verifyProfilePin()`, `setProfilePin()`, `getRewardTiers()`, `saveRewardTiers()`, `redeemReward()`, `settleStudentCash()`, `getLeaderboardData()`.
+- **[`js/app.js`](file:///c:/Users/nikhi/code/kids-learning-app/js/app.js)** — Core app coordinator:
+  - Theme Engine: `initTheme()`, `toggleTheme()`, `updateThemeIcon()`.
+  - PIN Protection & Switching: `promptProfilePin()`, `handlePinInput()`, `verifyAndSubmitPin()`, `completeProfileSwitch()`.
+  - Gamification & Leaderboard: `openLeaderboardModal()`, `renderLeaderboardModal()`.
+  - Rewards Bazaar: `openRewardsModal()`, `renderRewardsModal()`, `handleRedeemReward()`.
+  - Parent Portal Rewards Configurator: `renderAdminRewardsSection()`, `handleAddSelectedPresetsToTier()`, `handleUpdateStudentPin()`, `handleSettleStudentCash()`.
+  - Header/streak UI (`refreshHeaderUI()`, `renderTodayStrip()`, `trackActivity()`), and Section XP Multipliers (`getSectionXP()`, `setSectionXP()`). Includes local/offline fallback (`continueOfflineMode()`).
 - **[`js/teen-studio.js`](file:///c:/Users/nikhi/code/kids-learning-app/js/teen-studio.js)** — 13+ Teen Scholar Studio:
   - Tab router: `openTeenTab('dashboard' | 'sat' | 'spelling' | 'languages')` & `renderSubNavForTeen()`.
   - Digital SAT Bluebook simulator & telemetry (`loadSatQuestionByIndex()`, `submitSatAnswer()`, `updateTelemetryWidgets()`).

@@ -334,6 +334,9 @@
     const xpEl = document.getElementById('headerXPCount');
     if (xpEl) xpEl.innerText = p.xp || 0;
 
+    const cashEl = document.getElementById('headerRewardsCashText');
+    if (cashEl) cashEl.innerText = `$${(p.cashBalance || 0).toFixed(2)}`;
+
     const qCount = getTeenQuestions().length;
     const totalQEl = document.getElementById('totalQuestionsCounter');
     if (totalQEl) totalQEl.innerText = qCount;
@@ -485,7 +488,162 @@
     if (overlay) overlay.classList.add('hidden');
   }
 
+  /* =====================================================================
+     THEME CONTROLLER (DARK / LIGHT THEME TOGGLE)
+     ===================================================================== */
+  function initTheme() {
+    const saved = localStorage.getItem('lumina_theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved === 'dark' || (!saved && prefersDark);
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    updateThemeIcon();
+  }
+
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('lumina_theme', isDark ? 'dark' : 'light');
+    updateThemeIcon();
+    if (typeof window.showToast === 'function') {
+      window.showToast(isDark ? '🌙 Dark theme enabled' : '☀️ Light theme enabled');
+    }
+  }
+
+  function updateThemeIcon() {
+    const isDark = document.documentElement.classList.contains('dark');
+    const icons = document.querySelectorAll('.theme-toggle-icon');
+    icons.forEach(el => {
+      el.textContent = isDark ? '☀️' : '🌙';
+    });
+    const btns = document.querySelectorAll('.theme-toggle-btn');
+    btns.forEach(btn => {
+      btn.title = isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme';
+    });
+  }
+
+  /* =====================================================================
+     PROFILE PIN AUTHENTICATION & SWITCHER ENGINE
+     ===================================================================== */
+  let pendingSwitchProfileId = null;
+  let enteredPinBuffer = '';
+
   function switchProfile(profileId) {
+    const cur = activeProfile();
+    if (cur && cur.id === profileId) {
+      hideProfilePicker();
+      return;
+    }
+    hideProfilePicker();
+    promptProfilePin(profileId);
+  }
+
+  function promptProfilePin(profileId) {
+    const p = (window.LuminaDB && typeof window.LuminaDB.getProfileById === 'function')
+      ? window.LuminaDB.getProfileById(profileId)
+      : null;
+    if (!p) return;
+
+    pendingSwitchProfileId = profileId;
+    enteredPinBuffer = '';
+
+    const modal = document.getElementById('profilePinModal');
+    if (!modal) {
+      // Fallback if modal not in DOM: switch immediately
+      completeProfileSwitch(profileId);
+      return;
+    }
+
+    const nameEl = document.getElementById('pinModalProfileName');
+    const avatarEl = document.getElementById('pinModalProfileAvatar');
+    const errorEl = document.getElementById('pinModalError');
+    if (nameEl) nameEl.textContent = p.name;
+    if (avatarEl) avatarEl.textContent = p.avatar;
+    if (errorEl) {
+      errorEl.classList.add('hidden');
+      errorEl.textContent = '';
+    }
+
+    updatePinDots();
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeProfilePinModal() {
+    const modal = document.getElementById('profilePinModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    pendingSwitchProfileId = null;
+    enteredPinBuffer = '';
+  }
+
+  function updatePinDots() {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById(`pinDot${i}`);
+      if (dot) {
+        if (i < enteredPinBuffer.length) {
+          dot.classList.add('bg-indigo-600', 'scale-110');
+          dot.classList.remove('bg-slate-200', 'dark:bg-slate-700');
+        } else {
+          dot.classList.remove('bg-indigo-600', 'scale-110');
+          dot.classList.add('bg-slate-200', 'dark:bg-slate-700');
+        }
+      }
+    }
+  }
+
+  function handlePinInput(digit) {
+    if (enteredPinBuffer.length >= 4) return;
+    enteredPinBuffer += String(digit);
+    updatePinDots();
+    if (enteredPinBuffer.length === 4) {
+      setTimeout(verifyAndSubmitPin, 120);
+    }
+  }
+
+  function handlePinBackspace() {
+    if (enteredPinBuffer.length > 0) {
+      enteredPinBuffer = enteredPinBuffer.slice(0, -1);
+      updatePinDots();
+    }
+  }
+
+  function handlePinClear() {
+    enteredPinBuffer = '';
+    updatePinDots();
+  }
+
+  function verifyAndSubmitPin() {
+    if (!pendingSwitchProfileId) return;
+    const isValid = window.LuminaDB && typeof window.LuminaDB.verifyProfilePin === 'function'
+      ? window.LuminaDB.verifyProfilePin(pendingSwitchProfileId, enteredPinBuffer)
+      : true;
+
+    if (isValid) {
+      const targetId = pendingSwitchProfileId;
+      closeProfilePinModal();
+      completeProfileSwitch(targetId);
+    } else {
+      const errorEl = document.getElementById('pinModalError');
+      const dotsBox = document.getElementById('pinDotsContainer');
+      if (errorEl) {
+        errorEl.textContent = 'Incorrect PIN. Try again (Default: 1234, Master: 0000)';
+        errorEl.classList.remove('hidden');
+      }
+      if (dotsBox) {
+        dotsBox.classList.add('animate-shake');
+        setTimeout(() => dotsBox.classList.remove('animate-shake'), 400);
+      }
+      enteredPinBuffer = '';
+      updatePinDots();
+    }
+  }
+
+  function completeProfileSwitch(profileId) {
     if (window.LuminaDB) {
       window.LuminaDB.setActiveProfile(profileId);
       selectedCalendarDateKey = window.LuminaDB.getTodayDateKey();
@@ -493,6 +651,240 @@
     Object.keys(_shuffledDecks).forEach(k => delete _shuffledDecks[k]);
     hideProfilePicker();
     applyActiveProfileView();
+    const p = activeProfile();
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Switched to ${p.name || 'Scholar'}!`);
+    }
+  }
+
+  /* =====================================================================
+     FAMILY LEADERBOARD & TROPHY ROOM CONTROLLER
+     ===================================================================== */
+  function openLeaderboardModal() {
+    renderLeaderboardModal();
+    const modal = document.getElementById('leaderboardModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  function closeLeaderboardModal() {
+    const modal = document.getElementById('leaderboardModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  function renderLeaderboardModal() {
+    const container = document.getElementById('leaderboardList');
+    if (!container || !window.LuminaDB) return;
+    const list = window.LuminaDB.getLeaderboardData() || [];
+    // Sort by all-time XP descending
+    list.sort((a, b) => (b.xp || 0) - (a.xp || 0));
+
+    const rankEmojis = ['🥇', '🥈', '🥉'];
+
+    container.innerHTML = list.map((item, idx) => {
+      const rank = rankEmojis[idx] || `#${idx + 1}`;
+      const recentPrizes = (item.recentRedemptions || [])
+        .map(r => `<span class="px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold whitespace-nowrap">${escapeHtml(r.reward)}</span>`)
+        .join('') || '<span class="text-xs text-slate-400 italic">No prizes redeemed yet</span>';
+
+      return `
+        <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="text-2xl sm:text-3xl font-black w-10 text-center">${rank}</div>
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-100 dark:border-indigo-900 flex items-center justify-center text-2xl shrink-0">
+              ${escapeHtml(item.avatar || '👤')}
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-black text-slate-900 dark:text-slate-100 text-base">${escapeHtml(item.name)}</h4>
+                <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${item.ageGroup === 'kid' ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200' : 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200'}">
+                  ${escapeHtml(item.ageLabel || item.ageGroup)}
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                🔥 ${item.streakDays} Day Streak • ⚡ ${item.availableXp} XP Available
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 md:gap-6 justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100 dark:border-slate-800">
+            <div class="text-left md:text-right">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Points</span>
+              <span class="font-extrabold text-indigo-600 dark:text-indigo-400 text-lg">⚡ ${item.xp}</span>
+            </div>
+
+            <div class="text-left md:text-right">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Cash Balance</span>
+              <span class="font-black text-emerald-700 dark:text-emerald-300 text-lg">💵 $${(item.cashBalance || 0).toFixed(2)}</span>
+            </div>
+
+            <div class="w-full md:w-auto text-left md:text-right max-w-xs">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Recent Prizes</span>
+              <div class="flex flex-wrap gap-1 justify-start md:justify-end">
+                ${recentPrizes}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* =====================================================================
+     STUDENT REWARDS BAZAAR & CASH REDEMPTION CONTROLLER
+     ===================================================================== */
+  function openRewardsModal() {
+    renderRewardsModal();
+    const modal = document.getElementById('rewardsModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  function closeRewardsModal() {
+    const modal = document.getElementById('rewardsModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  function renderRewardsModal() {
+    const p = activeProfile();
+    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
+      ? window.LuminaDB.getRewardTiers()
+      : [];
+    const availableXP = Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+
+    // Stats Banner
+    const nameEl = document.getElementById('rewardsModalStudentName');
+    const xpEl = document.getElementById('rewardsModalAvailableXP');
+    const cashEl = document.getElementById('rewardsModalCashBalance');
+    const spentEl = document.getElementById('rewardsModalTotalSpent');
+
+    if (nameEl) nameEl.textContent = `${p.avatar || '👤'} ${p.name || 'Scholar'}'s Prize Bazaar`;
+    if (xpEl) xpEl.textContent = `⚡ ${availableXP} XP`;
+    if (cashEl) cashEl.textContent = `$${(p.cashBalance || 0).toFixed(2)}`;
+    if (spentEl) spentEl.textContent = `⚡ ${p.totalXpSpent || 0} XP`;
+
+    // Render Tiers
+    const tiersGrid = document.getElementById('rewardsTiersGrid');
+    if (tiersGrid) {
+      tiersGrid.innerHTML = tiers.map(tier => {
+        const canAfford = availableXP >= tier.points;
+        const progressPct = Math.min(100, Math.round((availableXP / tier.points) * 100));
+
+        const optionsHtml = (tier.options || []).map(opt => {
+          const isCash = /\$(\d+(?:\.\d{1,2})?)/.test(opt);
+          const icon = isCash ? '💵' : '🎁';
+          return `
+            <button onclick="handleRedeemReward('${tier.id}', '${escapeHtml(opt)}')" ${canAfford ? '' : 'disabled'}
+              class="w-full text-left p-3 rounded-xl border transition flex items-center justify-between gap-2 btn-tactile ${canAfford
+                ? (isCash
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border-emerald-300 dark:border-emerald-700 text-emerald-950 dark:text-emerald-100 font-extrabold cursor-pointer'
+                    : 'bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border-indigo-200 dark:border-indigo-800 text-indigo-950 dark:text-indigo-100 font-bold cursor-pointer')
+                : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60'}">
+              <span class="flex items-center gap-2">
+                <span>${icon}</span>
+                <span class="text-xs sm:text-sm">${escapeHtml(opt)}</span>
+              </span>
+              <span class="text-[11px] px-2.5 py-0.5 rounded-md ${canAfford ? (isCash ? 'bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 font-black' : 'bg-indigo-200 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-100 font-bold') : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}">
+                ${canAfford ? 'Redeem ➔' : `Need ${tier.points - availableXP} XP`}
+              </span>
+            </button>
+          `;
+        }).join('');
+
+        return `
+          <div class="rounded-3xl border-2 p-5 flex flex-col justify-between transition-all ${canAfford
+            ? 'border-indigo-400 dark:border-indigo-600 bg-white dark:bg-slate-900 shadow-md ring-2 ring-indigo-400/20'
+            : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 opacity-90'}">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${canAfford ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}">
+                  ${escapeHtml(tier.label || `${tier.points} XP Milestone`)}
+                </span>
+                <span class="text-xs font-black ${canAfford ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}">
+                  ⚡ ${tier.points} XP
+                </span>
+              </div>
+
+              <!-- Progress bar -->
+              <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-3">
+                <div class="h-full rounded-full transition-all duration-500 ${canAfford ? 'bg-emerald-500' : 'bg-indigo-500'}" style="width: ${progressPct}%"></div>
+              </div>
+
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-3">
+                ${canAfford ? '🎉 You have unlocked this tier! Pick any reward below:' : `Earn ${tier.points - availableXP} more XP to unlock these choices:`}
+              </p>
+
+              <div class="space-y-2">
+                ${optionsHtml}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Student's Redemption History
+    const historyContainer = document.getElementById('rewardsHistoryList');
+    if (historyContainer) {
+      const redemptions = p.redemptions || [];
+      if (redemptions.length === 0) {
+        historyContainer.innerHTML = `
+          <div class="text-center py-6 text-slate-400 text-xs italic">
+            You haven't redeemed any rewards yet. Answer questions and practice daily to build up XP!
+          </div>
+        `;
+      } else {
+        historyContainer.innerHTML = redemptions.map(r => `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="text-base">${r.isCash ? '💵' : '🎁'}</span>
+              <div>
+                <p class="font-black text-slate-900 dark:text-slate-100">${escapeHtml(r.reward)}</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">${new Date(r.timestamp).toLocaleDateString()} • Tier: ${escapeHtml(r.tierLabel || `${r.tierPoints} XP`)}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="font-extrabold text-indigo-600 dark:text-indigo-400">-⚡${r.tierPoints} XP</span>
+              <span class="block text-[10px] font-bold ${r.status === 'Paid Out' ? 'text-slate-400 line-through' : (r.isCash ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400')}">${escapeHtml(r.status || 'Claimed')}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  }
+
+  function handleRedeemReward(tierId, rewardItem) {
+    const p = activeProfile();
+    const conf = window.confirm(`Redeem "${rewardItem}" for ${tierId} points?\n\nThis will deduct points from ${p.name}'s available XP.`);
+    if (!conf) return;
+
+    if (window.LuminaDB && typeof window.LuminaDB.redeemReward === 'function') {
+      const res = window.LuminaDB.redeemReward(p.id, tierId, rewardItem);
+      if (res && res.ok) {
+        if (typeof window.confetti === 'function') {
+          window.confetti({ particleCount: 180, spread: 120, origin: { y: 0.5 } });
+        }
+        if (res.redemption.isCash) {
+          showToast(`💵 Added $${res.redemption.cashAmount.toFixed(2)} to ${p.name}'s Cash Balance! Total: $${(p.cashBalance || 0).toFixed(2)}`);
+        } else {
+          showToast(`🎉 Redeemed "${rewardItem}"! Show your parent to claim.`);
+        }
+        refreshHeaderUI();
+        renderRewardsModal();
+      } else {
+        showToast((res && res.error) || 'Could not redeem reward');
+      }
+    }
   }
 
   function resetTopicQuestions(domain) {
@@ -1216,6 +1608,9 @@
 
     // 4. Render Section XP Multipliers Grid
     renderAdminSectionXPGrid();
+
+    // 5. Render Rewards, Cash Allowances & Profile PINs
+    renderAdminRewardsSection();
   }
 
   function resetStudentArea(pid, trackKey) {
@@ -1633,6 +2028,412 @@
   }
 
   /* =====================================================================
+     PARENT PORTAL REWARDS, CASH ALLOWANCES & PIN CONFIGURATOR
+     ===================================================================== */
+  const PRESET_REWARD_OPTIONS = [
+    { id: 'ring_pop', label: '🍭 Ring Pop', value: 'Ring Pop 🍭' },
+    { id: 'snickers', label: '🍫 Snickers Bar', value: 'Snickers Bar 🍫' },
+    { id: 'tv_1hr', label: '📺 1 Hour TV Time', value: '1 Hour TV Time 📺' },
+    { id: 'cash_1', label: '💵 $1 Cash', value: '$1 Cash Allowance 💵' },
+    { id: 'cash_2', label: '💵 $2 Cash', value: '$2 Cash Allowance 💵' },
+    { id: 'cash_3', label: '💵 $3 Cash', value: '$3 Cash Allowance 💵' },
+    { id: 'cash_4', label: '💵 $4 Cash', value: '$4 Cash Allowance 💵' },
+    { id: 'cash_5', label: '💵 $5 Cash', value: '$5 Cash Allowance 💵' },
+    { id: 'cash_30', label: '💵 $30 Cash', value: '$30 Cash Allowance 💵' },
+    { id: 'cash_10k', label: '💵 10K XP: $10 Cash', value: '$10 Cash Allowance 💵' },
+    { id: 'cash_20k', label: '💵 20K XP: $20 Cash', value: '$20 Cash Allowance 💵' },
+    { id: 'cash_30k', label: '💵 30K XP: $30 Cash', value: '$30 Cash Allowance 💵' },
+  ];
+
+  const selectedPresetRewardIds = new Set();
+
+  function handleTogglePresetSelection(presetId) {
+    if (selectedPresetRewardIds.has(presetId)) {
+      selectedPresetRewardIds.delete(presetId);
+    } else {
+      selectedPresetRewardIds.add(presetId);
+    }
+    renderAdminRewardsPresetsRow();
+  }
+
+  function renderAdminRewardsPresetsRow() {
+    const container = document.getElementById('adminRewardPresetsRow');
+    if (!container) return;
+
+    container.innerHTML = PRESET_REWARD_OPTIONS.map(p => {
+      const isSelected = selectedPresetRewardIds.has(p.id);
+      return `
+        <button type="button" onclick="handleTogglePresetSelection('${p.id}')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 btn-tactile cursor-pointer ${isSelected
+            ? 'bg-indigo-600 text-white shadow-xs border-2 border-indigo-700'
+            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}">
+          <span>${isSelected ? '✓' : '+'}</span>
+          <span>${escapeHtml(p.label)}</span>
+        </button>
+      `;
+    }).join('');
+
+    const countBadge = document.getElementById('adminRewardSelectedPresetsCount');
+    if (countBadge) {
+      countBadge.textContent = `${selectedPresetRewardIds.size} selected`;
+      countBadge.className = `text-[11px] font-bold px-2 py-0.5 rounded-full ${selectedPresetRewardIds.size > 0 ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'}`;
+    }
+  }
+
+  function handleAddSelectedPresetsToTier() {
+    if (selectedPresetRewardIds.size === 0) {
+      showToast('Select one or more popular presets first!');
+      return;
+    }
+    const selectEl = document.getElementById('adminRewardTargetTierSelect');
+    const tierId = selectEl ? selectEl.value : null;
+    if (!tierId) return;
+
+    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
+      ? window.LuminaDB.getRewardTiers()
+      : [];
+    const tier = tiers.find(t => t.id === tierId);
+    if (!tier) return;
+
+    if (!Array.isArray(tier.options)) tier.options = [];
+
+    let addedCount = 0;
+    selectedPresetRewardIds.forEach(pId => {
+      const preset = PRESET_REWARD_OPTIONS.find(p => p.id === pId);
+      if (preset && !tier.options.includes(preset.value)) {
+        tier.options.push(preset.value);
+        addedCount++;
+      }
+    });
+
+    if (window.LuminaDB && typeof window.LuminaDB.saveRewardTiers === 'function') {
+      window.LuminaDB.saveRewardTiers(tiers);
+    }
+    selectedPresetRewardIds.clear();
+    renderAdminRewardsSection();
+    showToast(`Added ${addedCount} preset reward(s) to ${tier.label || tier.points + ' XP'}!`);
+  }
+
+  function renderAdminRewardsSection() {
+    const allProfiles = (window.LuminaDB && typeof window.LuminaDB.getAllProfiles === 'function')
+      ? window.LuminaDB.getAllProfiles()
+      : [];
+    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
+      ? window.LuminaDB.getRewardTiers()
+      : [];
+
+    // 1. Student Cash Allowances & Profile PINs
+    const cashContainer = document.getElementById('adminStudentCashGrid');
+    if (cashContainer) {
+      cashContainer.innerHTML = allProfiles.map(p => {
+        const cash = p.cashBalance || 0;
+        const availableXP = Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0));
+        return `
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-4">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900 flex items-center justify-center text-3xl">
+                    ${escapeHtml(p.avatar || '👤')}
+                  </div>
+                  <div>
+                    <h4 class="font-extrabold text-base text-slate-900 dark:text-slate-100">${escapeHtml(p.name)}</h4>
+                    <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${p.ageGroup === 'kid' ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300'}">
+                      ${escapeHtml(p.ageLabel || p.ageGroup)}
+                    </span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Cash Balance</span>
+                  <span class="text-2xl font-black text-emerald-700 dark:text-emerald-300">$${cash.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400 mb-3 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 block">Available XP</span>
+                  <span class="font-black text-indigo-600 dark:text-indigo-400 text-sm">⚡ ${availableXP}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 block">XP Spent on Prizes</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-300 text-sm">⚡ ${p.totalXpSpent || 0}</span>
+                </div>
+              </div>
+
+              <!-- Profile PIN Management -->
+              <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <span>🔒</span>
+                  <span>Profile PIN:</span>
+                </span>
+                <div class="flex items-center gap-1.5">
+                  <input type="password" id="adminStudentPin_${p.id}" value="${escapeHtml(p.pin || '1234')}" maxlength="4" class="w-16 text-center font-mono font-black text-sm px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-indigo-500 text-slate-900 dark:text-slate-100" />
+                  <button onclick="handleUpdateStudentPin('${p.id}')" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition text-xs btn-tactile">
+                    Save PIN
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pay Out Cash Button -->
+            <div>
+              <button onclick="handleSettleStudentCash('${p.id}')" ${cash > 0 ? '' : 'disabled'}
+                class="w-full py-2.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 ${cash > 0 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs btn-tactile cursor-pointer' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'}">
+                <span>💵</span>
+                <span>${cash > 0 ? `Mark Paid &amp; Pay Out $${cash.toFixed(2)}` : 'No Cash Owed ($0.00)'}</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 2. Render Presets Multi-Select Row & Target Tier Dropdown
+    renderAdminRewardsPresetsRow();
+
+    const targetSelect = document.getElementById('adminRewardTargetTierSelect');
+    if (targetSelect) {
+      targetSelect.innerHTML = tiers.map(t => `
+        <option value="${t.id}">${t.points} XP Milestone (${escapeHtml(t.label || '')})</option>
+      `).join('');
+    }
+
+    // 3. Tiers Editor Grid
+    const tiersContainer = document.getElementById('adminRewardTiersEditorGrid');
+    if (tiersContainer) {
+      tiersContainer.innerHTML = tiers.map((tier) => {
+        const optionsTags = (tier.options || []).map((opt, oIdx) => `
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700">
+            <span>${opt.includes('$') ? '💵' : '🎁'}</span>
+            <span>${escapeHtml(opt)}</span>
+            <button type="button" onclick="handleRemoveRewardOption('${tier.id}', ${oIdx})" class="text-rose-500 hover:text-rose-700 font-extrabold ml-1 cursor-pointer" title="Remove option">✕</button>
+          </span>
+        `).join('');
+
+        return `
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-black text-indigo-600 dark:text-indigo-400">⚡</span>
+                  <input type="number" value="${tier.points}" onchange="handleUpdateTierPoints('${tier.id}', this.value)" class="w-24 px-2 py-1 text-sm font-black font-mono bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-indigo-500 text-slate-900 dark:text-slate-100" />
+                  <span class="text-xs font-bold text-slate-500">XP</span>
+                </div>
+                <button type="button" onclick="handleDeleteRewardTier('${tier.id}')" class="text-xs font-bold text-rose-600 hover:text-rose-800 p-1 cursor-pointer" title="Delete Tier">
+                  🗑️ Delete Tier
+                </button>
+              </div>
+
+              <input type="text" value="${escapeHtml(tier.label || '')}" placeholder="Tier Label (e.g. 500 XP Milestone)" onchange="handleUpdateTierLabel('${tier.id}', this.value)" class="w-full text-xs font-bold px-2.5 py-1.5 mb-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200" />
+
+              <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Redeemable Rewards</div>
+              <div class="flex flex-wrap gap-1.5 mb-3">
+                ${optionsTags.length > 0 ? optionsTags : '<span class="text-xs text-slate-400 italic">No options added yet</span>'}
+              </div>
+            </div>
+
+            <!-- Add custom option to this tier -->
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
+              <input type="text" id="adminNewOptionInput_${tier.id}" placeholder="Add custom reward (e.g. 🍫 Snickers, $5 Cash)..." class="flex-1 text-xs px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" onkeydown="if(event.key==='Enter'){handleAddCustomRewardOption('${tier.id}');}" />
+              <button type="button" onclick="handleAddCustomRewardOption('${tier.id}')" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition btn-tactile cursor-pointer">
+                Add
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 4. Family Redemptions Audit Log
+    const logContainer = document.getElementById('adminRedemptionsAuditLog');
+    if (logContainer) {
+      const allRedemptions = [];
+      allProfiles.forEach(p => {
+        (p.redemptions || []).forEach(r => {
+          allRedemptions.push({ ...r, studentName: p.name, studentAvatar: p.avatar, studentId: p.id });
+        });
+      });
+      allRedemptions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      if (allRedemptions.length === 0) {
+        logContainer.innerHTML = `
+          <div class="text-center py-6 text-slate-400 text-xs italic">
+            No rewards have been redeemed by any student yet.
+          </div>
+        `;
+      } else {
+        logContainer.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <tr>
+                  <th class="py-2">Date &amp; Time</th>
+                  <th class="py-2">Student</th>
+                  <th class="py-2">Reward</th>
+                  <th class="py-2">XP Spent</th>
+                  <th class="py-2">Type</th>
+                  <th class="py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                ${allRedemptions.slice(0, 30).map(r => `
+                  <tr>
+                    <td class="py-2.5 text-slate-500 font-mono text-[11px]">${new Date(r.timestamp).toLocaleString()}</td>
+                    <td class="py-2.5 font-bold text-slate-900 dark:text-slate-100">${escapeHtml(r.studentAvatar || '')} ${escapeHtml(r.studentName)}</td>
+                    <td class="py-2.5 font-extrabold text-indigo-700 dark:text-indigo-400">${escapeHtml(r.reward)}</td>
+                    <td class="py-2.5 font-bold text-slate-700 dark:text-slate-300">⚡ ${r.tierPoints}</td>
+                    <td class="py-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.isCash ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' : 'bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300'}">${r.isCash ? '💵 Cash' : '🎁 Treat'}</span></td>
+                    <td class="py-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'Paid Out' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 line-through' : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'}">${escapeHtml(r.status || 'Active')}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    }
+  }
+
+  function handleUpdateStudentPin(pid) {
+    const input = document.getElementById(`adminStudentPin_${pid}`);
+    const pin = input ? input.value.trim() : '';
+    if (!pin || pin.length < 4) {
+      showToast('PIN must be at least 4 digits');
+      return;
+    }
+    if (window.LuminaDB && typeof window.LuminaDB.setProfilePin === 'function') {
+      window.LuminaDB.setProfilePin(pid, pin);
+      showToast('Profile PIN saved successfully!');
+    }
+  }
+
+  function handleSettleStudentCash(pid) {
+    const p = (window.LuminaDB && typeof window.LuminaDB.getProfileById === 'function')
+      ? window.LuminaDB.getProfileById(pid)
+      : null;
+    if (!p) return;
+    const amount = p.cashBalance || 0;
+    if (amount <= 0) {
+      showToast('No cash balance to settle.');
+      return;
+    }
+
+    const conf = window.confirm(`Mark paid $${amount.toFixed(2)} to ${p.name}?\n\nThis will reset their cash balance to $0.00 and log the payment.`);
+    if (!conf) return;
+
+    if (window.LuminaDB && typeof window.LuminaDB.settleStudentCash === 'function') {
+      window.LuminaDB.settleStudentCash(pid);
+      showToast(`Settled $${amount.toFixed(2)} cash payout for ${p.name}!`);
+      renderAdminRewardsSection();
+      refreshHeaderUI();
+    }
+  }
+
+  function handleUpdateTierPoints(tierId, newPoints) {
+    const pts = parseInt(newPoints, 10);
+    if (isNaN(pts) || pts <= 0) return;
+    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
+      ? window.LuminaDB.getRewardTiers()
+      : [];
+    const tier = tiers.find(t => t.id === tierId);
+    if (tier) {
+      tier.points = pts;
+      window.LuminaDB.saveRewardTiers(tiers);
+      showToast(`Updated tier points to ${pts} XP`);
+    }
+  }
+
+  function handleUpdateTierLabel(tierId, newLabel) {
+    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
+      ? window.LuminaDB.getRewardTiers()
+      : [];
+    const tier = tiers.find(t => t.id === tierId);
+    if (tier) {
+      tier.label = String(newLabel || '').trim();
+      window.LuminaDB.saveRewardTiers(tiers);
+    }
+  }
+
+  function handleRemoveRewardOption(tierId, optionIndex) {
+    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
+      ? window.LuminaDB.getRewardTiers()
+      : [];
+    const tier = tiers.find(t => t.id === tierId);
+    if (tier && Array.isArray(tier.options)) {
+      tier.options.splice(optionIndex, 1);
+      window.LuminaDB.saveRewardTiers(tiers);
+      renderAdminRewardsSection();
+      showToast('Reward option removed.');
+    }
+  }
+
+  function handleAddCustomRewardOption(tierId) {
+    const input = document.getElementById(`adminNewOptionInput_${tierId}`);
+    const val = input ? input.value.trim() : '';
+    if (!val) return;
+
+    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
+      ? window.LuminaDB.getRewardTiers()
+      : [];
+    const tier = tiers.find(t => t.id === tierId);
+    if (tier) {
+      if (!Array.isArray(tier.options)) tier.options = [];
+      tier.options.push(val);
+      window.LuminaDB.saveRewardTiers(tiers);
+      input.value = '';
+      renderAdminRewardsSection();
+      showToast(`Added "${val}" to ${tier.label || tier.points + ' XP'}!`);
+    }
+  }
+
+  function handleDeleteRewardTier(tierId) {
+    const conf = window.confirm('Are you sure you want to delete this reward tier?');
+    if (!conf) return;
+
+    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
+      ? window.LuminaDB.getRewardTiers()
+      : [];
+    const filtered = tiers.filter(t => t.id !== tierId);
+    if (filtered.length === 0) {
+      showToast('You must keep at least one reward tier.');
+      return;
+    }
+    window.LuminaDB.saveRewardTiers(filtered);
+    renderAdminRewardsSection();
+    showToast('Reward tier deleted.');
+  }
+
+  function handleAddNewRewardTier() {
+    const tiers = (window.LuminaDB && typeof window.LuminaDB.getRewardTiers === 'function')
+      ? window.LuminaDB.getRewardTiers()
+      : [];
+    const maxPoints = tiers.reduce((max, t) => Math.max(max, t.points || 0), 0);
+    const newPoints = maxPoints > 0 ? maxPoints + 5000 : 500;
+    const newTier = {
+      id: 'tier_' + Date.now().toString(36),
+      points: newPoints,
+      label: `${newPoints.toLocaleString()} XP Milestone`,
+      options: ['$5 Cash Allowance 💵', '1 Hour TV Time 📺', 'Snickers Bar 🍫']
+    };
+    tiers.push(newTier);
+    tiers.sort((a, b) => a.points - b.points);
+    window.LuminaDB.saveRewardTiers(tiers);
+    renderAdminRewardsSection();
+    showToast(`Added new milestone tier for ${newPoints.toLocaleString()} XP!`);
+  }
+
+  function handleResetRewardTiersToDefault() {
+    const conf = window.confirm('Reset all reward tiers and options to default presets?');
+    if (!conf) return;
+
+    if (window.LuminaDB && window.LuminaDB.DEFAULT_REWARD_TIERS) {
+      window.LuminaDB.saveRewardTiers(JSON.parse(JSON.stringify(window.LuminaDB.DEFAULT_REWARD_TIERS)));
+      renderAdminRewardsSection();
+      showToast('Reward tiers reset to default presets.');
+    }
+  }
+
+  /* =====================================================================
      WINDOW EXPORTS & BOOTSTRAP
      ===================================================================== */
   if (!appData.activeLanguage) appData.activeLanguage = 'malayalam';
@@ -1686,6 +2487,57 @@
   window.renderAdminSectionXPGrid = renderAdminSectionXPGrid;
   window.refreshStudentXPBadges = refreshStudentXPBadges;
 
+  // Theme & Profile PIN Exports
+  window.initTheme = initTheme;
+  window.toggleTheme = toggleTheme;
+  window.updateThemeIcon = updateThemeIcon;
+  window.promptProfilePin = promptProfilePin;
+  window.closeProfilePinModal = closeProfilePinModal;
+  window.handlePinInput = handlePinInput;
+  window.handlePinBackspace = handlePinBackspace;
+  window.handlePinClear = handlePinClear;
+  window.verifyAndSubmitPin = verifyAndSubmitPin;
+  window.completeProfileSwitch = completeProfileSwitch;
+
+  // Family Leaderboard & Rewards Bazaar Exports
+  window.openLeaderboardModal = openLeaderboardModal;
+  window.closeLeaderboardModal = closeLeaderboardModal;
+  window.renderLeaderboardModal = renderLeaderboardModal;
+  window.openRewardsModal = openRewardsModal;
+  window.closeRewardsModal = closeRewardsModal;
+  window.renderRewardsModal = renderRewardsModal;
+  window.handleRedeemReward = handleRedeemReward;
+
+  // Parent Portal Rewards & Cash Allowance Configurator Exports
+  window.PRESET_REWARD_OPTIONS = PRESET_REWARD_OPTIONS;
+  window.handleTogglePresetSelection = handleTogglePresetSelection;
+  window.handleAddSelectedPresetsToTier = handleAddSelectedPresetsToTier;
+  window.renderAdminRewardsSection = renderAdminRewardsSection;
+  window.handleUpdateStudentPin = handleUpdateStudentPin;
+  window.handleSettleStudentCash = handleSettleStudentCash;
+  window.handleUpdateTierPoints = handleUpdateTierPoints;
+  window.handleUpdateTierLabel = handleUpdateTierLabel;
+  window.handleRemoveRewardOption = handleRemoveRewardOption;
+  window.handleAddCustomRewardOption = handleAddCustomRewardOption;
+  window.handleDeleteRewardTier = handleDeleteRewardTier;
+  window.handleAddNewRewardTier = handleAddNewRewardTier;
+  window.handleResetRewardTiersToDefault = handleResetRewardTiersToDefault;
+
+  // Keyboard support for PIN modal
+  window.addEventListener('keydown', (e) => {
+    const modal = document.getElementById('profilePinModal');
+    if (!modal || modal.classList.contains('hidden')) return;
+    if (e.key >= '0' && e.key <= '9') {
+      handlePinInput(e.key);
+    } else if (e.key === 'Backspace') {
+      handlePinBackspace();
+    } else if (e.key === 'Escape') {
+      closeProfilePinModal();
+    } else if (e.key === 'Enter') {
+      verifyAndSubmitPin();
+    }
+  });
+
   if (window.LuminaDB && typeof window.LuminaDB.onChange === 'function') {
     window.LuminaDB.onChange(() => {
       refreshHeaderUI();
@@ -1698,6 +2550,7 @@
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
+    initTheme();
     if (typeof window.initDictionaryChips === 'function') {
       window.initDictionaryChips();
     }

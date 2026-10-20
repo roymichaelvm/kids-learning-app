@@ -64,12 +64,61 @@
     return { date: key, questionsAttempted: 0, questionsCorrect: 0, xpEarned: 0, secondsSpent: 0, cardsViewed: 0, subjects: {}, activities: [] };
   }
 
+  const DEFAULT_REWARD_TIERS = [
+    {
+      id: 'tier_500',
+      points: 500,
+      label: '500 XP Quick Treats',
+      options: ['Ring Pop 🍭', 'Snickers Bar 🍫', 'Extra 15 Min Bedtime 🌙', '$1 Cash Allowance 💵']
+    },
+    {
+      id: 'tier_1000',
+      points: 1000,
+      label: '1,000 XP Bronze Treats',
+      options: ['1 Hour TV / Screen Time 📺', 'Snickers & Candy Pack 🍫', 'Pick Dinner Tonight 🍕', '$2 Cash Allowance 💵']
+    },
+    {
+      id: 'tier_2500',
+      points: 2500,
+      label: '2,500 XP Silver Rewards',
+      options: ['Ice Cream Trip 🍦', '2 Hours Gaming / TV Time 🎮', '$3 Cash Allowance 💵', '$5 Cash Allowance 💵']
+    },
+    {
+      id: 'tier_5000',
+      points: 5000,
+      label: '5,000 XP Gold Rewards',
+      options: ['Movie Night Ticket 🍿', 'Book of Your Choice 📚', 'Skip One Chore 🧹', '$5 Cash Allowance 💵']
+    },
+    {
+      id: 'tier_10000',
+      points: 10000,
+      label: '10,000 XP Platinum Mega Rewards',
+      options: ['$10 Cash Allowance 💵', 'Video Game / Robux Card 🎁', 'Pizza Party with Friends 🍕', 'No Chores for a Weekend 🌟']
+    },
+    {
+      id: 'tier_20000',
+      points: 20000,
+      label: '20,000 XP Diamond Milestone',
+      options: ['$20 Cash Allowance 💵', 'Theme Park / Water Park Ticket 🎢', 'Special Shopping Outing 🛍️']
+    },
+    {
+      id: 'tier_30000',
+      points: 30000,
+      label: '30,000 XP Champion Grand Prize',
+      options: ['$30 Cash Allowance 💵', 'New Tech / Wireless Headphones 🎧', 'Ultimate Family Adventure Day 🏆']
+    }
+  ];
+
   function ensureProfileFields(p) {
     if (!p) return p;
     if (!Array.isArray(p.completedQuestionIds)) p.completedQuestionIds = [];
     if (!p.dailyActivity) p.dailyActivity = {};
     if (!p.domainMastery) p.domainMastery = {};
     if (!Array.isArray(p.telemetryLogs)) p.telemetryLogs = [];
+    if (!p.pin) p.pin = '1234';
+    if (typeof p.cashBalance !== 'number') p.cashBalance = 0;
+    if (!Array.isArray(p.redemptions)) p.redemptions = [];
+    if (typeof p.totalXpSpent !== 'number') p.totalXpSpent = 0;
     return p;
   }
 
@@ -90,7 +139,11 @@
       dailyActivity: {},
       domainMastery: {},
       telemetryLogs: [],
-      completedQuestionIds: Array.isArray(fields.completedQuestionIds) ? fields.completedQuestionIds : []
+      completedQuestionIds: Array.isArray(fields.completedQuestionIds) ? fields.completedQuestionIds : [],
+      pin: fields.pin || '1234',
+      cashBalance: Number(fields.cashBalance) || 0,
+      redemptions: Array.isArray(fields.redemptions) ? fields.redemptions : [],
+      totalXpSpent: Number(fields.totalXpSpent) || 0
     };
   }
 
@@ -117,12 +170,13 @@
     return msg;
   }
 
-  const PERSISTED_KEYS = ['activeProfileId', 'teenSubTab', 'activeLanguage', 'kidCategory', 'profiles', 'customKidCards', 'sectionXP', 'lastCloudSync'];
+  const PERSISTED_KEYS = ['activeProfileId', 'teenSubTab', 'activeLanguage', 'kidCategory', 'profiles', 'customKidCards', 'sectionXP', 'rewardTiers', 'lastCloudSync'];
 
   /* ------------------------------------------------------------------ engine */
   const LuminaDB = {
     FIREBASE_CONFIG: FIREBASE_CONFIG,
     DEFAULT_QUESTIONS: DEFAULT_QUESTIONS,
+    DEFAULT_REWARD_TIERS: DEFAULT_REWARD_TIERS,
     getDefaultQuestions: getDefaultQuestions,
     getTodayDateKey: dateKey,
 
@@ -135,6 +189,7 @@
       questions: clean(getDefaultQuestions()),
       customKidCards: [],
       sectionXP: {},
+      rewardTiers: clean(DEFAULT_REWARD_TIERS),
       languagePacks: {},
       lastCloudSync: null,
       cloudStatus: 'local',   // 'local' | 'syncing' | 'connected' | 'error'
@@ -303,6 +358,14 @@
         }
         if (!Array.isArray(this.state.questions) || this.state.questions.length === 0) {
           this.state.questions = clean(getDefaultQuestions());
+        }
+        if (!Array.isArray(this.state.rewardTiers) || this.state.rewardTiers.length === 0) {
+          this.state.rewardTiers = clean(DEFAULT_REWARD_TIERS);
+        }
+        if (this.state.profiles) {
+          Object.keys(this.state.profiles).forEach(pid => {
+            ensureProfileFields(this.state.profiles[pid]);
+          });
         }
         const cachedPacks = localStorage.getItem(LANGUAGE_PACKS_STORAGE_KEY);
         if (cachedPacks) {
@@ -588,6 +651,144 @@
       this.saveLocal();
       this.scheduleCloudSync();
       return true;
+    },
+
+    /* ------------------------------------------------ profile pin security */
+    setProfilePin: function (pid, pin) {
+      const p = this.getProfileById(pid);
+      if (!p) return false;
+      p.pin = String(pin || '1234').trim().slice(0, 4);
+      this.markProfile(pid);
+      this.saveLocal();
+      this.scheduleCloudSync();
+      this.notify();
+      return true;
+    },
+
+    verifyProfilePin: function (pid, enteredPin) {
+      const p = this.getProfileById(pid);
+      if (!p) return false;
+      const cleanEntered = String(enteredPin || '').trim();
+      // Parent master PIN '0000' or matching profile PIN
+      return cleanEntered === '0000' || cleanEntered === (p.pin || '1234');
+    },
+
+    /* ------------------------------------------------ rewards & redemption */
+    getRewardTiers: function () {
+      if (!Array.isArray(this.state.rewardTiers) || this.state.rewardTiers.length === 0) {
+        this.state.rewardTiers = clean(DEFAULT_REWARD_TIERS);
+      }
+      return this.state.rewardTiers;
+    },
+
+    saveRewardTiers: function (tiers) {
+      if (Array.isArray(tiers) && tiers.length > 0) {
+        this.state.rewardTiers = clean(tiers);
+        this.saveLocal();
+        this.scheduleCloudSync();
+        this.notify();
+        return true;
+      }
+      return false;
+    },
+
+    redeemReward: function (pid, tierId, rewardItem) {
+      const p = this.getProfileById(pid || this.state.activeProfileId);
+      if (!p) return { ok: false, error: 'Profile not found' };
+      ensureProfileFields(p);
+
+      const tiers = this.getRewardTiers();
+      const tier = tiers.find(t => t.id === tierId) || tiers.find(t => t.options && t.options.includes(rewardItem));
+      if (!tier) return { ok: false, error: 'Reward tier not found' };
+
+      const availableXP = (p.xp || 0) - (p.totalXpSpent || 0);
+      if (availableXP < tier.points) {
+        return { ok: false, error: `You need ${tier.points} XP, but only have ${availableXP} available XP.` };
+      }
+
+      // Check if reward contains a cash amount (e.g. "$1", "$2", "$3", "$4", "$5", "$10", "$20", "$30")
+      const cashMatch = String(rewardItem).match(/\$(\d+(?:\.\d{1,2})?)/);
+      const isCash = Boolean(cashMatch);
+      const cashAmount = isCash ? parseFloat(cashMatch[1]) : 0;
+
+      // Deduct XP and add cash balance if cash reward
+      p.totalXpSpent = (p.totalXpSpent || 0) + tier.points;
+      if (isCash && cashAmount > 0) {
+        p.cashBalance = Number(((p.cashBalance || 0) + cashAmount).toFixed(2));
+      }
+
+      const redemptionRecord = {
+        id: 'red_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+        date: dateKey(),
+        timestamp: new Date().toISOString(),
+        tierPoints: tier.points,
+        tierLabel: tier.label || `${tier.points} XP`,
+        reward: rewardItem,
+        isCash: isCash,
+        cashAmount: cashAmount,
+        status: isCash ? 'Added to Cash Balance' : 'Ready to Claim'
+      };
+
+      p.redemptions.unshift(redemptionRecord);
+
+      // Record in daily activity
+      this.recordActivity({
+        type: 'reward_redemption',
+        isQuestion: false,
+        domain: 'Prize & Cash Redemption',
+        title: `Redeemed: ${rewardItem}`,
+        xp: 0,
+        durationSec: 10,
+        profileId: p.id
+      });
+
+      this.markProfile(p.id);
+      this.saveLocal();
+      this.scheduleCloudSync();
+      this.notify();
+      return { ok: true, redemption: redemptionRecord, profile: p };
+    },
+
+    settleStudentCash: function (pid) {
+      const p = this.getProfileById(pid);
+      if (!p) return { ok: false, error: 'Profile not found' };
+      ensureProfileFields(p);
+      const settledAmount = p.cashBalance || 0;
+      p.cashBalance = 0;
+      if (Array.isArray(p.redemptions)) {
+        p.redemptions.forEach(r => {
+          if (r.isCash && r.status !== 'Paid Out') {
+            r.status = 'Paid Out';
+          }
+        });
+      }
+      this.markProfile(p.id);
+      this.saveLocal();
+      this.scheduleCloudSync();
+      this.notify();
+      return { ok: true, settledAmount: settledAmount };
+    },
+
+    getLeaderboardData: function () {
+      const profiles = this.getAllProfiles();
+      return profiles.map(p => {
+        ensureProfileFields(p);
+        const totalCashEarned = (p.redemptions || []).filter(r => r.isCash).reduce((sum, r) => sum + (r.cashAmount || 0), 0);
+        return {
+          id: p.id,
+          name: p.name,
+          avatar: p.avatar,
+          ageGroup: p.ageGroup,
+          ageLabel: p.ageLabel,
+          xp: p.xp || 0,
+          availableXp: Math.max(0, (p.xp || 0) - (p.totalXpSpent || 0)),
+          streakDays: this.getCurrentStreak(p),
+          cashBalance: p.cashBalance || 0,
+          totalCashEarned: Number(totalCashEarned.toFixed(2)),
+          redemptionsCount: (p.redemptions || []).length,
+          recentRedemptions: (p.redemptions || []).slice(0, 5)
+        };
+      }).sort((a, b) => b.xp - a.xp);
     },
 
     clearTelemetry: function (id) {
