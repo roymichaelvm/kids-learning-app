@@ -32,6 +32,8 @@
   const STORAGE_KEY = 'lumina_family_hub_v3';
   const QUESTIONS_STORAGE_KEY = 'lumina_questions_cache_v3';
   const LANGUAGE_PACKS_STORAGE_KEY = 'lumina_language_packs_cache_v1';
+  const QUESTIONS_VERSION_KEY = 'lumina_questions_bank_version_v1';
+  const LANGUAGE_PACKS_VERSION_KEY = 'lumina_language_packs_version_v1';
   const LOCAL_DAYS_TO_KEEP = 90;       // days of history cached on each device (Firebase keeps everything)
   const MAX_ACTIVITIES_PER_DAY = 100;
   const MAX_TELEMETRY_LOGS = 300;
@@ -48,6 +50,31 @@
 
   /* ------------------------------------------------------------------ helpers */
   function clean(obj) { return JSON.parse(JSON.stringify(obj)); } // strips `undefined` (Firestore rejects it)
+
+  // Content version (FNV-1a hash) used to skip re-downloading unchanged cloud
+  // data (question chunks, language packs). Change detection only - it is not
+  // a security or authenticity mechanism.
+  function computeDataVersion(data) {
+    let text;
+    try { text = JSON.stringify(data) || ''; } catch (e) { text = String(data); }
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < text.length; i++) {
+      h ^= text.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return 'v' + text.length + '-' + h.toString(36);
+  }
+
+  function getStoredVersion(key) {
+    try { return localStorage.getItem(key) || null; } catch (e) { return null; }
+  }
+
+  function setStoredVersion(key, version) {
+    try {
+      if (version) localStorage.setItem(key, version);
+      else localStorage.removeItem(key);
+    } catch (e) {}
+  }
 
   function dateKey(d) {
     const x = d || new Date();
@@ -563,6 +590,20 @@
       if (!this.state.languagePacks) this.state.languagePacks = {};
       Object.assign(this.state.languagePacks, pMap);
       this.saveLanguagePacksLocal();
+      // Record a content version so other devices can skip re-downloading
+      // unchanged packs on future syncs (best effort - never fail the seed).
+      try {
+        const versionSource = {};
+        ['malayalam', 'hindi', 'spanish'].forEach(lang => {
+          if (pMap[lang]) versionSource[lang] = { words: pMap[lang].words || [], sentences: pMap[lang].sentences || [] };
+        });
+        const packsVersion = computeDataVersion(versionSource);
+        await db.collection('app_state').doc('meta').set(clean({
+          languagePacksVersion: packsVersion,
+          languagePacksUpdatedAt: ts
+        }), { merge: true });
+        setStoredVersion(LANGUAGE_PACKS_VERSION_KEY, packsVersion);
+      } catch (vErr) { /* versioning is an optimization only */ }
       return { ok: true, count: ops.length };
     },
 
@@ -1386,6 +1427,7 @@
       const db = this.db;
       const ts = new Date().toISOString();
       try {
+        let pushedBankVersion = null;
         const ops = [];
 
         snap.profiles.forEach(pid => {
@@ -1422,6 +1464,7 @@
             const oldMeta = await metaRef.get();
             const oldChunks = oldMeta.exists ? (oldMeta.data().questionChunks || 0) : 0;
             const qs = this.state.questions;
+            pushedBankVersion = computeDataVersion(qs);
             chunkCount = Math.max(1, Math.ceil(qs.length / QUESTION_CHUNK_SIZE));
             for (let c = 0; c < chunkCount; c++) {
               ops.push(db.collection('question_chunks').doc('chunk_' + c).set(clean({
@@ -1437,11 +1480,13 @@
           if (snap.questions || snap.meta) {
             const metaData = { updatedAt: ts, questionsCount: this.state.questions.length, customKidCards: this.state.customKidCards || [], sectionXP: this.state.sectionXP || {} };
             if (chunkCount !== null) metaData.questionChunks = chunkCount;
+            if (pushedBankVersion) metaData.questionBankVersion = pushedBankVersion;
             ops.push(metaRef.set(clean(metaData), { merge: true }));
           }
         }
 
         await Promise.all(ops);
+        if (snap.questions && pushedBankVersion) setStoredVersion(QUESTIONS_VERSION_KEY, pushedBankVersion);
         this.pushing = false;
         this.state.lastCloudSync = ts;
         this.setStatus('connected', this.isAdmin ? 'Admin changes synced to Firebase' : 'Progress synced to Firebase');
@@ -1511,14 +1556,22 @@
           if (this.isAdmin) this.markQuestions();
         } else {
           if (!this.pending.questions || !this.isAdmin) {
-            const chunkDocs = await Promise.all(
-              Array.from({ length: meta.questionChunks }, (_, c) => db.collection('question_chunks').doc('chunk_' + c).get())
-            );
-            let qs = [];
-            chunkDocs.forEach(d => { if (d.exists && Array.isArray(d.data().questions)) qs = qs.concat(d.data().questions); });
-            if (qs.length) {
-              this.state.questions = qs;
-              this.saveQuestionsLocal();
+            const cloudBankVersion = meta.questionBankVersion || null;
+            const localBankVersion = getStoredVersion(QUESTIONS_VERSION_KEY);
+            const haveLocalBank = Array.isArray(this.state.questions) && this.state.questions.length > 0;
+            if (cloudBankVersion && haveLocalBank && localBankVersion === cloudBankVersion) {
+              // Bank is unchanged since the last pull - skip re-downloading every chunk.
+            } else {
+              const chunkDocs = await Promise.all(
+                Array.from({ length: meta.questionChunks }, (_, c) => db.collection('question_chunks').doc('chunk_' + c).get())
+              );
+              let qs = [];
+              chunkDocs.forEach(d => { if (d.exists && Array.isArray(d.data().questions)) qs = qs.concat(d.data().questions); });
+              if (qs.length) {
+                this.state.questions = qs;
+                this.saveQuestionsLocal();
+                if (cloudBankVersion) setStoredVersion(QUESTIONS_VERSION_KEY, cloudBankVersion);
+              }
             }
           }
           if (!this.pending.meta && Array.isArray(meta.customKidCards)) this.state.customKidCards = meta.customKidCards;
@@ -1529,15 +1582,23 @@
 
         // ---- Language packs (Malayalam, Hindi, Spanish in Cloud Firestore)
         try {
-          const langSnap = await db.collection('language_packs').get();
-          if (!langSnap.empty) {
-            if (!this.state.languagePacks) this.state.languagePacks = {};
-            langSnap.forEach(d => {
-              this.state.languagePacks[d.id] = d.data();
-            });
-            this.saveLanguagePacksLocal();
-          } else if (window.EXPANDED_LANGUAGE_PACKS) {
-            await this.seedLanguagePacksToCloud(window.EXPANDED_LANGUAGE_PACKS);
+          const cloudPacksVersion = (meta && meta.languagePacksVersion) || null;
+          const localPacksVersion = getStoredVersion(LANGUAGE_PACKS_VERSION_KEY);
+          const haveLocalPacks = this.state.languagePacks && Object.keys(this.state.languagePacks).length > 0;
+          if (cloudPacksVersion && haveLocalPacks && localPacksVersion === cloudPacksVersion) {
+            // Packs are unchanged since the last pull - keep the local copy.
+          } else {
+            const langSnap = await db.collection('language_packs').get();
+            if (!langSnap.empty) {
+              if (!this.state.languagePacks) this.state.languagePacks = {};
+              langSnap.forEach(d => {
+                this.state.languagePacks[d.id] = d.data();
+              });
+              this.saveLanguagePacksLocal();
+              if (cloudPacksVersion) setStoredVersion(LANGUAGE_PACKS_VERSION_KEY, cloudPacksVersion);
+            } else if (window.EXPANDED_LANGUAGE_PACKS) {
+              await this.seedLanguagePacksToCloud(window.EXPANDED_LANGUAGE_PACKS);
+            }
           }
         } catch (lErr) {
           console.warn('Language packs sync note:', lErr);
