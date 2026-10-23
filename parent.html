@@ -46,6 +46,11 @@
     /* Mobile ergonomics (added): 44px touch targets, no tap delay, no iOS focus zoom */
     @media (pointer: coarse) {
       button, select, a[role="button"], input:not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
+      /* Header / nav chrome stays compact on phones - the 44px touch rule is
+         for learning content (answers, letter tiles), not small status pills.
+         Without this, every header pill is stretched to 44px tall and the
+         top bar becomes a big congested block on small screens. */
+      header button, #subNavBar button, #profileQuickBar button, #previewBanner button { min-height: 36px; }
       button { touch-action: manipulation; }
       input, select, textarea { font-size: 16px; }
     }
