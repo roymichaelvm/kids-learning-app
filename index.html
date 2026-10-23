@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <title>Lumina — Family Learning Hub & SAT Bluebook Studio</title>
 
   <!-- Tailwind CSS CDN -->
@@ -14,10 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Canvas Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.61.0/dist/umd/lucide.min.js"></script>
 
   <!-- Firebase SDKs (Compat), Optional Config & Shared Cloud Firestore Profile Engine -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -71,6 +73,13 @@
     }
     .animate-subtle-bounce { animation: subtle-bounce 2s infinite ease-in-out; }
     
+
+    /* Mobile ergonomics (added): 44px touch targets, no tap delay, no iOS focus zoom */
+    @media (pointer: coarse) {
+      button, select, a[role="button"], input:not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
+      button { touch-action: manipulation; }
+      input, select, textarea { font-size: 16px; }
+    }
     .btn-tactile {
       transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -411,7 +420,7 @@
     <section id="section-teen-sat" class="hidden space-y-6 animate-fade">
       
       <!-- Bluebook Toolbar (Domain selector, Precision Stopwatch, Eliminator, Flag) -->
-      <div class="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-bento flex flex-wrap items-center justify-between gap-3">
+      <div class="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-bento flex flex-wrap items-center justify-between gap-3 sticky top-2 z-30">
         <div class="flex flex-wrap items-center gap-3">
           <button onclick="openTeenTab('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
@@ -420,7 +429,7 @@
           
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Domain:</span>
-            <select id="satDomainFilter" onchange="onFilterSatQuestions()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-indigo-500 cursor-pointer">
+            <select id="satDomainFilter" onchange="onFilterSatQuestions()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold rounded-xl px-3 py-1.5 min-h-[44px] focus:outline-indigo-500 cursor-pointer">
               <option value="ALL">All Domains (Comprehensive Exam)</option>
             </select>
           </div>
@@ -450,7 +459,12 @@
           </button>
 
           <!-- Flag for review button -->
-          <button id="btnFlagQuestion" onclick="toggleFlagSatQuestion()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 transition" title="Flag this question for review">
+          <button id="btnTogglePassageMobile" onclick="toggleSatPassageMobile()" class="lg:hidden px-3.5 py-1.5 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition" title="Show or hide the passage on small screens">
+            <span>📖</span>
+            <span>Passage</span>
+          </button>
+
+          <button id="btnFlagQuestion" onclick="toggleFlagSatQuestion()" class="p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 transition" title="Flag this question for review">
             <i data-lucide="bookmark" class="w-4 h-4"></i>
           </button>
         </div>
@@ -469,7 +483,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- Left: Passage Card (Newsreader Font) -->
-        <div class="lg:col-span-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento">
+        <div id="satPassageCard" class="lg:col-span-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento">
           <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
             <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400" id="satDomainLabel"><span id="satRightDomainTitle">Reading & Writing</span></span>
             <span class="text-xs font-mono text-slate-400" id="satQuestionIdTag"><span id="satQuestionIdBadge">Q #1</span></span>
@@ -507,15 +521,15 @@
           <!-- Bottom Control Bar -->
           <div class="mt-8 pt-5 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
-              <button onclick="navigateSat(-1)" id="btnSatPrev" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition">
+              <button onclick="navigateSat(-1)" id="btnSatPrev" class="px-4 py-2 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition">
                 ← Prev
               </button>
-              <button onclick="navigateSat(1)" id="btnSatNext" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition">
+              <button onclick="navigateSat(1)" id="btnSatNext" class="px-4 py-2 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition">
                 Next →
               </button>
             </div>
 
-            <button onclick="submitSatAnswer()" id="btnSatSubmit" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition shadow-md btn-tactile">
+            <button onclick="submitSatAnswer()" id="btnSatSubmit" class="px-6 py-2.5 min-h-[44px] rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition shadow-md btn-tactile">
               Submit Answer
             </button>
           </div>
@@ -1334,12 +1348,13 @@
   <!-- =====================================================================
        APPLICATION SCRIPTS (MODULAR ARCHITECTURE)
        ===================================================================== -->
-  <script src="js/utils.js"></script>
-  <script src="js/speech.js"></script>
-  <script src="js/dictionary.js"></script>
-  <script src="js/spelling-builder.js"></script>
-  <script src="js/kid-playground.js"></script>
-  <script src="js/teen-studio.js"></script>
-  <script src="js/app.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script defer src="js/utils.js"></script>
+  <script defer src="js/speech.js"></script>
+  <script defer src="js/dictionary.js"></script>
+  <script defer src="js/spelling-builder.js"></script>
+  <script defer src="js/kid-playground.js"></script>
+  <script defer src="js/teen-studio.js"></script>
+  <script defer src="js/app.js"></script>
 </body>
 </html>
