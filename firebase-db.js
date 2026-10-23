@@ -1507,7 +1507,7 @@
         }
 
         await Promise.all(ops);
-        if (snap.questions && pushedBankVersion) setStoredVersion(QUESTIONS_VERSION_KEY, pushedBankVersion);
+        if (snap.questions && pushedBankVersion) { setStoredVersion(QUESTIONS_VERSION_KEY, pushedBankVersion); window.__cloudBankPulled = true; }
         this.pushing = false;
         this.state.lastCloudSync = ts;
         this.setStatus('connected', this.isAdmin ? 'Admin changes synced to Firebase' : 'Progress synced to Firebase');
@@ -1594,6 +1594,7 @@
               chunkDocs.forEach(d => { if (d.exists && Array.isArray(d.data().questions)) qs = qs.concat(d.data().questions); });
               if (qs.length) {
                 this.state.questions = qs;
+                window.__cloudBankPulled = true;
                 this.saveQuestionsLocal();
                 if (cloudBankVersion) setStoredVersion(QUESTIONS_VERSION_KEY, cloudBankVersion);
               }

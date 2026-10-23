@@ -84,6 +84,14 @@
   }
 
   function renderTeenDashboard() {
+    // Question bank now loads per-domain on demand: make sure the teen
+    // domains are in memory, then re-render once with the full counts.
+    if (window.QuestionLoader && !renderTeenDashboard._bankHydrated) {
+      renderTeenDashboard._bankHydrated = true;
+      window.QuestionLoader.ensureProfile('teen').then(function (ok) {
+        if (ok) renderTeenDashboard();
+      });
+    }
     const p = (typeof window.activeProfile === 'function') ? window.activeProfile() : null;
     if (!p) return;
     const teenQs = (typeof window.getTeenQuestions === 'function') ? window.getTeenQuestions(false) : [];
@@ -209,6 +217,17 @@
   }
 
   function launchSatWithDomain(domain) {
+    if (window.QuestionLoader && !window.QuestionLoader.isReady(domain)) {
+      // Load this domain first, then launch. The _launchTried mark guarantees
+      // we proceed with whatever is available if the load fails (offline).
+      if (launchSatWithDomain._launchTried !== domain) {
+        launchSatWithDomain._launchTried = domain;
+        window.QuestionLoader.ensureDomain(domain).then(function () { launchSatWithDomain(domain); });
+        openTeenTab('sat');
+        return;
+      }
+    }
+    launchSatWithDomain._launchTried = null;
     openTeenTab('sat');
     const select = document.getElementById('satDomainFilter');
     if (select) {
@@ -310,6 +329,16 @@
      DIGITAL SAT BLUEBOOK ENGINE
      --------------------------------------------------------------------- */
   function populateDomainFilterDropdown() {
+    if (window.QuestionLoader && !populateDomainFilterDropdown._bankHydrated) {
+      populateDomainFilterDropdown._bankHydrated = true;
+      window.QuestionLoader.ensureProfile('teen').then(function (ok) {
+        if (ok) {
+          populateDomainFilterDropdown();
+          const satSec = document.getElementById('section-teen-sat');
+          if (satSec && !satSec.classList.contains('hidden')) loadSatQuestionByIndex(satCurrentIndex);
+        }
+      });
+    }
     const select = document.getElementById('satDomainFilter');
     if (!select) return;
     const currentVal = select.value || 'ALL';
