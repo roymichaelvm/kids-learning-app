@@ -207,6 +207,7 @@
 
     .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
+    .teen-tab-label-short { display: none; }
 
     /* Phones: the mode badge truncates instead of squeezing the brand, and
        the daily-goal strip compacts (mini week chart hidden) so the actual
@@ -270,6 +271,27 @@
       #satToolbarLeft > *, #satToolbarRight > * { flex: 0 0 auto; }
       #satDomainWrap { flex: 0 0 auto; min-width: 0; gap: 0.35rem; }
       #satDomainFilter { width: 10.5rem; min-width: 0; }
+    }
+
+    /* Phones: teen main navigation — Analytics, Digital SAT, SAT &
+       Academic Spelling Bee, and Language Studio stay on ONE line.
+       Short labels keep the row compact; the strip can swipe sideways
+       instead of wrapping or widening the page. */
+    @media (max-width: 639px) {
+      #subNavTabs.teen-main-tabs {
+        flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+        width: 100%; max-width: 100%; gap: 0.35rem;
+        padding: 0.1rem 0.05rem 0.3rem;
+        scrollbar-width: none; -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      #subNavTabs.teen-main-tabs::-webkit-scrollbar { display: none; }
+      #subNavTabs.teen-main-tabs > button {
+        flex: 0 0 auto; white-space: nowrap;
+        padding-left: 0.65rem; padding-right: 0.65rem;
+      }
+      .teen-tab-label-full { display: none; }
+      .teen-tab-label-short { display: inline; }
     }
 
     /* Phones: OPTION B - subjects become a slim swipeable chip strip stuck

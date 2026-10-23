@@ -68,18 +68,19 @@
   function renderSubNavForTeen(activeTab) {
     const container = document.getElementById('subNavTabs');
     if (!container) return;
+    container.classList.add('teen-main-tabs');
     const tabs = [
-      { id: 'dashboard', label: '📊 Analytics, Streak Calendar & Topics' },
-      { id: 'sat', label: '📝 Digital SAT & Topic Simulator' },
-      { id: 'spelling', label: '🐝 SAT & Academic Spelling Bee' },
-      { id: 'languages', label: '🌏 Language Studio (Mal/Hin/Spa/Fr/It)' }
+      { id: 'dashboard', label: '📊 Analytics, Streak Calendar & Topics', shortLabel: '📊 Analytics' },
+      { id: 'sat', label: '📝 Digital SAT & Topic Simulator', shortLabel: '📝 Digital SAT' },
+      { id: 'spelling', label: '🐝 SAT & Academic Spelling Bee', shortLabel: '🐝 SAT & Academic Spelling Bee' },
+      { id: 'languages', label: '🌏 Language Studio (Mal/Hin/Spa/Fr/It)', shortLabel: '🌏 Language Studio' }
     ];
     container.innerHTML = tabs.map(t => `
       <button onclick="openTeenTab('${t.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
         activeTab === t.id
           ? 'bg-indigo-600 text-white shadow-2xs'
           : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
-      }">${t.label}</button>
+      }"><span class="teen-tab-label-full">${t.label}</span><span class="teen-tab-label-short">${t.shortLabel}</span></button>
     `).join('');
   }
 
