@@ -351,6 +351,16 @@
     isAdmin: false,
     user: null,
 
+    // Multi-family: every signed-in parent account is a "family", keyed by
+    // its Firebase UID. Profiles and family settings are scoped to it. The
+    // founding family (checkIfAdmin) additionally owns the shared content
+    // (question bank, language packs) and adopts any legacy profiles that
+    // predate family stamping.
+    getFamilyId: function () {
+      const u = this.user || (window.firebase && firebase.auth && firebase.auth().currentUser) || null;
+      return u ? u.uid : null;
+    },
+
     checkIfAdmin: function (user) {
       if (!user) return false;
       const em = (user.email || '').toLowerCase().trim();
@@ -432,8 +442,9 @@
       try {
         const res = await firebase.auth().createUserWithEmailAndPassword(email.trim(), password);
         this.user = res.user;
+        this.isAdmin = this.checkIfAdmin(res.user);
         this.notify();
-        return { ok: true, user: res.user };
+        return { ok: true, user: res.user, isAdmin: this.isAdmin };
       } catch (err) {
         return { ok: false, error: (err && err.message) || String(err) };
       }
@@ -527,9 +538,14 @@
     },
 
     ensureDefaultProfiles: function () {
-      if (!this.state.profiles || Object.keys(this.state.profiles).length === 0) {
+      // Multi-family: a signed-in family that is not the founding family
+      // starts with NO profiles (they add their own learners) — never seed
+      // the founding family's default profiles into another family's space.
+      const signedInNonFounder = !!this.getFamilyId() && !this.isAdmin;
+      if ((!this.state.profiles || Object.keys(this.state.profiles).length === 0) && !signedInNonFounder) {
         this.state.profiles = defaultProfiles();
       }
+      if (!this.state.profiles) this.state.profiles = {};
       Object.keys(this.state.profiles).forEach(id => {
         const p = this.state.profiles[id];
         p.id = id;
@@ -540,8 +556,9 @@
         if (!p.dailyGoalQuestions) p.dailyGoalQuestions = p.ageGroup === 'kid' ? 10 : 12;
         if (!p.dailyGoalMinutes) p.dailyGoalMinutes = p.ageGroup === 'kid' ? 15 : 20;
       });
-      if (!this.state.profiles[this.state.activeProfileId]) {
-        this.state.activeProfileId = Object.keys(this.state.profiles)[0];
+      const ids = Object.keys(this.state.profiles);
+      if (ids.length && !this.state.profiles[this.state.activeProfileId]) {
+        this.state.activeProfileId = ids[0];
       }
     },
 
@@ -782,6 +799,10 @@
         dailyGoalMinutes: Math.max(1, Number(fields.dailyGoalMinutes) || p.dailyGoalMinutes)
       });
       this.state.profiles[id] = p;
+      // Stamp new profiles with the signed-in family so cloud sync and
+      // per-family scoping can tell whose learner this is.
+      const famId = this.getFamilyId();
+      if (famId && !p.familyId && !p.isPreview) p.familyId = famId;
       this.pending.deletes.delete(id);
       this.markProfile(id);
       this.saveLocal();
@@ -1515,6 +1536,10 @@
           if (!p) return;
           const summary = Object.assign({}, p);
           delete summary.dailyActivity; // days live in the sub-collection
+          if (!summary.familyId && !isPreviewProfile(p)) {
+            const famId = this.getFamilyId();
+            if (famId) summary.familyId = famId;
+          }
           summary.updatedAt = ts;
           ops.push(db.collection('profiles').doc(pid).set(clean(summary)));
         });
@@ -1557,11 +1582,22 @@
               ops.push(db.collection('question_chunks').doc('chunk_' + c).delete());
             }
           }
-          if (snap.questions || snap.meta) {
-            const metaData = { updatedAt: ts, questionsCount: this.state.questions.length, customKidCards: this.state.customKidCards || [], sectionXP: this.state.sectionXP || {}, rewardTiers: this.state.rewardTiers || [], rewardCatalog: this.state.rewardCatalog || [], wrongAnswerPenalty: this.state.wrongAnswerPenalty || 0 };
+          if (snap.questions) {
+            const metaData = { updatedAt: ts, questionsCount: this.state.questions.length };
             if (chunkCount !== null) metaData.questionChunks = chunkCount;
             if (pushedBankVersion) metaData.questionBankVersion = pushedBankVersion;
             ops.push(metaRef.set(clean(metaData), { merge: true }));
+          }
+        }
+
+        // Family settings live in a per-family doc (app_state/family_<uid>)
+        // so each family's XP / reward customization stays its own. Any
+        // signed-in family may write its own settings doc.
+        if (snap.meta) {
+          const famId = this.getFamilyId();
+          if (famId) {
+            const famData = { updatedAt: ts, customKidCards: this.state.customKidCards || [], sectionXP: this.state.sectionXP || {}, rewardTiers: this.state.rewardTiers || [], rewardCatalog: this.state.rewardCatalog || [], wrongAnswerPenalty: this.state.wrongAnswerPenalty || 0 };
+            ops.push(db.collection('app_state').doc('family_' + famId).set(clean(famData), { merge: true }));
           }
         }
 
@@ -1577,10 +1613,10 @@
         console.warn('Firestore push error:', e);
         snap.profiles.forEach(x => this.pending.profiles.add(x));
         snap.days.forEach(x => this.pending.days.add(x));
+        if (snap.meta) this.pending.meta = true;
         if (this.isAdmin) {
           snap.deletes.forEach(x => this.pending.deletes.add(x));
           if (snap.questions) this.pending.questions = true;
-          if (snap.meta) this.pending.meta = true;
         }
         this.pushing = false;
         this.setStatus('error', friendlyError(e));
@@ -1600,13 +1636,26 @@
         // ---- Profiles + recent daily activity
         const localPreviewProfiles = {};
         Object.values(this.state.profiles || {}).forEach(p => { if (isPreviewProfile(p)) localPreviewProfiles[p.id] = p; });
-        const profSnap = await db.collection('profiles').get();
+        const famId = this.getFamilyId();
+        // Multi-family: non-founding families only ever download their own
+        // profiles; the founding family sees all (and adopts legacy ones).
+        const profQuery = (famId && !this.isAdmin)
+          ? db.collection('profiles').where('familyId', '==', famId)
+          : db.collection('profiles');
+        const profSnap = await profQuery.get();
         if (profSnap.empty) {
-          // First run: seed Firebase with this device's profiles
-          Object.values(this.state.profiles).forEach(p => {
-            this.pending.profiles.add(p.id);
-            Object.keys(p.dailyActivity || {}).forEach(k => this.pending.days.add(p.id + '|' + k));
-          });
+          if (!famId || this.isAdmin) {
+            // First run: seed Firebase with this device's profiles
+            Object.values(this.state.profiles).forEach(p => {
+              this.pending.profiles.add(p.id);
+              Object.keys(p.dailyActivity || {}).forEach(k => this.pending.days.add(p.id + '|' + k));
+            });
+          } else {
+            // A brand-new family starts empty — never adopt this device's
+            // local profiles (they belong to whoever used the device before).
+            this.state.profiles = {};
+            Object.assign(this.state.profiles, localPreviewProfiles);
+          }
         } else {
           const merged = {};
           await Promise.all(profSnap.docs.map(async doc => {
@@ -1622,11 +1671,22 @@
               });
             }
             const base = (local && this.pending.profiles.has(doc.id)) ? local : doc.data();
-            merged[doc.id] = Object.assign({}, base, { id: doc.id, dailyActivity: dailyActivity });
+            const prof = Object.assign({}, base, { id: doc.id, dailyActivity: dailyActivity });
+            // Founding family adopts legacy profiles that predate family
+            // stamping, so they gain a familyId on the next push.
+            if (this.isAdmin && famId && !prof.familyId && !isPreviewProfile(prof)) {
+              prof.familyId = famId;
+              this.pending.profiles.add(doc.id);
+            }
+            merged[doc.id] = prof;
           }));
-          // Keep profiles created on this device that haven't been uploaded yet
+          // Keep profiles created on this device that haven't been uploaded
+          // yet — but only ones that belong to this family.
           Object.values(this.state.profiles).forEach(p => {
-            if (!merged[p.id] && this.pending.profiles.has(p.id)) merged[p.id] = p;
+            if (!merged[p.id] && this.pending.profiles.has(p.id)
+              && (!famId || this.isAdmin || p.familyId === famId || isPreviewProfile(p))) {
+              merged[p.id] = p;
+            }
           });
           this.state.profiles = merged;
           // Keep this device's Friend Preview profiles (they exist only locally)
@@ -1659,13 +1719,31 @@
               }
             }
           }
-          if (!this.pending.meta && Array.isArray(meta.customKidCards)) this.state.customKidCards = meta.customKidCards;
-          if (!this.pending.meta && Array.isArray(meta.rewardTiers) && meta.rewardTiers.length > 0) this.state.rewardTiers = meta.rewardTiers;
-          if (!this.pending.meta && Array.isArray(meta.rewardCatalog)) this.state.rewardCatalog = meta.rewardCatalog;
-          if (!this.pending.meta && typeof meta.wrongAnswerPenalty === 'number') this.state.wrongAnswerPenalty = meta.wrongAnswerPenalty;
-          if (meta.sectionXP && typeof meta.sectionXP === 'object') {
-            this.state.sectionXP = Object.assign({}, meta.sectionXP, this.state.sectionXP || {});
+        }
+
+        // ---- Family settings (per-family doc app_state/family_<uid>; the
+        // founding family falls back to the legacy global meta location
+        // until its settings have been written to its family doc once)
+        try {
+          let famSettings = null;
+          if (famId) {
+            const famDoc = await db.collection('app_state').doc('family_' + famId).get();
+            if (famDoc.exists) famSettings = famDoc.data();
           }
+          if (!famSettings && this.isAdmin && meta) famSettings = meta;
+          if (famSettings) {
+            if (!this.pending.meta) {
+              if (Array.isArray(famSettings.customKidCards)) this.state.customKidCards = famSettings.customKidCards;
+              if (Array.isArray(famSettings.rewardTiers) && famSettings.rewardTiers.length > 0) this.state.rewardTiers = famSettings.rewardTiers;
+              if (Array.isArray(famSettings.rewardCatalog)) this.state.rewardCatalog = famSettings.rewardCatalog;
+              if (typeof famSettings.wrongAnswerPenalty === 'number') this.state.wrongAnswerPenalty = famSettings.wrongAnswerPenalty;
+            }
+            if (famSettings.sectionXP && typeof famSettings.sectionXP === 'object') {
+              this.state.sectionXP = Object.assign({}, famSettings.sectionXP, this.state.sectionXP || {});
+            }
+          }
+        } catch (sErr) {
+          console.warn('Family settings sync note:', sErr);
         }
 
         // ---- Language packs (Malayalam, Hindi, Spanish in Cloud Firestore)
