@@ -295,6 +295,10 @@
       }
     }
 
+    /* Dark-mode safety net: the kid question/prompt label is re-classed by
+       JS while playing; never let it render dark-on-dark again. */
+    html.dark #kidQuizTargetLabel { color: #f8fafc !important; }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .animate-subtle-bounce, .animate-fade { animation: none !important; }

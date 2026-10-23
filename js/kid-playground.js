@@ -248,7 +248,7 @@
         : null;
       const isBonus = xpVal && xpVal >= 40;
       const xpPill = xpVal
-        ? `<span class="ml-1 text-[10px] font-black px-1.5 py-0.2 rounded-full ${isBonus ? 'bg-rose-500 text-white shadow-xs' : 'bg-slate-900/10 text-slate-800'}">${isBonus ? '🔥 +' : '+'}${xpVal}</span>`
+        ? `<span class="ml-1 text-[10px] font-black px-1.5 py-0.2 rounded-full ${isBonus ? 'bg-rose-500 text-white shadow-xs' : 'bg-slate-900/10 text-slate-800 dark:bg-white/10 dark:text-slate-200'}">${isBonus ? '🔥 +' : '+'}${xpVal}</span>`
         : '';
       return `<button id="math-op-${key}" onclick="setMathOpFilter('${key}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition ${cls}">${label} <span class="opacity-60">(${count})</span>${xpPill}</button>`;
     }).join('');
@@ -629,7 +629,7 @@
       if (promptBox) promptBox.classList.remove('hidden');
       const targetLabel = document.getElementById('kidQuizTargetLabel');
       if (targetLabel) {
-        targetLabel.className = "text-xl sm:text-2xl font-black text-slate-900 mt-2";
+        targetLabel.className = "text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-50 mt-2";
         targetLabel.innerHTML = `🏆 Star Explorer! You completed all ${allDomainQs.length} questions in ${escapeHtml(pack.label)}!`;
       }
       if (topPrompt) topPrompt.innerText = 'Track Completed:';
@@ -680,7 +680,7 @@
 
       if (topPrompt) topPrompt.innerText = 'Read or Listen & Pick the Best Answer:';
       const targetLabel = document.getElementById('kidQuizTargetLabel');
-      targetLabel.className = "text-xl sm:text-2xl font-extrabold text-slate-900 mt-1 leading-snug";
+      targetLabel.className = "text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-50 mt-1 leading-snug";
       targetLabel.innerHTML = (typeof window.renderInteractiveText === 'function')
         ? window.renderInteractiveText(qObj.question || '')
         : escapeHtml(qObj.question || '');
@@ -707,7 +707,7 @@
     }
     if (topPrompt) topPrompt.innerText = 'Can you tap:';
     const targetLabel = document.getElementById('kidQuizTargetLabel');
-    targetLabel.className = "text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1";
+    targetLabel.className = "text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-50 mt-1";
 
     const items = getActiveKidItemList();
     const uncompletedItems = items.filter(i => !completed.has('kid_match_' + window.appData.kidCategory + '_' + kidSubMode + '_' + i.primary));
@@ -715,7 +715,7 @@
     if (uncompletedItems.length === 0 && items.length > 0) {
       if (passageBox) passageBox.classList.add('hidden');
       if (promptBox) promptBox.classList.remove('hidden');
-      targetLabel.className = "text-xl sm:text-2xl font-black text-slate-900 mt-2";
+      targetLabel.className = "text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-50 mt-2";
       targetLabel.innerHTML = `🌟 Super Matcher! You've matched every item in ${escapeHtml(pack.label)}!`;
       if (topPrompt) topPrompt.innerText = 'Track Completed:';
       if (subHint) {
