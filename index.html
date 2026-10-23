@@ -217,33 +217,29 @@
       #todayProgressStrip .md\:col-span-2 { display: none; }
     }
 
-    /* Phones: OPTION A - slim vertical category rail on the left, sticky so
-       it stays put while the exercise fills the main area from the top.
+    /* Phones: OPTION B - subjects become a slim swipeable chip strip stuck
+       under the header; the exercise keeps the full width below it.
        Tablet/desktop keep the classic selector-bar layout. */
     @media (max-width: 639px) {
-      #section-kid-playground:not(.hidden) {
-        display: grid; grid-template-columns: 62px minmax(0, 1fr);
-        column-gap: 8px; row-gap: 10px;
-      }
-      #section-kid-playground > * { margin-top: 0 !important; min-width: 0; }
       #kidCategoryGrid {
-        grid-column: 1; grid-row: 1 / span 24;
-        display: flex; flex-direction: column; gap: 6px;
-        position: sticky; top: 100px; align-self: start;
-        max-height: calc(100vh - 112px); overflow-y: auto;
-        padding-bottom: 4px; scrollbar-width: none;
+        display: flex; flex-direction: row; flex-wrap: nowrap;
+        overflow-x: auto; gap: 6px; padding: 4px 2px;
+        position: sticky; top: 96px; z-index: 30;
+        background: rgba(255, 251, 235, .94);
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        scrollbar-width: none;
       }
+      html.dark #kidCategoryGrid { background: rgba(2, 6, 23, .94); }
       #kidCategoryGrid::-webkit-scrollbar { display: none; }
-      #section-kid-playground > *:not(#kidCategoryGrid) { grid-column: 2; }
       #kidCategoryGrid .kid-cat-btn {
-        height: 58px !important; min-height: 58px !important; width: 100%;
-        padding: 4px 1px !important; border-radius: 14px !important; gap: 1px !important;
+        flex: 0 0 auto; flex-direction: row !important;
+        height: 38px !important; min-height: 38px !important; width: auto;
+        padding: 4px 10px !important; border-radius: 999px !important; gap: 5px !important;
       }
-      #kidCategoryGrid .kid-cat-btn > span:first-child { font-size: 19px !important; line-height: 1.1; }
-      #kidCategoryGrid .kid-cat-btn > span:nth-child(2) { font-size: 8.5px !important; line-height: 1.05; text-align: center; }
+      #kidCategoryGrid .kid-cat-btn > span:first-child { font-size: 16px !important; line-height: 1; }
+      #kidCategoryGrid .kid-cat-btn > span:nth-child(2) { font-size: 11px !important; line-height: 1; white-space: nowrap; }
       #kidCategoryGrid .kid-cat-xp-badge {
-        font-size: 8px !important; padding: 0 4px !important; margin-top: 1px !important;
-        max-width: 100%; overflow: hidden; white-space: nowrap;
+        font-size: 8px !important; padding: 0 5px !important; margin-top: 0 !important; white-space: nowrap;
       }
     }
 
