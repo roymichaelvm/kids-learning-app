@@ -1,4 +1,4 @@
-# Sprout & Scholar — Kids Learning Hub & Parent Progress Studio
+# Roy's Learning Hub — Kids Learning App & Parent Progress Studio
 
 A family learning web app for kids (`13yo Teen Scholar` & `6yo Little Explorer`).
 

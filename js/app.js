@@ -1304,7 +1304,7 @@
       if (iconEl) iconEl.setAttribute('data-lucide', 'lock');
       if (pill) {
         pill.className = "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer";
-        pill.title = "Sign in required to access Sprout & Scholar";
+        pill.title = "Sign in required to access Roy's Learning Hub";
       }
       if (loggedInView) loggedInView.classList.add('hidden');
       if (loginForm) loginForm.classList.remove('hidden');
@@ -1390,7 +1390,7 @@
       await window.LuminaDB.signOut();
       authModalManuallyOpened = false;
       updateFamilyAuthUI();
-      if (typeof showToast === 'function') showToast('Signed out. Sign in to access Sprout & Scholar.');
+      if (typeof showToast === 'function') showToast('Signed out. Sign in to access Roy\'s Learning Hub.');
     }
   }
 
