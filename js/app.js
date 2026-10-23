@@ -1444,7 +1444,7 @@
     const modal = document.getElementById('familyAuthModal');
     if (modal) modal.classList.add('hidden');
     setProtectedContentVisible(true);
-    completeProfileSwitch('preview_teen');
+    completeProfileSwitch('preview_kid');
     refreshPreviewBanner();
     if (typeof showToast === 'function') {
       showToast('\uD83C\uDF81 Friend Preview: demo profiles only - progress stays on this device.');
