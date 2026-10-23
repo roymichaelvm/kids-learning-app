@@ -1,4 +1,4 @@
-# Lumina — Kids Learning Hub & Parent Progress Studio
+# Sprout & Scholar — Kids Learning Hub & Parent Progress Studio
 
 A family learning web app for kids (`13yo Teen Scholar` & `6yo Little Explorer`).
 
