@@ -176,6 +176,18 @@
     @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
     #familyAuthModal > div, #profilePickerOverlay > div, #profilePinModal > div { animation: modalIn .22s ease both; }
 
+    /* Phones: compact chrome buttons everywhere EXCEPT the exercise
+       controls themselves (answer choices, letter tiles, flashcard nav) -
+       those keep their big, finger-friendly size. Tablet/desktop unchanged. */
+    @media (max-width: 639px) {
+      main button:not(#kidSectionPractice button):not(#kidSectionFlashcards button):not(#section-teen-sat button):not(#section-languages button):not(#section-teen-spelling button),
+      #familyAuthModal button, #profilePickerOverlay button, #profilePinModal button {
+        padding-top: 0.42rem !important; padding-bottom: 0.42rem !important;
+        padding-left: 0.65rem !important; padding-right: 0.65rem !important;
+        min-height: 34px !important;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .animate-subtle-bounce, .animate-fade { animation: none !important; }
