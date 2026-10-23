@@ -771,6 +771,7 @@
         <button onclick="setTeenLangSubMode('letters')" id="btn-teen-sub-letters" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">🔤 Alphabet Letters</button>
         <button onclick="setTeenLangSubMode('words')" id="btn-teen-sub-words" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-white dark:bg-indigo-900/80 text-slate-900 dark:text-indigo-200 shadow-xs">📖 Core Words</button>
         <button onclick="setTeenLangSubMode('sentences')" id="btn-teen-sub-sentences" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">💬 Small Sentences</button>
+        <button onclick="setTeenLangSubMode('spelling')" id="btn-teen-sub-spelling" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">🐝 Spelling Bee</button>
       </div>
 
       <!-- Teen View Switcher Tabs: 🎮 Practice & Active Recall Quiz vs 🃏 Study Flashcards & 3D Deck (Only ONE section visible at a time) -->
@@ -803,7 +804,7 @@
             </div>
           </div>
 
-          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700 mb-5">
+          <div id="teenLangQuizPromptBox" class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700 mb-5">
             <p id="teenQuizPromptSub" class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Translate or Identify:</p>
             <h3 id="teenLangQuizQuestion" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 leading-snug"></h3>
           </div>
@@ -812,6 +813,28 @@
         </div>
 
         <div id="teenLangQuizBanner" class="hidden mt-6 p-4 rounded-2xl text-xs font-bold flex items-center justify-between"></div>
+
+        <!-- Language Spelling Bee: hear the word, type its spelling -->
+        <div id="teenLangSpellPanel" class="hidden">
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700 mb-5 text-center">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">🐝 Spelling Bee — how do you spell the word for</p>
+            <div id="teenLangSpellEmoji" class="text-5xl my-2">🐘</div>
+            <h3 id="teenLangSpellMeaning" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-snug">Elephant</h3>
+            <p id="teenLangSpellHint" class="hidden text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400 mt-1.5"></p>
+            <div class="mt-3 flex items-center justify-center gap-2">
+              <button onclick="teenLangSpellSpeak()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
+                <span>🔊</span><span>Hear the Word</span>
+              </button>
+              <button onclick="teenLangSpellShowHint()" class="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition">💡 Hint</button>
+              <span id="teenLangSpellXpBadge" class="text-xs font-semibold text-slate-400"></span>
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input type="text" id="teenLangSpellInput" placeholder="Type the spelling here..." autocomplete="off" autocapitalize="off" spellcheck="false" class="flex-1 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-lg font-bold text-slate-900 dark:text-slate-100 focus:outline-indigo-500 text-center" onkeydown="if(event.key==='Enter'){event.preventDefault();checkTeenLangSpelling();}" />
+            <button onclick="checkTeenLangSpelling()" class="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm transition shadow-sm">✓ Check Spelling</button>
+          </div>
+          <div id="teenLangSpellBanner" class="hidden mt-5 p-4 rounded-2xl text-xs font-bold flex items-center justify-between"></div>
+        </div>
       </div>
 
       <!-- 2. FULL-WIDTH TEEN STUDY FLASHCARDS & 3D DECK SECTION (Letters, Words, Small Sentences) -->
@@ -1089,6 +1112,7 @@
         <button onclick="setKidSubMode('letters')" id="btn-kid-sub-letters" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-amber-900 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700">🔤 Alphabet Letters</button>
         <button onclick="setKidSubMode('words')" id="btn-kid-sub-words" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-white dark:bg-indigo-900/80 text-slate-950 dark:text-indigo-200 shadow-xs">📖 Words (100+)</button>
         <button onclick="setKidSubMode('sentences')" id="btn-kid-sub-sentences" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-amber-900 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700">💬 Small Sentences (100+)</button>
+        <button onclick="setKidSubMode('spelling')" id="btn-kid-sub-spelling" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-amber-900 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700">🐝 Spelling Bee</button>
       </div>
 
       <!-- Kid View Switcher Tabs: 🎮 Practice & Quizzes vs 🃏 Study Flashcards & Deck (Only ONE section visible at a time) -->
@@ -1195,6 +1219,26 @@
         </div>
 
         <div id="kidQuizFeedbackToast" class="hidden mt-5 p-4 rounded-2xl text-center text-base sm:text-lg font-bold"></div>
+
+        <!-- Language Spelling Bee ("Build the Word" in Malayalam, Hindi, Spanish, French, Italian) -->
+        <div id="kidLangSpellPanel" class="hidden">
+          <div class="text-center py-4 px-5 bg-amber-50/80 dark:bg-amber-950/30 rounded-3xl border-2 border-amber-200 dark:border-amber-800/70 mb-5">
+            <div id="kidLangSpellEmoji" class="text-6xl mb-2">🐘</div>
+            <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">🐝 Spelling Bee — build the word for</p>
+            <h3 id="kidLangSpellMeaning" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 mt-1 leading-snug">Elephant</h3>
+            <p id="kidLangSpellHint" class="hidden text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1"></p>
+            <div class="mt-3 flex items-center justify-center gap-2">
+              <button onclick="kidLangSpellSpeak()" class="px-4 py-2 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs sm:text-sm border-2 border-amber-500 shadow-kids-btn btn-tactile flex items-center gap-2">
+                <span>🔊</span><span>Hear the Word</span>
+              </button>
+              <button id="kidLangSpellHintBtn" onclick="kidLangSpellShowHint()" class="hidden px-4 py-2 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs sm:text-sm border-2 border-slate-200 dark:border-slate-700 btn-tactile">💡 Show Hint</button>
+              <span id="kidLangSpellXpBadge" class="px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-xs font-black"></span>
+            </div>
+          </div>
+          <div id="kidLangSpellSlots" class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-5 min-h-[64px]"></div>
+          <div id="kidLangSpellTiles" class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"></div>
+          <div id="kidLangSpellFeedback" class="hidden mt-5 p-4 rounded-2xl text-center text-base sm:text-lg font-bold"></div>
+        </div>
       </div>
 
       <!-- 2. FULL-WIDTH STUDY FLASHCARDS & DECK SECTION -->
@@ -1246,6 +1290,7 @@
       <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Who's learning today? 👋</h2>
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Choose your profile so we save your streak, stars, and daily progress</p>
       <div id="profilePickerGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6"></div>
+      <div id="profilePickerAddBox" class="mt-4 text-left"></div>
       <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center text-xs text-slate-500 dark:text-slate-400">
         <button onclick="hideProfilePicker()" class="font-semibold hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer">Continue as current profile</button>
       </div>
@@ -1496,6 +1541,23 @@
           <p id="familyAuthUserEmail" class="font-mono text-sm font-bold text-emerald-950 dark:text-emerald-200 mt-0.5"></p>
           <p class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1">Full access unlocked across all subjects.</p>
         </div>
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3 text-left">
+          <p class="text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider">🔐 Account Settings</p>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Current password (needed to confirm either change)</label>
+            <input type="password" id="acctCurrentPassword" placeholder="Current password" autocomplete="current-password" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-indigo-500 font-mono" />
+          </div>
+          <div class="flex gap-2">
+            <input type="password" id="acctNewPassword" placeholder="New password (6+ characters)" autocomplete="new-password" class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-indigo-500 font-mono" />
+            <button type="button" onclick="submitChangePassword()" class="px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition whitespace-nowrap">Change Password</button>
+          </div>
+          <div class="flex gap-2">
+            <input type="email" id="acctNewEmail" placeholder="New email address" autocomplete="email" class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-indigo-500 font-mono" />
+            <button type="button" onclick="submitChangeEmail()" class="px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-xs font-bold transition border border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Change Email</button>
+          </div>
+          <p id="acctSettingsMsg" class="hidden text-[11px] font-semibold"></p>
+          <p class="text-[11px] text-slate-400">Changing your email or password never touches your family data — learners, points and settings stay with your account.</p>
+        </div>
         <div class="flex items-center gap-3">
           <button onclick="toggleFamilyAuthModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition">
             Close
@@ -1519,9 +1581,16 @@
           <input type="password" id="familyPasswordInput" required placeholder="Enter password" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-indigo-500 font-mono" />
         </div>
 
+        <div class="text-right -mt-1">
+          <button type="button" onclick="submitForgotPassword()" class="text-[11px] font-bold text-indigo-500 hover:text-indigo-400 cursor-pointer">Forgot password?</button>
+        </div>
+
         <div class="pt-2 space-y-2">
           <button type="submit" id="btnFamilySignIn" class="w-full px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
             <span>Sign In to Unlock Hub</span>
+          </button>
+          <button type="button" id="btnFamilyAuthToggle" onclick="toggleFamilyAuthMode()" class="w-full px-5 py-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-xs font-bold transition border border-indigo-200 dark:border-indigo-800 flex items-center justify-center gap-1.5">
+            <span id="familyAuthToggleText">New family? Create your family account</span>
           </button>
           <button type="button" onclick="continueOfflineMode()" class="w-full px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition flex items-center justify-center gap-1.5">
             <span>⚡ Continue in Local / Offline Mode</span>
@@ -1529,7 +1598,7 @@
           <button type="button" onclick="startFriendPreview()" class="w-full px-5 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 text-xs font-bold transition flex items-center justify-center gap-1.5 border border-amber-200 dark:border-amber-800">
             <span>🎁 Try the Friend Preview — No Sign-In Needed</span>
           </button>
-          <p class="text-[11px] text-slate-400 text-center">Visiting as a friend? Preview with demo profiles — progress stays on this device and never touches the family account.</p>
+          <p id="familyAuthHint" class="text-[11px] text-slate-400 text-center">Visiting as a friend? Preview with demo profiles — progress stays on this device and never touches the family account.</p>
         </div>
       </form>
     </div>
