@@ -387,7 +387,7 @@
                 : `Signed in as ${user.email || 'Family Account'}`);
               this.pullFromCloud();
             } else {
-              this.setStatus('connected', 'Sign in required to access Roy's Learning Hub');
+              this.setStatus('connected', "Sign in required to access Roy's Learning Hub");
             }
             this.notify();
           });
