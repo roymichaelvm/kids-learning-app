@@ -238,6 +238,23 @@
       #activeModeBadge { max-width: 128px; overflow: hidden; text-overflow: ellipsis; }
       #todayProgressStrip > div { padding: 0.75rem; gap: 0.5rem; }
       #todayProgressStrip .md\:col-span-2 { display: none; }
+      /* Daily-goal strip, compact edition (phones only - tablet/desktop keep
+         the roomy card): slimmer padding, small avatar, the redundant
+         "DAILY ACTIVITY GOAL" eyebrow line is dropped (the greeting already
+         names the learner), and the two goal bars become thin and quiet. */
+      #todayGoalSection { padding-top: 0.5rem; }
+      #todayProgressStrip > div { padding: 10px 12px !important; gap: 8px !important; border-radius: 20px; }
+      #todayProgressStrip .md\:col-span-4 { gap: 8px !important; }
+      #todayProgressStrip .md\:col-span-4 > div:first-child {
+        width: 36px !important; height: 36px !important; font-size: 18px !important; border-radius: 12px !important;
+      }
+      #todayProgressStrip .md\:col-span-4 > div:last-child > p:first-child { display: none; }
+      #todayProgressStrip .md\:col-span-4 > div:last-child > p:nth-child(2) { font-size: 13px !important; }
+      #todayProgressStrip .md\:col-span-4 > div:last-child > p:nth-child(3) {
+        font-size: 10px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 210px;
+      }
+      #todayProgressStrip .md\:col-span-3 > div:first-child { margin-bottom: 2px !important; font-size: 11px !important; }
+      #todayProgressStrip .h-2\.5 { height: 6px; }
     }
 
     /* Phones: OPTION B - subjects become a slim swipeable chip strip stuck
