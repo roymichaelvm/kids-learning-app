@@ -453,7 +453,7 @@
       <div class="rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white p-6 sm:p-8 shadow-bento relative overflow-hidden">
         <div class="relative z-10 max-w-2xl">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-semibold mb-3 backdrop-blur-sm">
-            <span>🎓 Digital SAT Bluebook & Trilingual Track</span>
+            <span>🎓 Digital SAT Bluebook & Language Track</span>
             <span class="w-1 h-1 rounded-full bg-indigo-300"></span>
             <span id="teenHeroQuestionCount">0 Questions Active</span>
           </div>
@@ -461,7 +461,7 @@
             Welcome back! Ready to crush your SAT timing & language goals?
           </h1>
           <p class="text-indigo-200/90 text-sm mt-2 leading-relaxed">
-            Real SAT Bluebook simulation featuring precision timing telemetry, instinct vs second-guessing tracking, choice strike-out elimination, and deep trilingual study in Malayalam, Hindi, and Spanish.
+            Real SAT Bluebook simulation featuring precision timing telemetry, instinct vs second-guessing tracking, choice strike-out elimination, and deep language study in Malayalam, Hindi, Spanish, French, and Italian.
           </p>
           <div class="mt-5 flex flex-wrap gap-3">
             <button onclick="openTeenTab('sat')" class="px-5 py-2.5 rounded-2xl bg-white text-indigo-950 font-bold text-xs hover:bg-indigo-50 transition shadow-md btn-tactile flex items-center gap-2">
@@ -474,7 +474,7 @@
             </button>
             <button onclick="openTeenTab('languages')" class="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition backdrop-blur-sm flex items-center gap-2 border border-white/15">
               <span>🌏</span>
-              <span>Trilingual Studio (100+ Words &amp; Sentences)</span>
+              <span>Language Studio (100+ Words &amp; Sentences)</span>
             </button>
           </div>
         </div>
@@ -759,7 +759,7 @@
       <!-- Language Pill Switcher & Sub-Navigation Header -->
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Trilingual Language Studio</h2>
+          <h2 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">World Language Studio</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400">Native pronunciation, scripts, flashcards, and small sentences</p>
         </div>
 
@@ -775,6 +775,14 @@
           <button onclick="selectActiveLanguage('spanish')" id="pill-spanish" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-2">
             <span>🇪🇸</span>
             <span>Spanish (Español)</span>
+          </button>
+          <button onclick="selectActiveLanguage('french')" id="pill-french" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-2">
+            <span>🇫🇷</span>
+            <span>French (Français)</span>
+          </button>
+          <button onclick="selectActiveLanguage('italian')" id="pill-italian" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-2">
+            <span>🇮🇹</span>
+            <span>Italian (Italiano)</span>
           </button>
         </div>
       </div>
@@ -1082,6 +1090,14 @@
         <button onclick="selectKidCategory('spanish')" id="kidCat-spanish" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-xl sm:text-3xl">🇪🇸</span>
           <span>Spanish</span>
+        </button>
+        <button onclick="selectKidCategory('french')" id="kidCat-french" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+          <span class="text-xl sm:text-3xl">🇫🇷</span>
+          <span>French</span>
+        </button>
+        <button onclick="selectKidCategory('italian')" id="kidCat-italian" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+          <span class="text-xl sm:text-3xl">🇮🇹</span>
+          <span>Italian</span>
         </button>
       </div>
 

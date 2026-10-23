@@ -30,6 +30,8 @@
     malayalam: EMPTY_PACK('Malayalam (മലയാളം)', 'Malayalam', 'ml-IN'),
     hindi: EMPTY_PACK('Hindi (हिंदी)', 'Hindi', 'hi-IN'),
     spanish: EMPTY_PACK('Spanish (Español)', 'Spanish', 'es-ES'),
+    french: EMPTY_PACK('French (Français)', 'French', 'fr-FR'),
+    italian: EMPTY_PACK('Italian (Italiano)', 'Italian', 'it-IT'),
     animals: EMPTY_PACK('Animals & Science', 'Animals & Science', 'en-US'),
     phonics: EMPTY_PACK('Sight Words & Phonics', 'Sight Words & Phonics', 'en-US'),
     numbers: EMPTY_PACK('6+ Numbers & Math', '6+ Numbers & Math', 'en-US'),
@@ -41,7 +43,9 @@
   window.EXPANDED_LANGUAGE_PACKS = window.EXPANDED_LANGUAGE_PACKS || {
     malayalam: { words: [], sentences: [] },
     hindi: { words: [], sentences: [] },
-    spanish: { words: [], sentences: [] }
+    spanish: { words: [], sentences: [] },
+    french: { words: [], sentences: [] },
+    italian: { words: [], sentences: [] }
   };
   window.DEFAULT_QUESTIONS = Array.isArray(window.DEFAULT_QUESTIONS) ? window.DEFAULT_QUESTIONS : [];
   window.SHORT_SPELLING_WORDS_RAW = Array.isArray(window.SHORT_SPELLING_WORDS_RAW) ? window.SHORT_SPELLING_WORDS_RAW : [];
@@ -110,37 +114,48 @@
       // LocalStorage access may be restricted in some contexts
     }
 
-    // 3. If running via HTTP/HTTPS, asynchronously fetch data/*.json to pick up live edits
+    // 3. If running via HTTP/HTTPS, fetch a data/*.json file ONLY when its in-memory
+    // copy is missing. The data/*.data.js scripts loaded in <head> mirror the .json
+    // files exactly, so fetching when they are present would download the same
+    // bytes a second time on every page load.
+    // Trade-off: editing ONLY a .json file on a server no longer overrides the
+    // bundled .data.js at runtime - always keep the paired files in sync.
     if (typeof window.fetch === 'function' && window.location && window.location.protocol && window.location.protocol.startsWith('http')) {
-      fetch('data/questions.json')
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data) {
-            applyQuestionsData(data);
-            try { localStorage.setItem(QUESTIONS_CACHE_KEY, JSON.stringify(data)); } catch (e) {}
-          }
-        })
-        .catch(() => {});
+      if (!Array.isArray(window.DEFAULT_QUESTIONS) || window.DEFAULT_QUESTIONS.length === 0) {
+        fetch('data/questions.json')
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data) {
+              applyQuestionsData(data);
+              try { localStorage.setItem(QUESTIONS_CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+            }
+          })
+          .catch(() => {});
+      }
 
-      fetch('data/curriculum.json')
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data) {
-            applyCurriculumData(data);
-            try { localStorage.setItem(CURRICULUM_CACHE_KEY, JSON.stringify(data)); } catch (e) {}
-          }
-        })
-        .catch(() => {});
+      if (!window.CURRICULUM_DATA) {
+        fetch('data/curriculum.json')
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data) {
+              applyCurriculumData(data);
+              try { localStorage.setItem(CURRICULUM_CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+            }
+          })
+          .catch(() => {});
+      }
 
-      fetch('data/spelling.json')
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data) {
-            applySpellingData(data);
-            try { localStorage.setItem(SPELLING_CACHE_KEY, JSON.stringify(data)); } catch (e) {}
-          }
-        })
-        .catch(() => {});
+      if (!window.SPELLING_DATA) {
+        fetch('data/spelling.json')
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data) {
+              applySpellingData(data);
+              try { localStorage.setItem(SPELLING_CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+            }
+          })
+          .catch(() => {});
+      }
     }
   }
 

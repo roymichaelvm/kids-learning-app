@@ -173,7 +173,7 @@
     const seedPacks = window.EXPANDED_LANGUAGE_PACKS || {};
     const dbPacks = (window.LuminaDB && window.LuminaDB.state && window.LuminaDB.state.languagePacks) || {};
 
-    ['malayalam', 'hindi', 'spanish'].forEach(lang => {
+    ['malayalam', 'hindi', 'spanish', 'french', 'italian'].forEach(lang => {
       if (!multiLangData[lang]) return;
       const target = multiLangData[lang];
       if (!target.sentences) target.sentences = [];
@@ -1729,6 +1729,38 @@
       isCompleted: espDone >= espTotal && espTotal > 0
     });
 
+    // 13. French Track
+    const frPack = window.multiLangData && window.multiLangData.french;
+    const frTotal = ((frPack && frPack.kidItems ? frPack.kidItems.length : 0) + (frPack && frPack.sentences ? frPack.sentences.length : 0)) || 40;
+    const frDone = Array.from(completed).filter(id => id.startsWith('kid_match_french_')).length;
+    tracks.push({
+      key: 'french',
+      domain: 'French Language Pack',
+      title: '🇫🇷 French Track',
+      category: 'Languages',
+      targetProfile: 'kid',
+      total: frTotal,
+      completedCount: Math.min(frTotal, frDone),
+      percent: Math.min(100, Math.round((Math.min(frTotal, frDone) / frTotal) * 100)),
+      isCompleted: frDone >= frTotal && frTotal > 0
+    });
+
+    // 14. Italian Track
+    const itPack = window.multiLangData && window.multiLangData.italian;
+    const itTotal = ((itPack && itPack.kidItems ? itPack.kidItems.length : 0) + (itPack && itPack.sentences ? itPack.sentences.length : 0)) || 40;
+    const itDone = Array.from(completed).filter(id => id.startsWith('kid_match_italian_')).length;
+    tracks.push({
+      key: 'italian',
+      domain: 'Italian Language Pack',
+      title: '🇮🇹 Italian Track',
+      category: 'Languages',
+      targetProfile: 'kid',
+      total: itTotal,
+      completedCount: Math.min(itTotal, itDone),
+      percent: Math.min(100, Math.round((Math.min(itTotal, itDone) / itTotal) * 100)),
+      isCompleted: itDone >= itTotal && itTotal > 0
+    });
+
     // 13. SAT Bluebook Reading & Writing
     const satRwQs = (appData.questions || []).filter(q => (q.targetProfile || 'teen') !== 'kid' && (q.domain.includes('Reading') || q.domain.includes('Writing') || q.domain.includes('Ideas')));
     const satRwDone = satRwQs.filter(q => completed.has(q.id) || completed.has(getQuestionSignature(q))).length;
@@ -2114,6 +2146,14 @@
     'spanish_words': 20,       // 🇪🇸 Spanish Core Words
     'spanish': 30,
 
+    'french_sentences': 50,    // 🇫🇷 French Small Sentences (Tough)
+    'french_words': 20,        // 🇫🇷 French Core Words
+    'french': 30,
+
+    'italian_sentences': 50,   // 🇮🇹 Italian Small Sentences (Tough)
+    'italian_words': 20,       // 🇮🇹 Italian Core Words
+    'italian': 30,
+
     // Reading Comprehension & Facts
     'comprehension': 35,       // 📖 Story Reading & Comprehension
     'grammar': 25,             // ✏️ Grammar & Sentence Building
@@ -2282,7 +2322,9 @@
       'animals': () => getSectionXP('animals'),
       'malayalam': () => Math.max(getSectionXP('malayalam_sentences'), getSectionXP('malayalam_words'), getSectionXP('malayalam_letters')),
       'hindi': () => Math.max(getSectionXP('hindi_sentences'), getSectionXP('hindi_words'), getSectionXP('hindi_letters')),
-      'spanish': () => Math.max(getSectionXP('spanish_sentences'), getSectionXP('spanish_words'))
+      'spanish': () => Math.max(getSectionXP('spanish_sentences'), getSectionXP('spanish_words')),
+      'french': () => Math.max(getSectionXP('french_sentences'), getSectionXP('french_words')),
+      'italian': () => Math.max(getSectionXP('italian_sentences'), getSectionXP('italian_words'))
     };
 
     Object.entries(catMap).forEach(([idSuffix, getVal]) => {
@@ -2302,7 +2344,7 @@
 
     // 2. Kid trilingual sub-nav
     const cat = (window.appData && window.appData.kidCategory) || 'malayalam';
-    if (cat === 'malayalam' || cat === 'hindi' || cat === 'spanish') {
+    if (cat === 'malayalam' || cat === 'hindi' || cat === 'spanish' || cat === 'french' || cat === 'italian') {
       const bLet = document.getElementById('btn-kid-sub-letters');
       const bWrd = document.getElementById('btn-kid-sub-words');
       const bSen = document.getElementById('btn-kid-sub-sentences');

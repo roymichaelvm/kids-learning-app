@@ -519,7 +519,7 @@
             ? 'bg-indigo-600 text-white border-indigo-600'
             : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-600'
         }">${letter}</span>
-        <span class="choice-content text-xs sm:text-sm text-slate-800 dark:text-slate-100 font-medium leading-relaxed">${escapeHtml(choices[letter])}</span>
+        <span class="choice-content text-sm sm:text-base text-slate-800 dark:text-slate-100 font-medium leading-relaxed">${escapeHtml(choices[letter])}</span>
       `;
 
       const strikeBtn = document.createElement('button');
@@ -528,7 +528,7 @@
         toggleOptionStrikeout(letter);
       };
       strikeBtn.title = "Cross out / restore option";
-      strikeBtn.className = "p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:border-rose-200 dark:hover:border-rose-800 text-slate-400 hover:text-rose-600 text-xs font-mono font-bold transition shrink-0";
+      strikeBtn.className = "p-2.5 min-h-[44px] min-w-[44px] rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:border-rose-200 dark:hover:border-rose-800 text-slate-400 hover:text-rose-600 text-xs font-mono font-bold transition shrink-0";
       strikeBtn.innerText = isEliminated ? 'Undo' : '̶A̶';
 
       wrapper.appendChild(btn);
@@ -804,7 +804,7 @@
 
   function selectActiveLanguage(lang) {
     if (window.appData) window.appData.activeLanguage = lang;
-    ['malayalam', 'hindi', 'spanish'].forEach(l => {
+    ['malayalam', 'hindi', 'spanish', 'french', 'italian'].forEach(l => {
       const pill = document.getElementById(`pill-${l}`);
       if (!pill) return;
       if (l === lang) {
@@ -1681,6 +1681,13 @@
   window.submitSatAnswer = submitSatAnswer;
   window.navigateSat = navigateSat;
   window.toggleFlagSatQuestion = toggleFlagSatQuestion;
+
+  // Mobile: show/hide the passage card so the question & choices need less scrolling
+  function toggleSatPassageMobile() {
+    const card = document.getElementById('satPassageCard');
+    if (card) card.classList.toggle('hidden');
+  }
+  window.toggleSatPassageMobile = toggleSatPassageMobile;
   window.teenLangViewTab = teenLangViewTab;
   window.setTeenLangViewTab = setTeenLangViewTab;
   window.setTeenLangSubMode = setTeenLangSubMode;
