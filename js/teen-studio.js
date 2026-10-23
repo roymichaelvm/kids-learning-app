@@ -72,7 +72,7 @@
       { id: 'dashboard', label: '📊 Analytics, Streak Calendar & Topics' },
       { id: 'sat', label: '📝 Digital SAT & Topic Simulator' },
       { id: 'spelling', label: '🐝 SAT & Academic Spelling Bee' },
-      { id: 'languages', label: '🌏 Trilingual Studio (Mal / Hin / Spa)' }
+      { id: 'languages', label: '🌏 Language Studio (Mal/Hin/Spa/Fr/It)' }
     ];
     container.innerHTML = tabs.map(t => `
       <button onclick="openTeenTab('${t.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${

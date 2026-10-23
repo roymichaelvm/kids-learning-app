@@ -252,6 +252,26 @@
       .dict-vault-bottom button { padding: 0.6rem 1.4rem; font-size: 0.8rem; }
     }
 
+    /* Phones: SAT simulator toolbar — the domain dropdown gets its own
+       full-width line (its option text is very long and otherwise pushes
+       the whole page sideways), and the tool buttons (stopwatch,
+       Eliminator, Passage, flag) form ONE horizontal swipeable row,
+       like the Explorer chip strip. Nothing can widen the page. */
+    @media (max-width: 639px) {
+      #section-teen-sat { overflow-x: clip; }
+      #satToolbar { flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.7rem; }
+      #satToolbarLeft { flex-wrap: wrap; gap: 0.5rem; width: 100%; }
+      #satDomainWrap { order: 3; flex: 1 1 100%; min-width: 0; }
+      #satDomainFilter { flex: 1 1 auto; min-width: 0; width: 100%; }
+      #satToolbarRight {
+        flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        gap: 0.5rem; width: 100%; padding-bottom: 2px;
+        scrollbar-width: none; -ms-overflow-style: none;
+      }
+      #satToolbarRight::-webkit-scrollbar { display: none; }
+      #satToolbarRight > * { flex: 0 0 auto; }
+    }
+
     /* Phones: OPTION B - subjects become a slim swipeable chip strip stuck
        under the header; the exercise keeps the full width below it.
        Tablet/desktop keep the classic selector-bar layout. */
@@ -604,14 +624,14 @@
     <section id="section-teen-sat" class="hidden space-y-6 animate-fade">
       
       <!-- Bluebook Toolbar (Domain selector, Precision Stopwatch, Eliminator, Flag) -->
-      <div class="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-bento flex flex-wrap items-center justify-between gap-3 sticky top-2 z-30">
-        <div class="flex flex-wrap items-center gap-3">
+      <div id="satToolbar" class="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-bento flex flex-wrap items-center justify-between gap-3 sticky top-2 z-30">
+        <div id="satToolbarLeft" class="flex flex-wrap items-center gap-3">
           <button onclick="openTeenTab('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
             <span>Dashboard</span>
           </button>
-          
-          <div class="flex items-center gap-2">
+
+          <div id="satDomainWrap" class="flex items-center gap-2">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Domain:</span>
             <select id="satDomainFilter" onchange="onFilterSatQuestions()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold rounded-xl px-3 py-1.5 min-h-[44px] focus:outline-indigo-500 cursor-pointer">
               <option value="ALL">All Domains (Comprehensive Exam)</option>
@@ -627,7 +647,7 @@
           </span>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div id="satToolbarRight" class="flex items-center gap-3">
           <!-- Stopwatch with sub-second precision -->
           <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-mono text-xs font-bold shadow-xs">
             <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
