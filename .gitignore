@@ -7,3 +7,9 @@ SAT.json
 *.json
 !data/*.json
 scripts/
+
+# Build tooling (Vite prototype)
+node_modules/
+dist/
+!package.json
+!package-lock.json
