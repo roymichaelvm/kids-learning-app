@@ -31,6 +31,7 @@
     { key: 'numbers', emoji: '🔢', name: 'Numbers & Math' },
     { key: 'phonics', emoji: '🔤', name: 'Sight Words' },
     { key: 'animals', emoji: '🦁', name: 'Animals' },
+    { key: 'ai', emoji: '🤖', name: 'AI Basics' },
     { key: 'malayalam', emoji: '🌴', name: 'Malayalam' },
     { key: 'hindi', emoji: '🪔', name: 'Hindi' },
     { key: 'spanish', emoji: '🇪🇸', name: 'Spanish' },

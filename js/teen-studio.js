@@ -808,9 +808,9 @@
       const pill = document.getElementById(`pill-${l}`);
       if (!pill) return;
       if (l === lang) {
-        pill.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs flex items-center gap-2";
+        pill.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-white dark:bg-indigo-900/80 text-slate-900 dark:text-indigo-200 shadow-xs flex items-center gap-2 shrink-0";
       } else {
-        pill.className = "px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center gap-2";
+        pill.className = "px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-2 shrink-0";
       }
     });
     const pack = window.multiLangData && window.multiLangData[lang];
@@ -884,11 +884,11 @@
     if (sc) {
       sc.innerText = card.script;
       if (teenSubMode === 'sentences') {
-        sc.className = "text-xl sm:text-2xl font-extrabold text-slate-900 mb-3 leading-relaxed max-w-xl mx-auto px-2";
+        sc.className = "text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 mb-3 leading-relaxed max-w-xl mx-auto px-2";
       } else if (teenSubMode === 'letters') {
-        sc.className = "text-5xl sm:text-6xl font-extrabold text-indigo-700 mb-3";
+        sc.className = "text-5xl sm:text-6xl font-extrabold text-indigo-700 dark:text-indigo-300 mb-3";
       } else {
-        sc.className = "text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3";
+        sc.className = "text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 mb-3";
       }
     }
 
@@ -896,9 +896,9 @@
     if (tr) {
       tr.innerText = card.translit;
       if (teenSubMode === 'sentences') {
-        tr.className = "text-xs sm:text-sm font-mono font-semibold text-indigo-600 tracking-wide max-w-xl mx-auto px-2";
+        tr.className = "text-xs sm:text-sm font-mono font-semibold text-indigo-600 dark:text-indigo-300 tracking-wide max-w-xl mx-auto px-2";
       } else {
-        tr.className = "text-sm font-mono font-bold text-indigo-600 uppercase tracking-widest";
+        tr.className = "text-sm font-mono font-bold text-indigo-600 dark:text-indigo-300 uppercase tracking-widest";
       }
     }
 
