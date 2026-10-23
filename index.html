@@ -136,6 +136,102 @@
     .animate-shake {
       animation: pinShake 0.35s ease-in-out;
     }
+    /* =====================================================================
+       PROFESSIONAL DESIGN SYSTEM - polish layer
+       Additive refinements only: tokens, surfaces, elevation, focus states
+       and micro-interactions. No layout or behaviour changes, so every
+       screen (family + preview, kid + teen, light + dark) picks this up.
+       ===================================================================== */
+    :root {
+      --brand-50: #eef2ff; --brand-100: #e0e7ff; --brand-500: #6366f1; --brand-600: #4f46e5;
+      --ink-900: #0f172a; --ink-500: #64748b;
+      --card-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 8px 24px -12px rgba(15, 23, 42, .12);
+      --card-shadow-hover: 0 2px 4px rgba(15, 23, 42, .05), 0 16px 32px -12px rgba(15, 23, 42, .18);
+      --ring-brand: 0 0 0 3px rgba(99, 102, 241, .28);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      background-image:
+        radial-gradient(56rem 22rem at 85% -6rem, rgba(99, 102, 241, .07), transparent 60%),
+        radial-gradient(44rem 18rem at -10% 0%, rgba(245, 158, 11, .05), transparent 55%);
+      background-attachment: fixed;
+    }
+    html.dark body {
+      background-image:
+        radial-gradient(56rem 22rem at 85% -6rem, rgba(99, 102, 241, .12), transparent 60%),
+        radial-gradient(44rem 18rem at -10% 0%, rgba(245, 158, 11, .05), transparent 55%);
+    }
+    ::selection { background: #c7d2fe; color: #1e1b4b; }
+    html.dark ::selection { background: #4338ca; color: #eef2ff; }
+
+    /* Slim, theme-aware scrollbars */
+    * { scrollbar-width: thin; scrollbar-color: rgba(100, 116, 139, .45) transparent; }
+    *::-webkit-scrollbar { width: 8px; height: 8px; }
+    *::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, .4); border-radius: 999px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+
+    /* Header: crisper glass bar with a soft drop shadow */
+    header {
+      box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 10px 30px -18px rgba(15, 23, 42, .25);
+      backdrop-filter: blur(12px) saturate(1.5);
+      -webkit-backdrop-filter: blur(12px) saturate(1.5);
+    }
+
+    /* Cards: one consistent elevation system across the app */
+    main .bg-white.rounded-3xl, main section.bg-white,
+    main div[class*="rounded-[32px]"].bg-white,
+    main div[class*="rounded-[28px]"].bg-white {
+      box-shadow: var(--card-shadow);
+    }
+    html.dark main .bg-white.rounded-3xl, html.dark main section.bg-white,
+    html.dark main div[class*="rounded-[32px]"].bg-white,
+    html.dark main div[class*="rounded-[28px]"].bg-white {
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 28px -12px rgba(0, 0, 0, .5);
+    }
+    /* Clickable white cards lift gently on hover (learning content keeps its own effects) */
+    main div[onclick].bg-white { transition: transform .18s ease, box-shadow .18s ease; }
+    main div[onclick].bg-white:hover { transform: translateY(-2px); box-shadow: var(--card-shadow-hover); }
+
+    /* Hero banner: soft brand glow + fine dot texture over the gradient */
+    div[class*="from-indigo-900"] { position: relative; }
+    div[class*="from-indigo-900"]::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(34rem 12rem at 88% -20%, rgba(251, 191, 36, .22), transparent 55%),
+        radial-gradient(26rem 12rem at 8% 120%, rgba(129, 140, 248, .28), transparent 55%),
+        radial-gradient(rgba(255, 255, 255, .13) 1px, transparent 1px);
+      background-size: auto, auto, 22px 22px;
+    }
+
+    /* Typography: tighter, more confident headings */
+    main h2, main h3, main h4 { letter-spacing: -0.015em; }
+
+    /* Forms: one professional focus treatment everywhere */
+    input:focus, select:focus, textarea:focus {
+      outline: none !important;
+      border-color: var(--brand-500) !important;
+      box-shadow: var(--ring-brand);
+    }
+    button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+      outline: none; box-shadow: var(--ring-brand);
+    }
+
+    /* Buttons: crisper press feedback on top of .btn-tactile */
+    button { -webkit-tap-highlight-color: transparent; }
+    .btn-primary, button[type="submit"] { transition: filter .15s ease, transform .1s ease; }
+    button[type="submit"]:hover { filter: brightness(1.06); }
+
+    /* Modals: gentle entrance */
+    @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+    #familyAuthModal > div, #profilePickerOverlay > div, #profilePinModal > div { animation: modalIn .22s ease both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .animate-subtle-bounce, .animate-fade { animation: none !important; }
+    }
   </style>
 </head>
 <body id="appBody" class="bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
