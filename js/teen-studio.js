@@ -129,7 +129,7 @@
                 </span>
                 <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i>
               </div>
-              <h4 class="font-extrabold text-slate-900 dark:text-slate-100 text-base group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">${escapeHtml(domain)}</h4>
+              <h4 class="font-extrabold text-slate-900 dark:text-slate-100 text-base group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition sm:min-h-[3.25rem]">${escapeHtml(domain)}</h4>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${acc}</p>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
