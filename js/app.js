@@ -1159,6 +1159,14 @@
     // Standalone Parent Portal page (parent.html)
     if (adminSec && !teenSec && !kidSec) {
       adminSec.classList.remove('hidden');
+      // Parent portal works with the whole bank (editor, per-domain stats):
+      // load every domain once, then re-render the portal with full data.
+      if (window.QuestionLoader && !applyActiveProfileView._bankHydrated) {
+        applyActiveProfileView._bankHydrated = true;
+        window.QuestionLoader.ensureAll().then(function (ok) {
+          if (ok) applyActiveProfileView();
+        });
+      }
       if (badge) {
         badge.className = "text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-900 text-amber-300 border border-slate-700";
         badge.innerText = '⚙️ Parent Admin Portal';

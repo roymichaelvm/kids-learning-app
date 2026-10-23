@@ -571,6 +571,16 @@
     currentKidClueText = '';
 
     const pack = window.multiLangData[window.appData.kidCategory];
+    // Question bank loads per-domain on demand: fetch this category's
+    // questions first if they are not in memory yet, then generate the round.
+    if (pack && pack.cloudDomain && window.QuestionLoader && !window.QuestionLoader.isReady(pack.cloudDomain) && !generateKidQuizRound._loadingDomain) {
+      generateKidQuizRound._loadingDomain = true;
+      window.QuestionLoader.ensureDomain(pack.cloudDomain).then(function () {
+        generateKidQuizRound._loadingDomain = false;
+        generateKidQuizRound();
+      });
+      return;
+    }
     const passageBox = document.getElementById('kidQuizPassageBox');
     const promptBox = document.getElementById('kidQuizPromptBox');
     const builderZone = document.getElementById('spellingBuilderZone');

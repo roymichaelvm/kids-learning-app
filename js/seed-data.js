@@ -121,7 +121,7 @@
     // Trade-off: editing ONLY a .json file on a server no longer overrides the
     // bundled .data.js at runtime - always keep the paired files in sync.
     if (typeof window.fetch === 'function' && window.location && window.location.protocol && window.location.protocol.startsWith('http')) {
-      if (!Array.isArray(window.DEFAULT_QUESTIONS) || window.DEFAULT_QUESTIONS.length === 0) {
+      if (!window.__QUESTION_LOADER_ACTIVE && (!Array.isArray(window.DEFAULT_QUESTIONS) || window.DEFAULT_QUESTIONS.length === 0)) {
         fetch('data/questions.json')
           .then(r => r.ok ? r.json() : null)
           .then(data => {
