@@ -860,7 +860,7 @@
     const baseXP = (typeof window.getSectionXP === 'function')
       ? window.getSectionXP(effectiveTrack, effectiveSub)
       : 20;
-    const earnedXP = isCorrect ? baseXP : Math.max(3, Math.round(baseXP * 0.2));
+    const earnedXP = isCorrect ? baseXP : (window.wrongAnswerXP ? window.wrongAnswerXP(Math.max(3, Math.round(baseXP * 0.2))) : Math.max(3, Math.round(baseXP * 0.2)));
 
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
       ? window.LuminaDB.getActiveProfile()
@@ -910,7 +910,7 @@
         chosenBtn.className = "p-4 sm:p-5 rounded-3xl bg-rose-50 border-4 border-rose-300 opacity-60 shadow-xs flex items-center gap-3.5 text-left transition";
       }
       toast.className = "mt-5 p-4 rounded-2xl text-left text-base sm:text-lg font-bold bg-amber-100 text-amber-950 border-2 border-amber-400";
-      toast.innerHTML = `<div>🤔 Good try! That's not quite right. Tap another option, or click <strong>💡 Show Hint</strong>!</div>`;
+      toast.innerHTML = `<div>🤔 Good try! That's not quite right. Tap another option, or click <strong>💡 Show Hint</strong>!${earnedXP < 0 ? ` <span class="text-rose-700 font-black">${earnedXP} XP</span>` : ''}</div>`;
       if (typeof window.speakNativeAudio === 'function') {
         window.speakNativeAudio('Not quite, try another option or tap Show Hint!', 'en-US');
       }
@@ -929,7 +929,7 @@
     const baseXP = (typeof window.getSectionXP === 'function')
       ? window.getSectionXP(cat, kidSubMode)
       : 15;
-    const earnedXP = isCorrect ? baseXP : Math.max(2, Math.round(baseXP * 0.2));
+    const earnedXP = isCorrect ? baseXP : (window.wrongAnswerXP ? window.wrongAnswerXP(Math.max(2, Math.round(baseXP * 0.2))) : Math.max(2, Math.round(baseXP * 0.2)));
 
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
       ? window.LuminaDB.getActiveProfile()
@@ -970,7 +970,9 @@
         if (hintBtn) hintBtn.classList.remove('hidden');
       }
       toast.className = "mt-5 p-4 rounded-2xl text-center text-lg font-bold bg-amber-100 text-amber-900 border-2 border-amber-400";
-      toast.innerText = "🤔 Almost! Try tapping another picture, or tap 💡 Show Hint!";
+      toast.innerText = earnedXP < 0
+        ? `🤔 Almost! ${earnedXP} XP — wrong taps cost points! Try another picture, or tap 💡 Show Hint!`
+        : "🤔 Almost! Try tapping another picture, or tap 💡 Show Hint!";
       if (typeof window.speakNativeAudio === 'function') {
         window.speakNativeAudio('Not quite, try another picture or tap Show Hint!', 'en-US');
       }

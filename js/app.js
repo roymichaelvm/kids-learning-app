@@ -417,7 +417,7 @@
           <div>
             <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">${escapeHtml(p.name)}'s Daily Activity Goal</p>
             <p class="font-extrabold text-slate-900 dark:text-slate-100 leading-tight">${goalMet ? '🏆 All daily goals completed!' : `Keep going, ${escapeHtml(p.name)}!`}</p>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">${acc === null ? 'No questions answered yet today' : `Accuracy today: ${acc}% (${today.questionsCorrect}/${today.questionsAttempted})`} • ⚡ +${today.xpEarned || 0} XP today</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">${acc === null ? 'No questions answered yet today' : `Accuracy today: ${acc}% (${today.questionsCorrect}/${today.questionsAttempted})`} • ⚡ ${(today.xpEarned || 0) >= 0 ? '+' : ''}${today.xpEarned || 0} XP today</p>
           </div>
         </div>
         <div class="md:col-span-3">
@@ -1864,6 +1864,62 @@
       `;
     }
 
+    // 1b. Manual Points Adjustment Card (bonus / deduction by parent)
+    const adjustBox = document.getElementById('adminAdjustPointsBox');
+    if (adjustBox) {
+      const availXP = (window.LuminaDB && typeof window.LuminaDB.getAvailableXp === 'function')
+        ? window.LuminaDB.getAvailableXp(student)
+        : (student.xp || 0);
+      const adjustments = Array.isArray(student.pointsAdjustments) ? student.pointsAdjustments.slice(0, 5) : [];
+      adjustBox.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
+            <span>⭐</span><span>Adjust Points — ${escapeHtml(student.name || 'Student')}</span>
+          </h3>
+          <span class="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-black">Balance: ${(student.xp || 0).toLocaleString()} XP</span>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Available to spend: <strong>${availXP.toLocaleString()} XP</strong> (after pending reward holds) • Wallet: <strong>$${(student.cashBalance || 0).toFixed(2)}</strong>. Added points are spendable right away and sync to the student's device. Subtractions never take the balance below 0.</p>
+        <div class="flex flex-wrap items-stretch gap-2">
+          <input id="adminAdjustAmount" type="number" min="1" step="1" inputmode="numeric" placeholder="Points, e.g. 100" class="w-36 px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold" />
+          <input id="adminAdjustNote" type="text" maxlength="80" placeholder="Reason (optional) — e.g. Helped clean up" class="flex-1 min-w-[180px] px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm" />
+          <button onclick="adminAdjustPoints(1)" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm shadow-sm transition btn-tactile">+ Add Points</button>
+          <button onclick="adminAdjustPoints(-1)" class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-extrabold text-sm border-2 border-rose-300 dark:border-rose-800 shadow-sm transition btn-tactile">− Subtract Points</button>
+        </div>
+        ${adjustments.length > 0 ? `
+          <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <p class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Recent adjustments</p>
+            <div class="space-y-1.5">
+              ${adjustments.map(a => `
+                <div class="flex items-center justify-between gap-2 text-xs">
+                  <span class="font-black ${a.delta >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${a.delta >= 0 ? '+' : ''}${(a.delta || 0).toLocaleString()} XP</span>
+                  <span class="flex-1 text-slate-600 dark:text-slate-300 truncate">${escapeHtml(a.reason || 'Manual adjustment')}</span>
+                  <span class="text-slate-400">${escapeHtml(a.date || '')} • bal ${(a.balanceAfter || 0).toLocaleString()}</span>
+                </div>`).join('')}
+            </div>
+          </div>` : '<p class="mt-3 text-xs text-slate-400">No manual adjustments yet for this student.</p>'}
+      `;
+    }
+
+    // 1c. Wrong-Answer Penalty control
+    const penaltyBox = document.getElementById('adminPenaltyBox');
+    if (penaltyBox) {
+      const penalty = getWrongAnswerPenalty();
+      penaltyBox.innerHTML = `
+        <div class="p-4 rounded-2xl ${penalty > 0 ? 'bg-rose-50 dark:bg-rose-950/30 border-2 border-rose-200 dark:border-rose-800' : 'bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700'}">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h4 class="text-sm font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2"><span>⚠️</span><span>Wrong-Answer Penalty</span></h4>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black ${penalty > 0 ? 'bg-rose-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">${penalty > 0 ? `ON — −${penalty} XP per wrong answer` : 'OFF — wrong answers earn effort points'}</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Stops tap-everything farming: with a penalty on, every wrong tap <strong>costs</strong> points instead of earning a small effort bonus. Correct answers are unaffected, and a balance never drops below 0. Applies to SAT questions, quizzes, and spelling challenges on all devices (syncs via the cloud). Set to 0 to turn it off.</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <input id="adminPenaltyInput" type="number" min="0" max="200" step="1" inputmode="numeric" value="${penalty}" class="w-28 px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold" />
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">XP per wrong answer (0 = off)</span>
+            <button onclick="saveWrongAnswerPenaltySetting()" class="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 hover:bg-slate-700 dark:hover:bg-white text-white dark:text-slate-900 font-extrabold text-sm shadow-sm transition btn-tactile">Save Penalty</button>
+          </div>
+        </div>
+      `;
+    }
+
     // 2. Completed Areas Highlight Section
     const tracks = getStudentTrackProgressList(student.id);
     const completedTracks = tracks.filter(t => t.isCompleted);
@@ -2167,6 +2223,7 @@
     'grammar': 25,             // ✏️ Grammar & Sentence Building
     'phonics': 20,             // 🔤 Sight Words & Phonics
     'animals': 20,             // 🦁 Animals & Science Facts
+    'ai': 25,                  // 🤖 AI Basics
 
     // Teen Studio
     'sat_math': 40,            // 📐 SAT Advanced Math & Algebra (Tough)
@@ -2210,6 +2267,7 @@
     { key: 'grammar', title: '✏️ 6+ Grammar & Sentence Building', group: 'Reading & Science', isTough: false, defaultXP: 25, hint: 'Parts of speech & sentence structure' },
     { key: 'phonics', title: '🔤 Sight Words & Phonics', group: 'Reading & Science', isTough: false, defaultXP: 20, hint: 'Phonetic blends and sight words' },
     { key: 'animals', title: '🦁 Animals & Science Facts', group: 'Reading & Science', isTough: false, defaultXP: 20, hint: 'Animal science and nature facts' },
+    { key: 'ai', title: '🤖 AI Basics', group: 'Reading & Science', isTough: false, defaultXP: 25, hint: 'Kid AI Basics flashcards & quizzes' },
 
     // Teen Studio
     { key: 'sat_math', title: '📐 SAT Advanced Math & Algebra', group: 'Digital SAT', isTough: true, defaultXP: 40, hint: '13+ College Board SAT Math' },
@@ -2236,11 +2294,27 @@
     return 20;
   }
 
+  function getWrongAnswerPenalty() {
+    const raw = (window.LuminaDB && window.LuminaDB.state) ? Number(window.LuminaDB.state.wrongAnswerPenalty) : 0;
+    return Math.max(0, Math.min(200, Math.round(raw || 0)));
+  }
+
+  // XP outcome for a WRONG answer. When the parent penalty is on (> 0), a
+  // wrong answer costs that many points; otherwise the activity's usual
+  // small effort award (effortFallback) applies, exactly as before.
+  function wrongAnswerXP(effortFallback) {
+    const penalty = getWrongAnswerPenalty();
+    return penalty > 0 ? -penalty : effortFallback;
+  }
+  window.getWrongAnswerPenalty = getWrongAnswerPenalty;
+  window.wrongAnswerXP = wrongAnswerXP;
+
   function setSectionXP(trackKey, xp) {
     if (!window.LuminaDB) return;
     if (!window.LuminaDB.state.sectionXP) window.LuminaDB.state.sectionXP = {};
     const cleanVal = Math.max(5, Math.min(500, Math.round(Number(xp) || 20)));
     window.LuminaDB.state.sectionXP[trackKey] = cleanVal;
+    if (window.LuminaDB.pending) window.LuminaDB.pending.meta = true;
     if (typeof window.LuminaDB.saveLocal === 'function') window.LuminaDB.saveLocal();
     if (typeof window.LuminaDB.scheduleCloudSync === 'function') window.LuminaDB.scheduleCloudSync(500);
     renderAdminSectionXPGrid();
@@ -2263,6 +2337,49 @@
       window.showToast('All section XP rewards reset to standard defaults.');
     }
   }
+
+  function adminAdjustPoints(sign) {
+    const amtEl = document.getElementById('adminAdjustAmount');
+    const noteEl = document.getElementById('adminAdjustNote');
+    const amount = Math.abs(Math.round(Number(amtEl && amtEl.value) || 0));
+    if (!amount) {
+      if (typeof window.showToast === 'function') window.showToast('Enter a points amount first.');
+      return;
+    }
+    if (!window.LuminaDB || typeof window.LuminaDB.adjustProfilePoints !== 'function') return;
+    const res = window.LuminaDB.adjustProfilePoints(adminActiveStudentId, sign * amount, noteEl ? noteEl.value : '');
+    if (!res.ok) {
+      if (typeof window.showToast === 'function') window.showToast(res.error || 'Could not adjust points.');
+      return;
+    }
+    if (typeof window.showToast === 'function') {
+      const who = (res.profile && res.profile.name) || 'student';
+      window.showToast(res.appliedDelta >= 0
+        ? `+${res.appliedDelta} XP added to ${who} — new balance ${(res.profile.xp || 0).toLocaleString()} XP`
+        : `${res.appliedDelta} XP subtracted from ${who} — new balance ${(res.profile.xp || 0).toLocaleString()} XP`);
+    }
+    renderAdminPortal();
+    refreshHeaderUI();
+  }
+  window.adminAdjustPoints = adminAdjustPoints;
+
+  function saveWrongAnswerPenaltySetting() {
+    const el = document.getElementById('adminPenaltyInput');
+    const val = Math.max(0, Math.min(200, Math.round(Number(el && el.value) || 0)));
+    if (window.LuminaDB && typeof window.LuminaDB.setWrongAnswerPenalty === 'function') {
+      window.LuminaDB.setWrongAnswerPenalty(val);
+    } else if (window.LuminaDB && window.LuminaDB.state) {
+      window.LuminaDB.state.wrongAnswerPenalty = val;
+      if (typeof window.LuminaDB.saveLocal === 'function') window.LuminaDB.saveLocal();
+    }
+    if (typeof window.showToast === 'function') {
+      window.showToast(val > 0
+        ? `Wrong-answer penalty ON: −${val} XP for every wrong answer.`
+        : 'Wrong-answer penalty OFF — wrong answers earn effort points again.');
+    }
+    renderAdminPortal();
+  }
+  window.saveWrongAnswerPenaltySetting = saveWrongAnswerPenaltySetting;
 
   function renderAdminSectionXPGrid() {
     const grid = document.getElementById('adminSectionXPGrid');
@@ -2328,6 +2445,7 @@
       'numbers': () => Math.max(getSectionXP('math_division'), getSectionXP('math_multiplication'), getSectionXP('math_subtraction'), getSectionXP('math_addition'), getSectionXP('numbers')),
       'phonics': () => getSectionXP('phonics'),
       'animals': () => getSectionXP('animals'),
+      'ai': () => getSectionXP('ai'),
       'malayalam': () => Math.max(getSectionXP('malayalam_sentences'), getSectionXP('malayalam_words'), getSectionXP('malayalam_letters')),
       'hindi': () => Math.max(getSectionXP('hindi_sentences'), getSectionXP('hindi_words'), getSectionXP('hindi_letters')),
       'spanish': () => Math.max(getSectionXP('spanish_sentences'), getSectionXP('spanish_words')),
