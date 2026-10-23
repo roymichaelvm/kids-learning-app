@@ -208,6 +208,7 @@
     if (!p.pin) p.pin = '1234';
     if (typeof p.cashBalance !== 'number') p.cashBalance = 0;
     if (!Array.isArray(p.redemptions)) p.redemptions = [];
+    if (!Array.isArray(p.pointsAdjustments)) p.pointsAdjustments = [];
     if (typeof p.totalXpSpent !== 'number') p.totalXpSpent = 0;
     if (typeof p.xp !== 'number') p.xp = 0;
 
@@ -294,7 +295,7 @@
     return msg;
   }
 
-  const PERSISTED_KEYS = ['activeProfileId', 'teenSubTab', 'activeLanguage', 'kidCategory', 'profiles', 'customKidCards', 'sectionXP', 'rewardTiers', 'rewardCatalog', 'lastCloudSync'];
+  const PERSISTED_KEYS = ['activeProfileId', 'teenSubTab', 'activeLanguage', 'kidCategory', 'profiles', 'customKidCards', 'sectionXP', 'rewardTiers', 'rewardCatalog', 'wrongAnswerPenalty', 'lastCloudSync'];
 
   /* ------------------------------------------------------------------ engine */
   const LuminaDB = {
@@ -314,6 +315,7 @@
       questions: clean(getDefaultQuestions()),
       customKidCards: [],
       sectionXP: {},
+      wrongAnswerPenalty: 0,
       rewardTiers: clean(DEFAULT_REWARD_TIERS),
       rewardCatalog: clean(DEFAULT_PRIZE_CATALOG),
       languagePacks: {},
@@ -830,6 +832,7 @@
     saveRewardTiers: function (tiers) {
       if (Array.isArray(tiers) && tiers.length > 0) {
         this.state.rewardTiers = clean(tiers);
+        this.pending.meta = true;
         this.saveLocal();
         this.scheduleCloudSync();
         this.notify();
@@ -849,6 +852,7 @@
     savePrizeCatalog: function (catalog) {
       if (Array.isArray(catalog)) {
         this.state.rewardCatalog = clean(catalog);
+        this.pending.meta = true;
         this.saveLocal();
         this.scheduleCloudSync();
         this.notify();
@@ -902,6 +906,61 @@
         .filter(r => (r.status === 'Pending Approval' || r.status === 'pending') && r.paymentMethod === 'xp')
         .reduce((sum, r) => sum + (Number(r.tierPoints) || 0), 0);
       return Math.max(0, (p.xp || 0) - pendingXp);
+    },
+
+    /* -------------------------------------------- manual points adjustment */
+    // Parent-driven bonus or deduction. Positive deltas also raise lifetimeXp
+    // (they are spendable XP, same as earned XP); the balance never goes
+    // below zero — the applied delta reflects any flooring. Every adjustment
+    // is audit-logged on the profile and in the daily activity feed.
+    adjustProfilePoints: function (pid, delta, reason) {
+      const p = this.getProfileById(pid || this.state.activeProfileId);
+      if (!p) return { ok: false, error: 'Profile not found' };
+      ensureProfileFields(p);
+      const requested = Math.round(Number(delta) || 0);
+      if (!requested) return { ok: false, error: 'Enter a points amount first.' };
+      const before = p.xp || 0;
+      p.xp = Math.max(0, before + requested);
+      const applied = p.xp - before;
+      if (applied > 0) p.lifetimeXp = (p.lifetimeXp || 0) + applied;
+      const entry = {
+        id: 'adj_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 5),
+        date: dateKey(),
+        timestamp: new Date().toISOString(),
+        delta: applied,
+        requestedDelta: requested,
+        reason: String(reason || '').slice(0, 80),
+        balanceAfter: p.xp
+      };
+      p.pointsAdjustments.unshift(entry);
+      if (p.pointsAdjustments.length > 50) p.pointsAdjustments.length = 50;
+      this.recordActivity({
+        type: 'points_adjustment',
+        isQuestion: false,
+        domain: 'Parent Adjustment',
+        title: `Parent adjustment: ${applied >= 0 ? '+' : ''}${applied} XP${entry.reason ? ' — ' + entry.reason : ''}`,
+        xp: 0,
+        durationSec: 0,
+        profileId: p.id
+      });
+      this.markProfile(p.id);
+      this.saveLocal();
+      this.scheduleCloudSync();
+      this.notify();
+      return { ok: true, appliedDelta: applied, profile: p, entry: entry };
+    },
+
+    /* ------------------------------------------ wrong-answer penalty setting */
+    // Parent-configurable: 0 = off (wrong answers earn the small effort
+    // award, as before); >0 = each wrong answer deducts that many XP.
+    setWrongAnswerPenalty: function (n) {
+      const val = Math.max(0, Math.min(200, Math.round(Number(n) || 0)));
+      this.state.wrongAnswerPenalty = val;
+      this.pending.meta = true;
+      this.saveLocal();
+      this.scheduleCloudSync();
+      this.notify();
+      return val;
     },
 
     redeemReward: function (pid, tierOrPrizeId, rewardItem, opts = {}) {
@@ -1227,7 +1286,7 @@
       const isFlashcard = opts.type === 'flashcard';
       const isQuestion = !isFlashcard && opts.isQuestion !== false;
       const isCorrect = Boolean(opts.isCorrect);
-      const xp = Math.max(0, Number(opts.xp) || 0);
+      const xp = Math.round(Number(opts.xp) || 0); // may be negative: wrong-answer penalty
       const dur = Math.max(0, Math.round(Number(opts.durationSec) || 0));
       const domain = opts.domain || 'General';
 
@@ -1258,8 +1317,8 @@
         if (day.activities.length > MAX_ACTIVITIES_PER_DAY) day.activities.length = MAX_ACTIVITIES_PER_DAY;
       }
 
-      p.xp = (p.xp || 0) + xp;
-      p.lifetimeXp = (p.lifetimeXp || p.xp || 0) + xp;
+      p.xp = Math.max(0, (p.xp || 0) + xp);
+      p.lifetimeXp = (p.lifetimeXp || p.xp || 0) + Math.max(0, xp);
       const m = p.domainMastery[domain] || (p.domainMastery[domain] = { attempted: 0, correct: 0, totalTimeSec: 0, cardsViewed: 0, lastPracticed: today });
       m.totalTimeSec = (m.totalTimeSec || 0) + dur;
       m.lastPracticed = today;
@@ -1499,7 +1558,7 @@
             }
           }
           if (snap.questions || snap.meta) {
-            const metaData = { updatedAt: ts, questionsCount: this.state.questions.length, customKidCards: this.state.customKidCards || [], sectionXP: this.state.sectionXP || {} };
+            const metaData = { updatedAt: ts, questionsCount: this.state.questions.length, customKidCards: this.state.customKidCards || [], sectionXP: this.state.sectionXP || {}, rewardTiers: this.state.rewardTiers || [], rewardCatalog: this.state.rewardCatalog || [], wrongAnswerPenalty: this.state.wrongAnswerPenalty || 0 };
             if (chunkCount !== null) metaData.questionChunks = chunkCount;
             if (pushedBankVersion) metaData.questionBankVersion = pushedBankVersion;
             ops.push(metaRef.set(clean(metaData), { merge: true }));
@@ -1601,6 +1660,9 @@
             }
           }
           if (!this.pending.meta && Array.isArray(meta.customKidCards)) this.state.customKidCards = meta.customKidCards;
+          if (!this.pending.meta && Array.isArray(meta.rewardTiers) && meta.rewardTiers.length > 0) this.state.rewardTiers = meta.rewardTiers;
+          if (!this.pending.meta && Array.isArray(meta.rewardCatalog)) this.state.rewardCatalog = meta.rewardCatalog;
+          if (!this.pending.meta && typeof meta.wrongAnswerPenalty === 'number') this.state.wrongAnswerPenalty = meta.wrongAnswerPenalty;
           if (meta.sectionXP && typeof meta.sectionXP === 'object') {
             this.state.sectionXP = Object.assign({}, meta.sectionXP, this.state.sectionXP || {});
           }

@@ -644,7 +644,7 @@
     const baseSatXP = (typeof window.getSectionXP === 'function')
       ? window.getSectionXP('sat', satSubKey)
       : 25;
-    const xpEarned = isCorrect ? baseSatXP : Math.max(5, Math.round(baseSatXP * 0.2));
+    const xpEarned = isCorrect ? baseSatXP : (window.wrongAnswerXP ? window.wrongAnswerXP(Math.max(5, Math.round(baseSatXP * 0.2))) : Math.max(5, Math.round(baseSatXP * 0.2)));
 
     // Record in active child's profile & sync to Firebase
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
@@ -713,7 +713,9 @@
         iconBox.className = "w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl font-bold";
         iconBox.innerText = "✗";
       }
-      if (headline) headline.innerText = `Not quite — Correct Answer is ${correctKey} (+${xpEarned} XP for effort)`;
+      if (headline) headline.innerText = xpEarned < 0
+        ? `Not quite — Correct Answer is ${correctKey} (${xpEarned} XP penalty)`
+        : `Not quite — Correct Answer is ${correctKey} (+${xpEarned} XP for effort)`;
     }
 
     const keyBadge = document.getElementById('satOfficialKeyBadge');
@@ -1118,7 +1120,7 @@
     const baseXP = (typeof window.getSectionXP === 'function')
       ? window.getSectionXP(lang, teenSubMode)
       : 20;
-    const earnedXP = isCorrect ? baseXP : Math.max(2, Math.round(baseXP * 0.1));
+    const earnedXP = isCorrect ? baseXP : (window.wrongAnswerXP ? window.wrongAnswerXP(Math.max(2, Math.round(baseXP * 0.1))) : Math.max(2, Math.round(baseXP * 0.1)));
 
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
       ? window.LuminaDB.getActiveProfile()
@@ -1152,7 +1154,7 @@
     } else {
       if (banner) {
         banner.className = "mt-6 p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-rose-50 text-rose-800 border border-rose-200";
-        banner.innerHTML = `<span>Not quite! Try another choice or switch to Study Flashcards tab to review.</span>`;
+        banner.innerHTML = `<span>Not quite! Try another choice or switch to Study Flashcards tab to review.${earnedXP < 0 ? ` <strong>${earnedXP} XP</strong>` : ''}</span>`;
       }
     }
   }
@@ -1478,7 +1480,7 @@
     const baseXP = (typeof window.getSectionXP === 'function')
       ? window.getSectionXP('teen_spelling', currentTeenSpellItem.tier)
       : 35;
-    const earnedXP = isCorrect ? baseXP : 5;
+    const earnedXP = isCorrect ? baseXP : (window.wrongAnswerXP ? window.wrongAnswerXP(5) : 5);
 
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
       ? window.LuminaDB.getActiveProfile()
@@ -1522,7 +1524,7 @@
       if (banner) {
         banner.className = "p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-rose-50 text-rose-900 border-2 border-rose-200";
         banner.innerHTML = `
-          <span>✗ You entered <strong>${escapeHtml(typed)}</strong>. Check the Orthography Tip above and try again!</span>
+          <span>✗ You entered <strong>${escapeHtml(typed)}</strong>. Check the Orthography Tip above and try again!${earnedXP < 0 ? ` <strong>${earnedXP} XP</strong>` : ''}</span>
         `;
       }
     }
@@ -1592,7 +1594,7 @@
     const baseXP = (typeof window.getSectionXP === 'function')
       ? window.getSectionXP('teen_spelling', currentTeenSpellItem.tier)
       : 35;
-    const earnedXP = isCorrect ? baseXP : 5;
+    const earnedXP = isCorrect ? baseXP : (window.wrongAnswerXP ? window.wrongAnswerXP(5) : 5);
 
     const p = (window.LuminaDB && typeof window.LuminaDB.getActiveProfile === 'function')
       ? window.LuminaDB.getActiveProfile()
@@ -1631,7 +1633,7 @@
       if (banner) {
         banner.className = "p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between bg-rose-50 text-rose-900 border border-rose-200";
         banner.innerHTML = `
-          <span>Not quite! Tip: ${escapeHtml(currentTeenSpellItem.tip || currentTeenSpellItem.root)}</span>
+          <span>Not quite! Tip: ${escapeHtml(currentTeenSpellItem.tip || currentTeenSpellItem.root)}${earnedXP < 0 ? ` <strong>${earnedXP} XP</strong>` : ''}</span>
         `;
       }
     }
