@@ -234,6 +234,24 @@
       #todayProgressStrip .h-2\.5 { height: 6px; }
     }
 
+    /* Phones: compact page rhythm — the Dictionary & Vault button moves to
+       the very bottom of the page (see placeDictionaryVault in app.js), and
+       the generous desktop gaps between sections/cards shrink so exercises
+       start higher and the app feels tight. Tablet/desktop unchanged. */
+    @media (max-width: 639px) {
+      #mainAppContent { padding-top: 0.5rem !important; padding-bottom: 0.75rem !important; }
+      #mainAppContent > section.space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.9rem !important; }
+      #mainAppContent > section.space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.9rem !important; }
+      #mainAppContent > section.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem !important; }
+      #subNavBar { padding-top: 0.4rem; }
+      #subNavBar > div { padding-bottom: 0.45rem; gap: 0.5rem; }
+      #profileQuickBar { padding-top: 0.35rem; padding-bottom: 0.35rem; }
+      #teenSectionPractice, #teenSectionFlashcards,
+      #kidSectionPractice, #kidSectionFlashcards { margin-bottom: 1rem !important; }
+      .dict-vault-bottom { display: flex; justify-content: center; width: 100%; padding: 0.15rem 0 0.25rem; }
+      .dict-vault-bottom button { padding: 0.6rem 1.4rem; font-size: 0.8rem; }
+    }
+
     /* Phones: OPTION B - subjects become a slim swipeable chip strip stuck
        under the header; the exercise keeps the full width below it.
        Tablet/desktop keep the classic selector-bar layout. */
@@ -408,7 +426,7 @@
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3">
       <div id="subNavTabs" class="flex flex-wrap items-center gap-2"></div>
       
-      <div class="flex flex-wrap items-center gap-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+      <div id="dictVaultBtnWrap" class="flex flex-wrap items-center gap-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
         <!-- Instant Dictionary & Tough Words Vault Button -->
         <button onclick="openDictionaryModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold transition text-xs border border-indigo-200 dark:border-indigo-800 shadow-xs" title="Instant Dictionary lookup & Tough Words Vault">
           <span>📖</span>

@@ -1429,6 +1429,19 @@
     }
   }
 
+  // Phones only: the Dictionary & Vault button leaves the sub-nav bar and
+  // sits at the very bottom of the page (below the daily-goal strip, which
+  // placeGoalStrip appends first). Tablet/desktop keep it in the sub-nav.
+  function placeDictionaryVault() {
+    const wrap = document.getElementById('dictVaultBtnWrap');
+    const main = document.getElementById('mainAppContent');
+    if (!wrap || !main) return;
+    if (window.innerWidth < 640 && wrap.parentElement !== main) {
+      wrap.classList.add('dict-vault-bottom');
+      main.appendChild(wrap);
+    }
+  }
+
   function isPreviewMode() {
     try { return sessionStorage.getItem('lumina_preview_mode') === '1'; } catch (e) { return false; }
   }
@@ -3206,6 +3219,7 @@
   window.exitFriendPreview = exitFriendPreview;
   window.isPreviewMode = isPreviewMode;
     window.placeGoalStrip = placeGoalStrip;
+    window.placeDictionaryVault = placeDictionaryVault;
   window.updateFamilyAuthUI = updateFamilyAuthUI;
   window.openParentAdminPortal = openParentAdminPortal;
   window.closeParentAdminPortal = closeParentAdminPortal;
@@ -3334,6 +3348,7 @@
     applyActiveProfileView();
     refreshStudentXPBadges();
     placeGoalStrip();
+    placeDictionaryVault();
 
     if (window.LuminaDB && typeof window.LuminaDB.pullFromCloud === 'function') {
       const res = await window.LuminaDB.pullFromCloud();
