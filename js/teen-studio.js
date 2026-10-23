@@ -819,7 +819,7 @@
       return;
     }
     teenSubMode = mode;
-    ['letters', 'words', 'sentences'].forEach(m => {
+    ['letters', 'words', 'sentences', 'spelling'].forEach(m => {
       const b = document.getElementById(`btn-teen-sub-${m}`);
       if (!b) return;
       if (m === mode) {
@@ -1010,7 +1010,135 @@
     return pack.teenQuiz || [];
   }
 
+  /* ================= LANGUAGE SPELLING BEE (teen type-in) ==============
+     Hear the word in the target language, type its spelling. Every check
+     is recorded: correct earns the section XP, wrong goes through the
+     shared penalty rule (window.wrongAnswerXP) like the other quizzes.
+     Latin-script answers are case-insensitive; a missing accent still
+     counts but the correct accented spelling is shown. */
+  let teenLangSpell = null;
+
+  function syncTeenLangPanels(spellingOn) {
+    const panel = document.getElementById('teenLangSpellPanel');
+    if (panel) panel.classList.toggle('hidden', !spellingOn);
+    ['teenLangQuizPromptBox', 'teenLangQuizChoices', 'teenLangQuizBanner'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('hidden', spellingOn);
+    });
+    if (spellingOn) {
+      const badge = document.getElementById('teenQuizHeaderBadge');
+      if (badge) badge.innerText = '🐝 Language Spelling Bee';
+    }
+  }
+
+  function startTeenLangSpellRound() {
+    const pack = getActiveLangPack();
+    syncTeenLangPanels(true);
+    if (!pack) return;
+    const pool = window.getLangSpellPool(pack.teenCards);
+    if (pool.length === 0) return;
+    let pick = pool[Math.floor(Math.random() * pool.length)];
+    if (teenLangSpell && pool.length > 1) {
+      let guard = 0;
+      while (pick.target === teenLangSpell.target && guard < 6) {
+        pick = pool[Math.floor(Math.random() * pool.length)];
+        guard++;
+      }
+    }
+    teenLangSpell = { lang: getActiveLangCode(), item: pick.item, target: pick.target, graphemes: pick.graphemes, checked: false };
+    const emojiEl = document.getElementById('teenLangSpellEmoji');
+    if (emojiEl) emojiEl.innerText = pick.item.emoji || '🐝';
+    const meaningEl = document.getElementById('teenLangSpellMeaning');
+    if (meaningEl) meaningEl.innerText = `"${pick.item.meaning || ''}"`;
+    const hintEl = document.getElementById('teenLangSpellHint');
+    if (hintEl) { hintEl.innerText = ''; hintEl.classList.add('hidden'); }
+    const xpBadge = document.getElementById('teenLangSpellXpBadge');
+    if (xpBadge) xpBadge.innerText = `+${window.getSectionXP ? window.getSectionXP(getActiveLangCode(), 'spelling') : 30} XP per correct spelling • Logged to Daily Progress`;
+    const input = document.getElementById('teenLangSpellInput');
+    if (input) { input.value = ''; input.disabled = false; }
+    const banner = document.getElementById('teenLangSpellBanner');
+    if (banner) banner.classList.add('hidden');
+    teenLangSpellSpeak();
+  }
+  window.startTeenLangSpellRound = startTeenLangSpellRound;
+
+  function teenLangSpellSpeak() {
+    if (!teenLangSpell) return;
+    const pack = getActiveLangPack();
+    if (typeof speakNativeAudio === 'function') {
+      speakNativeAudio(teenLangSpell.item.speech || teenLangSpell.target, pack ? pack.langCode : undefined, 0.85);
+    }
+  }
+  window.teenLangSpellSpeak = teenLangSpellSpeak;
+
+  function teenLangSpellShowHint() {
+    if (!teenLangSpell) return;
+    const hintEl = document.getElementById('teenLangSpellHint');
+    if (!hintEl) return;
+    const translit = window.langTransliteration ? window.langTransliteration(teenLangSpell.item) : '';
+    hintEl.innerText = translit
+      ? `Say it: ${translit} • ${teenLangSpell.graphemes.length} letters`
+      : `Starts with "${teenLangSpell.graphemes[0]}" • ${teenLangSpell.graphemes.length} letters`;
+    hintEl.classList.remove('hidden');
+  }
+  window.teenLangSpellShowHint = teenLangSpellShowHint;
+
+  function _stripDiacritics(s) {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function checkTeenLangSpelling() {
+    if (!teenLangSpell) return;
+    const pack = getActiveLangPack();
+    const lang = getActiveLangCode();
+    const input = document.getElementById('teenLangSpellInput');
+    const typed = ((input && input.value) || '').normalize('NFC').trim();
+    if (!typed) return;
+    const target = teenLangSpell.target.normalize('NFC');
+    const exact = typed.toLowerCase() === target.toLowerCase();
+    const accentOnly = !exact && _stripDiacritics(typed).toLowerCase() === _stripDiacritics(target).toLowerCase();
+    const isCorrect = exact || accentOnly;
+    const baseXP = window.getSectionXP ? window.getSectionXP(lang, 'spelling') : 30;
+    const earnedXP = isCorrect ? baseXP : window.wrongAnswerXP(5);
+    const translit = window.langTransliteration ? window.langTransliteration(teenLangSpell.item) : '';
+    if (typeof window.trackActivity === 'function') {
+      window.trackActivity({
+        type: 'language_spelling', domain: (pack ? pack.label : lang) + ' Spelling Bee',
+        title: `Spell: ${target}`, durationSec: 12, xp: earnedXP,
+        isCorrect: isCorrect, score: isCorrect ? 1 : 0, maxScore: 1,
+        userAnswer: typed, correctAnswer: target
+      });
+    }
+    const banner = document.getElementById('teenLangSpellBanner');
+    if (banner) {
+      banner.className = `mt-5 p-4 rounded-2xl text-xs font-bold flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between border animate-pop-in ${isCorrect ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200 border-rose-200 dark:border-rose-800'}`;
+      const accentNote = accentOnly ? ` Watch the accents — the full spelling is "${target}".` : '';
+      const xpNote = earnedXP < 0 ? ` (${earnedXP} XP penalty)` : (isCorrect ? ` +${earnedXP} XP!` : '');
+      banner.innerHTML = `
+        <span class="leading-relaxed">${isCorrect
+          ? `🎉 Correct! "${target}"${translit ? ` (${escapeHtml(translit)})` : ''} means "${escapeHtml(teenLangSpell.item.meaning || '')}".${accentNote}${xpNote}`
+          : `❌ Not quite — you typed "${escapeHtml(typed)}". The correct spelling is "${target}"${translit ? ` (${escapeHtml(translit)})` : ''}.${xpNote}`}</span>
+        <button onclick="startTeenLangSpellRound()" class="px-4 py-2 rounded-xl ${isCorrect ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700'} text-xs font-bold transition whitespace-nowrap shrink-0">Next Word ➡️</button>
+      `;
+      banner.classList.remove('hidden');
+    }
+    if (typeof window.refreshHeaderUI === 'function') window.refreshHeaderUI();
+  }
+  window.checkTeenLangSpelling = checkTeenLangSpelling;
+
   function renderTeenLanguageQuiz() {
+    if (teenSubMode === 'spelling') {
+      // Keep the in-progress round across re-renders (language/tab
+      // renders call this repeatedly); only roll a fresh round when the
+      // language changed or none exists yet.
+      if (teenLangSpell && teenLangSpell.lang === getActiveLangCode()) {
+        syncTeenLangPanels(true);
+      } else {
+        startTeenLangSpellRound();
+      }
+      return;
+    }
+    syncTeenLangPanels(false);
     const lang = getActiveLangCode();
     const pack = getActiveLangPack();
     if (!pack) return;

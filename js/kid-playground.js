@@ -281,7 +281,7 @@
       return;
     }
     kidSubMode = mode;
-    ['letters', 'words', 'sentences'].forEach(m => {
+    ['letters', 'words', 'sentences', 'spelling'].forEach(m => {
       const btn = document.getElementById(`btn-kid-sub-${m}`);
       if (!btn) return;
       if (m === mode) {
@@ -565,7 +565,208 @@
     generateKidQuizRound();
   }
 
+  /* ================= LANGUAGE SPELLING BEE (kid tile builder) ==========
+     A "build the word" round for the five language packs: hear the word,
+     tap grapheme tiles into the slots. Malayalam/Hindi words are split
+     into grapheme clusters (window.splitGraphemes) so vowel signs and
+     conjuncts stay whole. Like the English kid bee, only a completed word
+     earns XP — wrong builds just shake, so it can't be farmed. */
+  let kidLangSpell = null;
+
+  function syncKidPracticePanels(spellingOn) {
+    const panel = document.getElementById('kidLangSpellPanel');
+    if (panel) panel.classList.toggle('hidden', !spellingOn);
+    ['kidQuizPassageBox', 'kidQuizPromptBox', 'kidQuizOptionsGrid'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('hidden', spellingOn);
+    });
+    if (spellingOn) {
+      const toast = document.getElementById('kidQuizFeedbackToast');
+      if (toast) toast.classList.add('hidden');
+      const badge = document.getElementById('kidQuizHeaderBadge');
+      if (badge) badge.innerText = '🐝 Language Spelling Bee!';
+    }
+  }
+
+  function kidLangSpellPool() {
+    const pack = window.multiLangData && window.multiLangData[window.appData.kidCategory];
+    if (!pack) return { pack: null, pool: [] };
+    return { pack: pack, pool: window.getLangSpellPool(pack.kidItems) };
+  }
+
+  function startKidLangSpellRound() {
+    const cat = window.appData.kidCategory;
+    const { pack, pool } = kidLangSpellPool();
+    syncKidPracticePanels(true);
+    if (!pack || pool.length === 0) return;
+    let pick = pool[Math.floor(Math.random() * pool.length)];
+    if (kidLangSpell && pool.length > 1) {
+      let guard = 0;
+      while (pick.target === kidLangSpell.target && guard < 6) {
+        pick = pool[Math.floor(Math.random() * pool.length)];
+        guard++;
+      }
+    }
+    // Tiles: the word's graphemes plus up to 3 distractors from other
+    // words in the same pack (same script), all shuffled.
+    const tiles = pick.graphemes.map((ch, i) => ({ id: 'need' + i, char: ch, used: false }));
+    const others = pool.filter(p => p.target !== pick.target);
+    const distractorChars = [];
+    let guard2 = 0;
+    while (distractorChars.length < 3 && others.length > 0 && guard2 < 24) {
+      const w = others[Math.floor(Math.random() * others.length)];
+      const ch = w.graphemes[Math.floor(Math.random() * w.graphemes.length)];
+      if (!pick.graphemes.includes(ch) && !distractorChars.includes(ch)) distractorChars.push(ch);
+      guard2++;
+    }
+    distractorChars.forEach((ch, i) => tiles.push({ id: 'dist' + i, char: ch, used: false }));
+    tiles.sort(() => Math.random() - 0.5);
+    kidLangSpell = {
+      cat: cat, item: pick.item, target: pick.target, graphemes: pick.graphemes,
+      slots: new Array(pick.graphemes.length).fill(null), tiles: tiles,
+      done: false, hintUsed: false
+    };
+    const emojiEl = document.getElementById('kidLangSpellEmoji');
+    if (emojiEl) emojiEl.innerText = pick.item.emoji || '🐝';
+    const meaningEl = document.getElementById('kidLangSpellMeaning');
+    if (meaningEl) meaningEl.innerText = pick.item.meaning || '';
+    const hintEl = document.getElementById('kidLangSpellHint');
+    if (hintEl) { hintEl.innerText = ''; hintEl.classList.add('hidden'); }
+    const hintBtn = document.getElementById('kidLangSpellHintBtn');
+    if (hintBtn) hintBtn.classList.add('hidden');
+    const xpBadge = document.getElementById('kidLangSpellXpBadge');
+    if (xpBadge) xpBadge.innerText = `+${window.getSectionXP ? window.getSectionXP(cat, 'spelling') : 30} XP`;
+    const fb = document.getElementById('kidLangSpellFeedback');
+    if (fb) fb.classList.add('hidden');
+    renderKidLangSpellBoard();
+    kidLangSpellSpeak();
+  }
+  window.startKidLangSpellRound = startKidLangSpellRound;
+
+  function renderKidLangSpellBoard() {
+    if (!kidLangSpell) return;
+    const slotsRow = document.getElementById('kidLangSpellSlots');
+    if (slotsRow) {
+      slotsRow.innerHTML = kidLangSpell.slots.map((slot, i) => slot
+        ? `<button onclick="kidLangSpellTapSlot(${i})" class="w-11 h-14 sm:w-14 sm:h-16 rounded-2xl bg-amber-400 border-b-4 border-amber-600 text-slate-950 text-xl sm:text-2xl font-black flex items-center justify-center shadow-kids-btn btn-tactile animate-pop-in" title="Tap to remove">${escapeHtml(slot.char)}</button>`
+        : `<div class="w-11 h-14 sm:w-14 sm:h-16 rounded-2xl bg-sky-100/70 dark:bg-slate-800 border-2 border-dashed border-sky-300 dark:border-slate-600 flex items-center justify-center text-sky-300 dark:text-slate-600 font-black text-xl">?</div>`
+      ).join('');
+    }
+    const tilesRow = document.getElementById('kidLangSpellTiles');
+    if (tilesRow) {
+      tilesRow.innerHTML = kidLangSpell.tiles.map((tile, i) => tile.used
+        ? `<div class="w-11 h-14 sm:w-14 sm:h-16 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border-2 border-slate-200/70 dark:border-slate-700/60 opacity-40"></div>`
+        : `<button onclick="kidLangSpellTapTile(${i})" class="w-11 h-14 sm:w-14 sm:h-16 rounded-2xl bg-white dark:bg-slate-800 border-b-4 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-50 text-xl sm:text-2xl font-black flex items-center justify-center shadow-kids-btn btn-tactile hover:-translate-y-0.5 transition">${escapeHtml(tile.char)}</button>`
+      ).join('');
+    }
+  }
+
+  function kidLangSpellSpeak() {
+    if (!kidLangSpell) return Promise.resolve();
+    const pack = window.multiLangData && window.multiLangData[window.appData.kidCategory];
+    const text = kidLangSpell.item.speech || kidLangSpell.target;
+    if (typeof speakNativeAudio === 'function') {
+      return speakNativeAudio(text, pack ? pack.langCode : undefined, 0.8) || Promise.resolve();
+    }
+    return Promise.resolve();
+  }
+  window.kidLangSpellSpeak = kidLangSpellSpeak;
+
+  function kidLangSpellShowHint() {
+    if (!kidLangSpell) return;
+    kidLangSpell.hintUsed = true;
+    const hintEl = document.getElementById('kidLangSpellHint');
+    if (!hintEl) return;
+    const translit = window.langTransliteration ? window.langTransliteration(kidLangSpell.item) : '';
+    hintEl.innerText = translit
+      ? `💡 Say it: ${translit} — ${kidLangSpell.graphemes.length} letters`
+      : `💡 It starts with "${kidLangSpell.graphemes[0]}" — ${kidLangSpell.graphemes.length} letters`;
+    hintEl.classList.remove('hidden');
+  }
+  window.kidLangSpellShowHint = kidLangSpellShowHint;
+
+  function kidLangSpellTapTile(tileIdx) {
+    if (!kidLangSpell || kidLangSpell.done) return;
+    const tile = kidLangSpell.tiles[tileIdx];
+    if (!tile || tile.used) return;
+    const emptyIdx = kidLangSpell.slots.findIndex(s => s === null);
+    if (emptyIdx === -1) return;
+    kidLangSpell.slots[emptyIdx] = tile;
+    tile.used = true;
+    renderKidLangSpellBoard();
+    if (kidLangSpell.slots.every(s => s !== null)) checkKidLangSpelling();
+  }
+  window.kidLangSpellTapTile = kidLangSpellTapTile;
+
+  function kidLangSpellTapSlot(slotIdx) {
+    if (!kidLangSpell || kidLangSpell.done) return;
+    const slot = kidLangSpell.slots[slotIdx];
+    if (!slot) return;
+    const tile = kidLangSpell.tiles.find(t => t.id === slot.id);
+    if (tile) tile.used = false;
+    kidLangSpell.slots[slotIdx] = null;
+    const fb = document.getElementById('kidLangSpellFeedback');
+    if (fb) fb.classList.add('hidden');
+    renderKidLangSpellBoard();
+  }
+  window.kidLangSpellTapSlot = kidLangSpellTapSlot;
+
+  async function checkKidLangSpelling() {
+    if (!kidLangSpell || kidLangSpell.done) return;
+    const built = kidLangSpell.slots.map(s => s.char).join('');
+    const pack = window.multiLangData[window.appData.kidCategory];
+    const fb = document.getElementById('kidLangSpellFeedback');
+    if (built === kidLangSpell.target) {
+      kidLangSpell.done = true;
+      const cat = window.appData.kidCategory;
+      const xp = window.getSectionXP ? window.getSectionXP(cat, 'spelling') : 30;
+      if (window.LuminaDB && typeof window.LuminaDB.recordActivity === 'function') {
+        window.LuminaDB.recordActivity({
+          type: 'language_spelling', isQuestion: true,
+          domain: (pack ? pack.label : cat) + ' Spelling Bee',
+          title: 'Spell: ' + kidLangSpell.target,
+          questionId: 'kid_spell_' + cat + '_' + kidLangSpell.target,
+          xp: xp, durationSec: 10, isCorrect: true, maxScore: 1, score: 1
+        });
+      }
+      if (typeof window.refreshHeaderUI === 'function') window.refreshHeaderUI();
+      if (typeof window.triggerConfetti === 'function') window.triggerConfetti();
+      if (fb) {
+        fb.innerText = `🎉 Awesome! "${kidLangSpell.target}" is correct! +${xp} XP`;
+        fb.className = "mt-5 p-4 rounded-2xl text-center text-base sm:text-lg font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-200 border-2 border-emerald-300 dark:border-emerald-800 animate-pop-in";
+        fb.classList.remove('hidden');
+      }
+      const speechPromise = kidLangSpellSpeak();
+      const minPause = new Promise(resolve => setTimeout(resolve, 1700));
+      const finishedTarget = kidLangSpell.target;
+      await Promise.all([speechPromise, minPause]);
+      // Advance only if this same completed round is still on screen.
+      if (kidSubMode === 'spelling' && kidLangSpell && kidLangSpell.done && kidLangSpell.target === finishedTarget) {
+        startKidLangSpellRound();
+      }
+    } else {
+      if (fb) {
+        fb.innerText = `🌱 Almost! That spells "${built}". Tap a letter to fix it!`;
+        fb.className = "mt-5 p-4 rounded-2xl text-center text-base sm:text-lg font-bold bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-200 border-2 border-rose-200 dark:border-rose-900 animate-shake";
+        fb.classList.remove('hidden');
+      }
+      const hintBtn = document.getElementById('kidLangSpellHintBtn');
+      if (hintBtn) hintBtn.classList.remove('hidden');
+    }
+  }
+
   function generateKidQuizRound() {
+    if (kidSubMode === 'spelling' && isLangPackCategory(window.appData.kidCategory)) {
+      // Re-entrant renders (category/tab renders, async question-load
+      // completions) must not re-roll a round already in progress.
+      if (kidLangSpell && !kidLangSpell.done && kidLangSpell.cat === window.appData.kidCategory) {
+        syncKidPracticePanels(true);
+      } else {
+        startKidLangSpellRound();
+      }
+      return;
+    }
+    syncKidPracticePanels(false);
     hasFailedFirstAttempt = false;
     kidHintRevealed = false;
     currentKidClueText = '';

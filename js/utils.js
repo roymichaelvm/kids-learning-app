@@ -79,4 +79,76 @@
   window.showToast = showToast;
   window.dedupeQuestionsList = dedupeQuestionsList;
   window.getNextFromDeck = getNextFromDeck;
+
+  /* ------------------------------------------ language spelling helpers */
+  // Split a word into grapheme clusters so Indic scripts (Malayalam,
+  // Hindi) keep dependent vowel signs and conjuncts attached to their
+  // base letter — one tile per visible character, never a broken glyph.
+  function splitGraphemes(str) {
+    const s = String(str || '');
+    try {
+      if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
+        const seg = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+        return Array.from(seg.segment(s), part => part.segment);
+      }
+    } catch (e) { /* fall through to code-point split */ }
+    return Array.from(s);
+  }
+
+  // The spellable form of a language item: for Malayalam/Hindi kid items
+  // the primary is "native (Transliteration)" — spell the native part.
+  // For the Latin languages, drop a leading article (El/La/Le/Il...) so
+  // kids spell the word itself, and trim surrounding punctuation.
+  function langSpellTarget(item) {
+    let p = String((item && item.primary) || '').trim();
+    const paren = p.indexOf(' (');
+    if (paren > 0) p = p.slice(0, paren).trim();
+    p = p.replace(/^(el|la|los|las|un|una|unos|unas|le|les|il|lo|gli|une|des)\s+/i, '');
+    p = p.replace(/^[¡¿"' ]+|[!?.…"' ]+$/g, '');
+    return p.trim();
+  }
+
+  function langTransliteration(item) {
+    const p = String((item && item.primary) || '');
+    const m = p.match(/\(([^)]+)\)/);
+    if (m) return m[1].trim();
+    return String((item && (item.transliteration || item.translit)) || '');
+  }
+
+  // Packs carry two item shapes: kid/expanded items {primary, meaning,
+  // speech, emoji} and teen cards {script, translit, meaning, example}.
+  // Normalize teen cards into the kid shape for spelling rounds.
+  function normalizeLangItem(item) {
+    if (!item) return null;
+    if (item.primary) return item;
+    if (item.script) {
+      return {
+        primary: item.script, meaning: item.meaning || '',
+        speech: item.script, translit: item.translit || '',
+        emoji: item.emoji || '✍️'
+      };
+    }
+    return null;
+  }
+
+  // Items from a pack list that make good spelling rounds: single word,
+  // 2–11 graphemes.
+  function getLangSpellPool(items) {
+    const pool = [];
+    (items || []).forEach(raw => {
+      const item = normalizeLangItem(raw);
+      if (!item) return;
+      const target = langSpellTarget(item);
+      if (!target || /\s/.test(target)) return;
+      const graphemes = splitGraphemes(target);
+      if (graphemes.length < 2 || graphemes.length > 11) return;
+      pool.push({ item: item, target: target, graphemes: graphemes });
+    });
+    return pool;
+  }
+
+  window.splitGraphemes = splitGraphemes;
+  window.langSpellTarget = langSpellTarget;
+  window.langTransliteration = langTransliteration;
+  window.getLangSpellPool = getLangSpellPool;
 })(window);
