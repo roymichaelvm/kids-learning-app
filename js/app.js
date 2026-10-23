@@ -378,7 +378,12 @@
     const container = document.getElementById('profileSwitcher');
     if (!container || !window.LuminaDB) return;
     const activeId = appData.activeProfileId;
-    container.innerHTML = window.LuminaDB.getAllProfiles().map(p => {
+    // Friend Preview: the quick bar lists only the two preview profiles.
+    let switcherProfiles = window.LuminaDB.getAllProfiles();
+    if (isPreviewMode() && window.LuminaDB.isPreviewProfile) {
+      switcherProfiles = switcherProfiles.filter(p => window.LuminaDB.isPreviewProfile(p));
+    }
+    container.innerHTML = switcherProfiles.map(p => {
       const active = p.id === activeId;
       const activeCls = p.ageGroup === 'kid' 
         ? 'bg-amber-400 text-slate-950 shadow-xs' 
@@ -477,7 +482,7 @@
     // Friend Preview: guests only ever see the two preview profiles.
     // The family's own profiles appear only after a real sign-in.
     let visibleProfiles = window.LuminaDB.getAllProfiles();
-    if (isPreviewMode() && !signedIn && window.LuminaDB.isPreviewProfile) {
+    if (isPreviewMode() && window.LuminaDB.isPreviewProfile) {
       visibleProfiles = visibleProfiles.filter(p => window.LuminaDB.isPreviewProfile(p));
     }
     grid.innerHTML = visibleProfiles.map(p => {
@@ -560,8 +565,9 @@
       refreshPreviewBanner();
       return;
     }
-    // In Friend Preview (not signed in), family profiles stay locked away.
-    if (isPreviewMode() && !(window.LuminaDB && window.LuminaDB.getCurrentUser && window.LuminaDB.getCurrentUser())) {
+    // In Friend Preview, family profiles stay locked away - even if this
+    // device still holds a family sign-in session underneath.
+    if (isPreviewMode()) {
       showToast('Sign in to use family profiles, or keep exploring the preview.');
       return;
     }

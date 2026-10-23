@@ -299,6 +299,15 @@
        JS while playing; never let it render dark-on-dark again. */
     html.dark #kidQuizTargetLabel { color: #f8fafc !important; }
 
+    /* Phones: slimmer profile-picker cards and a shorter preview banner. */
+    @media (max-width: 639px) {
+      #profilePickerGrid > button { padding: 1rem !important; border-width: 2px !important; border-radius: 1.25rem !important; gap: 0.25rem !important; }
+      #profilePickerGrid > button > span:first-child { font-size: 2.5rem !important; line-height: 1.1; }
+      #profilePickerGrid > button > span:nth-child(2) { font-size: 1rem !important; }
+      #previewBanner { padding: 6px 10px !important; gap: 8px; font-size: 11px !important; line-height: 1.25; }
+      #previewBanner button { min-height: 30px !important; padding: 4px 10px !important; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .animate-subtle-bounce, .animate-fade { animation: none !important; }
