@@ -477,9 +477,9 @@
         toast.classList.remove('hidden');
       }
 
-      if (typeof window.speakNativeAudio === 'function') {
-        window.speakNativeAudio(`Awesome! ${target.split('').join(' ')} spells ${target.toLowerCase()}!`, 'en-US');
-      }
+      const celebrationSpeech = (typeof window.speakNativeAudio === 'function')
+        ? window.speakNativeAudio(`Awesome! ${target.split('').join(' ')} spells ${target.toLowerCase()}!`, 'en-US')
+        : null;
 
       if (window.LuminaDB && typeof window.LuminaDB.recordActivity === 'function') {
         window.LuminaDB.recordActivity({
@@ -501,9 +501,12 @@
         window.refreshHeaderUI();
       }
 
-      setTimeout(() => {
-        generateSpellingTileRound();
-      }, 1900);
+      // Load the next word only after the spoken celebration has fully
+      // finished (keeping the classic 1.9s pause as a minimum), so the
+      // next word's pronunciation never cuts the celebration off.
+      const minCelebrationPause = new Promise(resolve => setTimeout(resolve, 1900));
+      Promise.all([Promise.resolve(celebrationSpeech).catch(() => {}), minCelebrationPause])
+        .then(() => { generateSpellingTileRound(); });
     } else {
       if (!hasFailedFirstAttempt) {
         hasFailedFirstAttempt = true;
