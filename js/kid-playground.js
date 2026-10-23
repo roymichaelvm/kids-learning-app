@@ -368,7 +368,6 @@
       }
     });
 
-    syncKidActivityTitle(cat);
     renderKidFlashcard();
     generateKidQuizRound();
     setKidViewTab(kidViewTab || 'practice');
@@ -987,39 +986,6 @@
   window.getGeneratedMathQuestions = getGeneratedMathQuestions;
   window.initKidPlayground = initKidPlayground;
   window.selectKidCategory = selectKidCategory;
-
-  /* Launcher navigation (mobile design C): tapping a subject opens it
-     full-screen; the back bar returns to the icon-grid home. On larger
-     screens these classes have no visual effect. */
-  function syncKidActivityTitle(cat) {
-    const title = document.getElementById('kidActivityTitle');
-    const btn = document.getElementById('kidCat-' + cat);
-    if (!title || !btn) return;
-    const emoji = btn.children[0] ? btn.children[0].textContent : '';
-    const label = btn.children[1] ? btn.children[1].textContent : '';
-    title.textContent = (emoji + ' ' + label).trim();
-  }
-
-  function kidCategoryTap(cat) {
-    selectKidCategory(cat);
-    const sec = document.getElementById('section-kid-playground');
-    if (sec) {
-      sec.classList.add('kid-in-activity');
-      if (typeof sec.scrollIntoView === 'function') sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
-  function exitKidActivity() {
-    const sec = document.getElementById('section-kid-playground');
-    if (sec) {
-      sec.classList.remove('kid-in-activity');
-      if (typeof sec.scrollIntoView === 'function') sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
-  window.kidCategoryTap = kidCategoryTap;
-  window.exitKidActivity = exitKidActivity;
-  window.syncKidActivityTitle = syncKidActivityTitle;
   window.getActiveKidItemList = getActiveKidItemList;
   window.renderKidFlashcard = renderKidFlashcard;
   window.stepKidCard = stepKidCard;

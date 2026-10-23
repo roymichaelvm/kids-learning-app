@@ -240,29 +240,34 @@
       #todayProgressStrip .md\:col-span-2 { display: none; }
     }
 
-    #kidActivityBar { display: none; }
-
-    /* Phones: LAUNCHER design for the kid playground.
-       Home state: a 4-column app-icon grid (all subjects visible at once,
-       nothing else) - the daily goal strip above stays as the parent glance.
-       Activity state (after tapping a subject): the grid hides and the
-       exercise owns the full width, with an "All Subjects" back bar.
+    /* Phones: OPTION A - slim vertical category rail on the left, sticky so
+       it stays put while the exercise fills the main area from the top.
        Tablet/desktop keep the classic selector-bar layout. */
     @media (max-width: 639px) {
-      #section-kid-playground:not(.kid-in-activity) #kidLangSubNav,
-      #section-kid-playground:not(.kid-in-activity) #kidViewTabsBar,
-      #section-kid-playground:not(.kid-in-activity) #kidSectionPractice,
-      #section-kid-playground:not(.kid-in-activity) #kidSectionFlashcards,
-      #section-kid-playground:not(.kid-in-activity) > div:last-child { display: none; }
-      #section-kid-playground:not(.kid-in-activity) #kidCategoryGrid {
-        grid-template-columns: repeat(4, 1fr); gap: 8px;
+      #section-kid-playground:not(.hidden) {
+        display: grid; grid-template-columns: 62px minmax(0, 1fr);
+        column-gap: 8px; row-gap: 10px;
       }
-      #section-kid-playground:not(.kid-in-activity) .kid-cat-btn {
-        height: 78px !important; min-height: 78px !important; border-radius: 18px !important;
+      #section-kid-playground > * { margin-top: 0 !important; min-width: 0; }
+      #kidCategoryGrid {
+        grid-column: 1; grid-row: 1 / span 24;
+        display: flex; flex-direction: column; gap: 6px;
+        position: sticky; top: 100px; align-self: start;
+        max-height: calc(100vh - 112px); overflow-y: auto;
+        padding-bottom: 4px; scrollbar-width: none;
       }
-      #section-kid-playground:not(.kid-in-activity) .kid-cat-btn > span:first-child { font-size: 24px !important; }
-      #section-kid-playground.kid-in-activity #kidCategoryGrid { display: none; }
-      #section-kid-playground.kid-in-activity #kidActivityBar { display: flex; }
+      #kidCategoryGrid::-webkit-scrollbar { display: none; }
+      #section-kid-playground > *:not(#kidCategoryGrid) { grid-column: 2; }
+      #kidCategoryGrid .kid-cat-btn {
+        height: 58px !important; min-height: 58px !important; width: 100%;
+        padding: 4px 1px !important; border-radius: 14px !important; gap: 1px !important;
+      }
+      #kidCategoryGrid .kid-cat-btn > span:first-child { font-size: 19px !important; line-height: 1.1; }
+      #kidCategoryGrid .kid-cat-btn > span:nth-child(2) { font-size: 8.5px !important; line-height: 1.05; text-align: center; }
+      #kidCategoryGrid .kid-cat-xp-badge {
+        font-size: 8px !important; padding: 0 4px !important; margin-top: 1px !important;
+        max-width: 100%; overflow: hidden; white-space: nowrap;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1001,48 +1006,42 @@
          4. 6-YEAR-OLD "LITTLE EXPLORER" PLAYGROUND (TACTILE, BOUNCY, VOICE)
          =================================================================== -->
     <section id="section-kid-playground" class="hidden space-y-4 sm:space-y-8 font-kids animate-fade">
-
-      <!-- Mobile activity bar (launcher design): back to the subject grid -->
-      <div id="kidActivityBar" class="items-center gap-2">
-        <button onclick="exitKidActivity()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-black shadow-sm btn-tactile">⬅️ All Subjects</button>
-        <span id="kidActivityTitle" class="font-black text-sm text-slate-800 dark:text-slate-100"></span>
-      </div>
       
       <!-- Kid Category Selector Bar (Big Bouncy Buttons — 9 Core 6+ Subjects) -->
       <div id="kidCategoryGrid" class="grid grid-cols-3 lg:grid-cols-9 gap-1.5 sm:gap-2.5">
-        <button onclick="kidCategoryTap('spelling')" id="kidCat-spelling" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-amber-400 text-slate-950 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-btn btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-amber-500">
+        <button onclick="selectKidCategory('spelling')" id="kidCat-spelling" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-amber-400 text-slate-950 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-btn btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-amber-500">
           <span class="text-xl sm:text-3xl">🐝</span>
           <span>Spelling Bee</span>
         </button>
-        <button onclick="kidCategoryTap('comprehension')" id="kidCat-comprehension" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+        <button onclick="selectKidCategory('comprehension')" id="kidCat-comprehension" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-xl sm:text-3xl">📖</span>
           <span>Story Reading</span>
         </button>
-        <button onclick="kidCategoryTap('grammar')" id="kidCat-grammar" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+        <button onclick="selectKidCategory('grammar')" id="kidCat-grammar" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-xl sm:text-3xl">✏️</span>
           <span>Grammar</span>
         </button>
-        <button onclick="kidCategoryTap('numbers')" id="kidCat-numbers" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+        <button onclick="selectKidCategory('numbers')" id="kidCat-numbers" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-xl sm:text-3xl">🔢</span>
           <span>Numbers &amp; Math</span>
         </button>
-        <button onclick="kidCategoryTap('phonics')" id="kidCat-phonics" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+        <button onclick="selectKidCategory('phonics')" id="kidCat-phonics" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-xl sm:text-3xl">🔤</span>
           <span>Sight Words</span>
         </button>
-        <button onclick="kidCategoryTap('animals')" id="kidCat-animals" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+        <button onclick="selectKidCategory('animals')" id="kidCat-animals" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-xl sm:text-3xl">🦁</span>
           <span>Animals</span>
         </button>
-        <button onclick="kidCategoryTap('malayalam')" id="kidCat-malayalam" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+        <button onclick="selectKidCategory('malayalam')" id="kidCat-malayalam" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-xl sm:text-3xl">🌴</span>
           <span>Malayalam</span>
         </button>
-        <button onclick="kidCategoryTap('hindi')" id="kidCat-hindi" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+        <button onclick="selectKidCategory('hindi')" id="kidCat-hindi" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-xl sm:text-3xl">🪔</span>
           <span>Hindi</span>
         </button>
-        <button onclick="kidCategoryTap('spanish')" id="kidCat-spanish" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
+        <button onclick="selectKidCategory('spanish')" id="kidCat-spanish" class="kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700">
           <span class="text-xl sm:text-3xl">🇪🇸</span>
           <span>Spanish</span>
         </button>
