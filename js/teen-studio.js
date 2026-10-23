@@ -804,7 +804,7 @@
 
   function selectActiveLanguage(lang) {
     if (window.appData) window.appData.activeLanguage = lang;
-    ['malayalam', 'hindi', 'spanish'].forEach(l => {
+    ['malayalam', 'hindi', 'spanish', 'french', 'italian'].forEach(l => {
       const pill = document.getElementById(`pill-${l}`);
       if (!pill) return;
       if (l === lang) {

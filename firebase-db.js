@@ -588,7 +588,7 @@
       const ts = new Date().toISOString();
       const pMap = packs || this.state.languagePacks || {};
       const ops = [];
-      ['malayalam', 'hindi', 'spanish'].forEach(lang => {
+      ['malayalam', 'hindi', 'spanish', 'french', 'italian'].forEach(lang => {
         if (pMap[lang]) {
           ops.push(db.collection('language_packs').doc(lang).set(clean({
             lang: lang,
@@ -606,7 +606,7 @@
       // unchanged packs on future syncs (best effort - never fail the seed).
       try {
         const versionSource = {};
-        ['malayalam', 'hindi', 'spanish'].forEach(lang => {
+        ['malayalam', 'hindi', 'spanish', 'french', 'italian'].forEach(lang => {
           if (pMap[lang]) versionSource[lang] = { words: pMap[lang].words || [], sentences: pMap[lang].sentences || [] };
         });
         const packsVersion = computeDataVersion(versionSource);

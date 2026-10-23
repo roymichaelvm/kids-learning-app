@@ -30,6 +30,8 @@
     malayalam: EMPTY_PACK('Malayalam (മലയാളം)', 'Malayalam', 'ml-IN'),
     hindi: EMPTY_PACK('Hindi (हिंदी)', 'Hindi', 'hi-IN'),
     spanish: EMPTY_PACK('Spanish (Español)', 'Spanish', 'es-ES'),
+    french: EMPTY_PACK('French (Français)', 'French', 'fr-FR'),
+    italian: EMPTY_PACK('Italian (Italiano)', 'Italian', 'it-IT'),
     animals: EMPTY_PACK('Animals & Science', 'Animals & Science', 'en-US'),
     phonics: EMPTY_PACK('Sight Words & Phonics', 'Sight Words & Phonics', 'en-US'),
     numbers: EMPTY_PACK('6+ Numbers & Math', '6+ Numbers & Math', 'en-US'),
@@ -41,7 +43,9 @@
   window.EXPANDED_LANGUAGE_PACKS = window.EXPANDED_LANGUAGE_PACKS || {
     malayalam: { words: [], sentences: [] },
     hindi: { words: [], sentences: [] },
-    spanish: { words: [], sentences: [] }
+    spanish: { words: [], sentences: [] },
+    french: { words: [], sentences: [] },
+    italian: { words: [], sentences: [] }
   };
   window.DEFAULT_QUESTIONS = Array.isArray(window.DEFAULT_QUESTIONS) ? window.DEFAULT_QUESTIONS : [];
   window.SHORT_SPELLING_WORDS_RAW = Array.isArray(window.SHORT_SPELLING_WORDS_RAW) ? window.SHORT_SPELLING_WORDS_RAW : [];

@@ -33,7 +33,9 @@
     { key: 'animals', emoji: '🦁', name: 'Animals' },
     { key: 'malayalam', emoji: '🌴', name: 'Malayalam' },
     { key: 'hindi', emoji: '🪔', name: 'Hindi' },
-    { key: 'spanish', emoji: '🇪🇸', name: 'Spanish' }
+    { key: 'spanish', emoji: '🇪🇸', name: 'Spanish' },
+    { key: 'french', emoji: '🇫🇷', name: 'French' },
+    { key: 'italian', emoji: '🇮🇹', name: 'Italian' }
   ];
 
   // 100 Kid-Friendly Math Items across Addition (25), Subtraction (25), Multiplication (25), and Division (25)
@@ -340,7 +342,7 @@
     // Sub-mode pills for multilingual subjects
     const subBar = document.getElementById('kidLangSubNav');
     if (subBar) {
-      if (cat === 'malayalam' || cat === 'hindi' || cat === 'spanish') {
+      if (cat === 'malayalam' || cat === 'hindi' || cat === 'spanish' || cat === 'french' || cat === 'italian') {
         subBar.classList.remove('hidden');
         const pack = window.multiLangData[cat];
         const lettersBtn = document.getElementById('btn-kid-sub-letters');
@@ -833,7 +835,7 @@
     if (cat === 'numbers' && currentKidCloudQuestion.mathOp) {
       effectiveTrack = 'math';
       effectiveSub = currentKidCloudQuestion.mathOp;
-    } else if (cat === 'malayalam' || cat === 'hindi' || cat === 'spanish') {
+    } else if (cat === 'malayalam' || cat === 'hindi' || cat === 'spanish' || cat === 'french' || cat === 'italian') {
       effectiveTrack = cat;
       effectiveSub = kidSubMode || 'words';
     }
