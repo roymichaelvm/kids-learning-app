@@ -253,6 +253,7 @@
       telemetryLogs: [],
       completedQuestionIds: Array.isArray(fields.completedQuestionIds) ? fields.completedQuestionIds : [],
       pin: fields.pin || '1234',
+      isPreview: !!fields.isPreview,
       cashBalance: Number(fields.cashBalance) || 0,
       redemptions: Array.isArray(fields.redemptions) ? fields.redemptions : [],
       totalXpSpent: Number(fields.totalXpSpent) || 0
@@ -264,6 +265,17 @@
       teen_1: newProfile({ id: 'teen_1', name: '13yo Scholar', avatar: '🎓', ageGroup: 'teen', ageLabel: '13yo Teen Scholar', dailyGoalQuestions: 12, dailyGoalMinutes: 20 }),
       kid_1: newProfile({ id: 'kid_1', name: '6yo Explorer', avatar: '🦁', ageGroup: 'kid', ageLabel: '6yo Little Explorer', dailyGoalQuestions: 10, dailyGoalMinutes: 15 })
     };
+  }
+
+  // Friend Preview profiles are demo profiles for visitors: they live only
+  // on the device, are never written to the shared family cloud database,
+  // and survive cloud pulls so a sync cannot wipe a guest session.
+  function isPreviewProfile(p) {
+    return !!(p && (p.isPreview || String(p.id || '').indexOf('preview_') === 0));
+  }
+
+  function isPreviewId(id) {
+    return String(id || '').indexOf('preview_') === 0;
   }
 
   function friendlyError(e) {
@@ -375,7 +387,7 @@
                 : `Signed in as ${user.email || 'Family Account'}`);
               this.pullFromCloud();
             } else {
-              this.setStatus('connected', 'Sign in required to access Lumina Learning Hub');
+              this.setStatus('connected', 'Sign in required to access Sprout & Scholar');
             }
             this.notify();
           });
@@ -657,6 +669,8 @@
         .map(p => ensureProfileFields(p))
         .sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
     },
+    isPreviewProfile: function (p) { return isPreviewProfile(p); },
+
     setActiveProfile: function (id) {
       if (this.state.profiles[id]) {
         this.state.activeProfileId = id;
@@ -757,6 +771,7 @@
       const id = fields.id || ('p_' + Date.now().toString(36));
       const p = this.state.profiles[id] || newProfile(Object.assign({}, fields, { id: id }));
       Object.assign(p, {
+        isPreview: fields.isPreview !== undefined ? !!fields.isPreview : !!p.isPreview,
         name: String(fields.name || '').trim() || p.name,
         avatar: String(fields.avatar || '').trim() || p.avatar,
         ageGroup: fields.ageGroup ? (fields.ageGroup === 'kid' ? 'kid' : 'teen') : p.ageGroup,
@@ -1422,6 +1437,12 @@
         questions: this.pending.questions,
         meta: this.pending.meta
       };
+      // Friend Preview profiles are local-only: strip them (and their daily
+      // activity) from anything written to the shared family cloud database.
+      const isPrevId = (id) => isPreviewId(id) || isPreviewProfile(this.state.profiles[id]);
+      snap.profiles = snap.profiles.filter(id => !isPrevId(id));
+      snap.days = snap.days.filter(k => !isPrevId(k.slice(0, k.indexOf('|'))));
+      snap.deletes = snap.deletes.filter(id => !isPrevId(id));
       this.pending = { profiles: new Set(), days: new Set(), deletes: new Set(), questions: false, meta: false };
 
       const db = this.db;
@@ -1518,6 +1539,8 @@
         const cutoff = daysAgoKey(LOCAL_DAYS_TO_KEEP);
 
         // ---- Profiles + recent daily activity
+        const localPreviewProfiles = {};
+        Object.values(this.state.profiles || {}).forEach(p => { if (isPreviewProfile(p)) localPreviewProfiles[p.id] = p; });
         const profSnap = await db.collection('profiles').get();
         if (profSnap.empty) {
           // First run: seed Firebase with this device's profiles
@@ -1547,6 +1570,8 @@
             if (!merged[p.id] && this.pending.profiles.has(p.id)) merged[p.id] = p;
           });
           this.state.profiles = merged;
+          // Keep this device's Friend Preview profiles (they exist only locally)
+          Object.assign(this.state.profiles, localPreviewProfiles);
         }
 
         // ---- Question bank + custom kid cards (Read-only for kids app; Admin seeds if empty)

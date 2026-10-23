@@ -466,7 +466,8 @@
   }, 15000);
 
   function showProfilePicker() {
-    if (!window.LuminaDB || !window.LuminaDB.getCurrentUser || !window.LuminaDB.getCurrentUser()) {
+    const signedIn = window.LuminaDB && window.LuminaDB.getCurrentUser && window.LuminaDB.getCurrentUser();
+    if (!signedIn && !isPreviewMode()) {
       updateFamilyAuthUI();
       return;
     }
@@ -544,6 +545,15 @@
       return;
     }
     hideProfilePicker();
+    // Friend Preview profiles have no PIN - guests switch instantly.
+    const target = (window.LuminaDB && typeof window.LuminaDB.getProfileById === 'function')
+      ? window.LuminaDB.getProfileById(profileId)
+      : null;
+    if (target && window.LuminaDB.isPreviewProfile && window.LuminaDB.isPreviewProfile(target)) {
+      completeProfileSwitch(profileId);
+      refreshPreviewBanner();
+      return;
+    }
     promptProfilePin(profileId);
   }
 
@@ -1248,6 +1258,7 @@
 
     if (user) {
       setProtectedContentVisible(true);
+      refreshPreviewBanner();
       if (modal && !authModalManuallyOpened) {
         modal.classList.add('hidden');
       }
@@ -1261,6 +1272,12 @@
       if (userEmailEl) userEmailEl.innerText = user.email || 'Authenticated User';
       if (loggedInView) loggedInView.classList.remove('hidden');
       if (loginForm) loginForm.classList.add('hidden');
+    } else if (isPreviewMode()) {
+      // Friend Preview session: content stays unlocked without an account
+      // and the sign-in modal stays closed.
+      setProtectedContentVisible(true);
+      if (modal) modal.classList.add('hidden');
+      refreshPreviewBanner();
     } else {
       authModalManuallyOpened = false;
       setProtectedContentVisible(false);
@@ -1270,7 +1287,7 @@
       if (iconEl) iconEl.setAttribute('data-lucide', 'lock');
       if (pill) {
         pill.className = "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer";
-        pill.title = "Sign in required to access Lumina Learning Hub";
+        pill.title = "Sign in required to access Sprout & Scholar";
       }
       if (loggedInView) loggedInView.classList.add('hidden');
       if (loginForm) loginForm.classList.remove('hidden');
@@ -1356,7 +1373,7 @@
       await window.LuminaDB.signOut();
       authModalManuallyOpened = false;
       updateFamilyAuthUI();
-      if (typeof showToast === 'function') showToast('Signed out. Sign in to access Lumina Learning Hub.');
+      if (typeof showToast === 'function') showToast('Signed out. Sign in to access Sprout & Scholar.');
     }
   }
 
@@ -1369,6 +1386,51 @@
     if (typeof showToast === 'function') {
       showToast('Running in Local Device Mode. All progress and quiz answers save on this device.');
     }
+  }
+
+  /* =====================================================================
+     FRIEND PREVIEW (GUEST TRIAL) - demo profiles, no account needed.
+     Preview profiles live only on this device: firebase-db.js excludes
+     them from every cloud push and preserves them across cloud pulls.
+     ===================================================================== */
+  function isPreviewMode() {
+    try { return sessionStorage.getItem('lumina_preview_mode') === '1'; } catch (e) { return false; }
+  }
+
+  function refreshPreviewBanner() {
+    const banner = document.getElementById('previewBanner');
+    if (!banner) return;
+    const active = (typeof activeProfile === 'function') ? activeProfile() : null;
+    const show = isPreviewMode() && !!active && !!window.LuminaDB
+      && typeof window.LuminaDB.isPreviewProfile === 'function'
+      && window.LuminaDB.isPreviewProfile(active);
+    banner.classList.toggle('hidden', !show);
+  }
+
+  function startFriendPreview() {
+    if (!window.LuminaDB) return;
+    try { sessionStorage.setItem('lumina_preview_mode', '1'); } catch (e) {}
+    window.LuminaDB.upsertProfile({ id: 'preview_teen', name: 'Preview Scholar', avatar: '\uD83C\uDF93', ageGroup: 'teen', ageLabel: 'Friend Preview - Teen', dailyGoalQuestions: 12, dailyGoalMinutes: 20, isPreview: true });
+    window.LuminaDB.upsertProfile({ id: 'preview_kid', name: 'Preview Explorer', avatar: '\uD83E\uDDED', ageGroup: 'kid', ageLabel: 'Friend Preview - Kid', dailyGoalQuestions: 10, dailyGoalMinutes: 15, isPreview: true });
+    authModalManuallyOpened = false;
+    const modal = document.getElementById('familyAuthModal');
+    if (modal) modal.classList.add('hidden');
+    setProtectedContentVisible(true);
+    completeProfileSwitch('preview_teen');
+    refreshPreviewBanner();
+    if (typeof showToast === 'function') {
+      showToast('\uD83C\uDF81 Friend Preview: demo profiles only - progress stays on this device.');
+    }
+  }
+
+  function exitFriendPreview() {
+    try { sessionStorage.removeItem('lumina_preview_mode'); } catch (e) {}
+    if (window.LuminaDB) {
+      ['preview_teen', 'preview_kid'].forEach(id => {
+        if (window.LuminaDB.getProfileById(id)) window.LuminaDB.deleteProfile(id);
+      });
+    }
+    location.reload();
   }
 
   /* =====================================================================
@@ -2934,6 +2996,9 @@
   window.handleFamilyLoginSubmit = handleFamilyLoginSubmit;
   window.handleFamilySignOut = handleFamilySignOut;
   window.continueOfflineMode = continueOfflineMode;
+  window.startFriendPreview = startFriendPreview;
+  window.exitFriendPreview = exitFriendPreview;
+  window.isPreviewMode = isPreviewMode;
   window.updateFamilyAuthUI = updateFamilyAuthUI;
   window.openParentAdminPortal = openParentAdminPortal;
   window.closeParentAdminPortal = closeParentAdminPortal;
@@ -3048,6 +3113,12 @@
 
   window.addEventListener('DOMContentLoaded', async () => {
     initTheme();
+    if (isPreviewMode()) {
+      // Restore a Friend Preview session after a page reload (same tab):
+      // keep the content unlocked and the banner visible without sign-in.
+      setProtectedContentVisible(true);
+      refreshPreviewBanner();
+    }
     if (typeof window.initDictionaryChips === 'function') {
       window.initDictionaryChips();
     }
