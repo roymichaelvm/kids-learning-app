@@ -38,6 +38,12 @@
     { key: 'italian', emoji: '🇮🇹', name: 'Italian' }
   ];
 
+  // All world-language pack categories — the single source of truth for
+  // "is this a language pack?" checks (options show English meanings,
+  // hints speak the word, etc.). Add new languages HERE only.
+  const LANG_PACK_CATEGORIES = ['malayalam', 'hindi', 'spanish', 'french', 'italian'];
+  function isLangPackCategory(cat) { return LANG_PACK_CATEGORIES.indexOf(cat) !== -1; }
+
   // 100 Kid-Friendly Math Items across Addition (25), Subtraction (25), Multiplication (25), and Division (25)
   // Format: [op, emoji, cardEq, cardMeaning, speech, questionPrompt, ans, d1, d2, d3, explanation]
   const EXTRA_MATH_BANK = [
@@ -529,12 +535,12 @@
     const subHint = document.getElementById('kidQuizSubHint');
     if (subHint && currentKidClueText) {
       subHint.classList.remove('hidden');
-      const isLangPack = (window.appData.kidCategory === 'malayalam' || window.appData.kidCategory === 'hindi' || window.appData.kidCategory === 'spanish');
+      const isLangPack = isLangPackCategory(window.appData.kidCategory);
       const badgePrefix = isLangPack ? '💡 Say it:' : '💡 Hint:';
       subHint.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-amber-100 text-amber-950 border border-amber-300 font-extrabold text-xs sm:text-sm animate-fade">${badgePrefix} ${escapeHtml(currentKidClueText)}</span>`;
     }
     if (typeof window.speakNativeAudio === 'function' && currentKidClueText) {
-      const isLangPack = (window.appData.kidCategory === 'malayalam' || window.appData.kidCategory === 'hindi' || window.appData.kidCategory === 'spanish');
+      const isLangPack = isLangPackCategory(window.appData.kidCategory);
       if (isLangPack && currentKidQuizAnswer) {
         const pack = window.multiLangData[window.appData.kidCategory];
         window.speakNativeAudio(currentKidQuizAnswer.speech || currentKidQuizAnswer.primary, pack.langCode);
@@ -754,7 +760,7 @@
     if (!target) return;
 
     currentKidQuizAnswer = target;
-    const isLangPack = (window.appData.kidCategory === 'malayalam' || window.appData.kidCategory === 'hindi' || window.appData.kidCategory === 'spanish');
+    const isLangPack = isLangPackCategory(window.appData.kidCategory);
     // Language packs: show ONLY the native script in the question (no English / transliteration next to it)
     targetLabel.innerText = isLangPack ? (target.nativeOnly || target.primary) : target.primary;
     // Stash clue for conditional hint (NOT shown upfront!)
