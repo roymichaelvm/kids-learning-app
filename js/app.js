@@ -498,103 +498,8 @@
         </button>
       `;
     }).join('');
-    // Add-a-Learner (never in Friend Preview): each family creates its own
-    // learner profiles; LuminaDB stamps them with the family automatically.
-    const addBox = document.getElementById('profilePickerAddBox');
-    if (addBox) {
-      if (isPreviewMode()) {
-        addBox.innerHTML = '';
-      } else {
-        addBox.innerHTML = `
-          <button onclick="toggleAddLearnerForm()" class="w-full p-4 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-extrabold hover:border-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition btn-tactile">➕ Add a Learner</button>
-          <div id="addLearnerForm" class="hidden mt-4 p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-left space-y-3.5">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Learner's name</label>
-              <input id="newLearnerName" type="text" maxlength="30" placeholder="e.g. Mia" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-indigo-500" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">Avatar</label>
-              <div class="flex flex-wrap gap-1.5">
-                ${['🦁', '🐯', '🦊', '🐼', '🐰', '🦄', '🐸', '🐵', '🎓', '🚀', '⭐', '🌈'].map(e => `<button type="button" data-emoji="${e}" onclick="pickLearnerAvatar('${e}')" class="learner-avatar-btn text-2xl w-11 h-11 rounded-2xl flex items-center justify-center transition bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">${e}</button>`).join('')}
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">Age group</label>
-              <div class="flex gap-2">
-                <button type="button" id="newLearnerGroupKid" onclick="pickLearnerGroup('kid')" class="flex-1 py-2.5 rounded-xl text-xs font-extrabold transition bg-amber-500 text-white">🧒 Little Explorer (6+)</button>
-                <button type="button" id="newLearnerGroupTeen" onclick="pickLearnerGroup('teen')" class="flex-1 py-2.5 rounded-xl text-xs font-extrabold transition bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">🎓 Teen Scholar (13+)</button>
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">4-digit PIN (optional — default 1234; parents can always use 0000)</label>
-              <input id="newLearnerPin" type="text" inputmode="numeric" maxlength="4" placeholder="1234" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-indigo-500 font-mono" />
-            </div>
-            <button onclick="submitNewLearner()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-extrabold transition btn-tactile">Create Learner Profile</button>
-          </div>
-        `;
-        pickLearnerAvatar(newLearnerAvatar);
-        pickLearnerGroup(newLearnerGroup);
-      }
-    }
     document.getElementById('profilePickerOverlay').classList.remove('hidden');
   }
-
-  let newLearnerAvatar = '🦁';
-  let newLearnerGroup = 'kid';
-
-  function toggleAddLearnerForm() {
-    const f = document.getElementById('addLearnerForm');
-    if (f) f.classList.toggle('hidden');
-  }
-  window.toggleAddLearnerForm = toggleAddLearnerForm;
-
-  function pickLearnerAvatar(emoji) {
-    newLearnerAvatar = emoji;
-    document.querySelectorAll('.learner-avatar-btn').forEach(b => {
-      const active = b.getAttribute('data-emoji') === emoji;
-      b.className = `learner-avatar-btn text-2xl w-11 h-11 rounded-2xl flex items-center justify-center transition ${active ? 'bg-indigo-100 dark:bg-indigo-950 ring-2 ring-indigo-400' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'}`;
-    });
-  }
-  window.pickLearnerAvatar = pickLearnerAvatar;
-
-  function pickLearnerGroup(g) {
-    newLearnerGroup = g;
-    const kidBtn = document.getElementById('newLearnerGroupKid');
-    const teenBtn = document.getElementById('newLearnerGroupTeen');
-    if (kidBtn) kidBtn.className = `flex-1 py-2.5 rounded-xl text-xs font-extrabold transition ${g === 'kid' ? 'bg-amber-500 text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`;
-    if (teenBtn) teenBtn.className = `flex-1 py-2.5 rounded-xl text-xs font-extrabold transition ${g === 'teen' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`;
-  }
-  window.pickLearnerGroup = pickLearnerGroup;
-
-  function submitNewLearner() {
-    if (!window.LuminaDB || typeof window.LuminaDB.upsertProfile !== 'function') return;
-    const nameEl = document.getElementById('newLearnerName');
-    const pinEl = document.getElementById('newLearnerPin');
-    const name = ((nameEl && nameEl.value) || '').trim();
-    if (!name) {
-      if (typeof showToast === 'function') showToast("Give the learner a name first!");
-      return;
-    }
-    const isKid = newLearnerGroup === 'kid';
-    const p = window.LuminaDB.upsertProfile({
-      name: name,
-      avatar: newLearnerAvatar,
-      ageGroup: newLearnerGroup,
-      ageLabel: isKid ? 'Little Explorer' : 'Teen Scholar',
-      dailyGoalQuestions: isKid ? 10 : 12,
-      dailyGoalMinutes: isKid ? 15 : 20
-    });
-    const pin = ((pinEl && pinEl.value) || '').trim();
-    if (p && /^\d{4}$/.test(pin)) {
-      p.pin = pin;
-      if (typeof window.LuminaDB.markProfile === 'function') window.LuminaDB.markProfile(p.id);
-      if (typeof window.LuminaDB.saveLocal === 'function') window.LuminaDB.saveLocal();
-      if (typeof window.LuminaDB.scheduleCloudSync === 'function') window.LuminaDB.scheduleCloudSync(300);
-    }
-    if (typeof showToast === 'function') showToast(`Welcome, ${name}! Tap the new card to start learning.`);
-    showProfilePicker();
-  }
-  window.submitNewLearner = submitNewLearner;
 
   function hideProfilePicker() {
     pickerOpen = false;
@@ -1349,30 +1254,6 @@
   }
 
   let authModalManuallyOpened = false;
-  let familyAuthMode = 'signin'; // 'signin' | 'signup'
-
-  function toggleFamilyAuthMode() {
-    familyAuthMode = (familyAuthMode === 'signin') ? 'signup' : 'signin';
-    const isSignup = familyAuthMode === 'signup';
-    const titleEl = document.getElementById('familyAuthTitle');
-    if (titleEl) titleEl.innerText = isSignup ? 'Create Your Family Account' : 'Sign In Required';
-    const btn = document.getElementById('btnFamilySignIn');
-    if (btn) {
-      if (!btn.dataset.defaultLabel) btn.dataset.defaultLabel = btn.innerHTML;
-      btn.innerHTML = isSignup ? '<span>Create Family Account</span>' : btn.dataset.defaultLabel;
-    }
-    const toggleText = document.getElementById('familyAuthToggleText');
-    if (toggleText) toggleText.innerText = isSignup
-      ? 'Already have a family account? Sign in'
-      : 'New family? Create your family account';
-    const hint = document.getElementById('familyAuthHint');
-    if (hint) hint.innerText = isSignup
-      ? 'One account per family. After creating it, add each child as a learner profile — they sign in with their own PIN, no email needed.'
-      : 'Visiting as a friend? Preview with demo profiles — progress stays on this device and never touches the family account.';
-    const errBox = document.getElementById('familyAuthError');
-    if (errBox) errBox.classList.add('hidden');
-  }
-  window.toggleFamilyAuthMode = toggleFamilyAuthMode;
 
   function setProtectedContentVisible(isVisible) {
     ['mainAppContent', 'profileQuickBar', 'todayGoalSection', 'subNavBar'].forEach(id => {
@@ -1478,28 +1359,23 @@
       return;
     }
 
-    const isSignup = familyAuthMode === 'signup';
     if (btn) {
       btn.disabled = true;
-      btn.innerText = isSignup ? 'Creating account...' : 'Signing in...';
+      btn.innerText = 'Signing in...';
     }
     if (errBox) errBox.classList.add('hidden');
 
-    const authFn = isSignup ? window.LuminaDB.signUp : window.LuminaDB.signIn;
-    if (window.LuminaDB && typeof authFn === 'function') {
-      const res = await authFn.call(window.LuminaDB, email, pass);
+    if (window.LuminaDB && typeof window.LuminaDB.signIn === 'function') {
+      const res = await window.LuminaDB.signIn(email, pass);
       if (btn) {
         btn.disabled = false;
-        btn.innerText = isSignup ? 'Create Family Account' : (btn.dataset.defaultLabel ? btn.dataset.defaultLabel.replace(/<[^>]*>/g, '') : 'Sign In to Unlock Hub');
+        btn.innerText = 'Sign In to Unlock Hub';
       }
       if (res && res.ok) {
         authModalManuallyOpened = false;
-        familyAuthMode = 'signin';
         updateFamilyAuthUI();
         applyActiveProfileView();
-        if (typeof showToast === 'function') {
-          showToast(isSignup ? `Family account created for ${email}! Now add your learners.` : `Signed in as ${email}!`);
-        }
+        if (typeof showToast === 'function') showToast(`Signed in as ${email}!`);
         if (typeof window.LuminaDB.pullFromCloud === 'function') {
           const pullRes = await window.LuminaDB.pullFromCloud();
           if (pullRes && pullRes.ok) {
@@ -1508,15 +1384,9 @@
             applyActiveProfileView();
           }
         }
-        if (isSignup) {
-          // Brand-new families start with no learner profiles — open the
-          // picker so the parent can add their first learner right away.
-          const realProfiles = window.LuminaDB.getAllProfiles().filter(p => !window.LuminaDB.isPreviewProfile(p));
-          if (realProfiles.length === 0 && typeof showProfilePicker === 'function') showProfilePicker();
-        }
       } else {
         if (errBox) {
-          errBox.innerText = (res && res.error) || (isSignup ? 'Failed to create the account. Please try again.' : 'Failed to sign in. Please verify your credentials.');
+          errBox.innerText = (res && res.error) || 'Failed to sign in. Please verify your credentials.';
           errBox.classList.remove('hidden');
         }
       }
@@ -1531,71 +1401,6 @@
       if (typeof showToast === 'function') showToast('Signed out. Sign in to access Roy\'s Learning Hub.');
     }
   }
-
-  async function submitForgotPassword() {
-    const emailEl = document.getElementById('familyEmailInput');
-    const errBox = document.getElementById('familyAuthError');
-    const email = ((emailEl && emailEl.value) || '').trim();
-    const showErr = (msg) => {
-      if (errBox) { errBox.innerText = msg; errBox.classList.remove('hidden'); }
-      else if (typeof showToast === 'function') showToast(msg);
-    };
-    if (!email) { showErr('Type your account email above first, then tap "Forgot password?".'); return; }
-    if (!window.LuminaDB || typeof window.LuminaDB.sendPasswordReset !== 'function') return;
-    const res = await window.LuminaDB.sendPasswordReset(email);
-    if (res && res.ok) {
-      if (errBox) errBox.classList.add('hidden');
-      if (typeof showToast === 'function') showToast(`Password reset email sent to ${email} — check your inbox.`);
-    } else {
-      showErr((res && res.error) || 'Could not send the reset email.');
-    }
-  }
-  window.submitForgotPassword = submitForgotPassword;
-
-  function _acctMsg(text, isError) {
-    const msg = document.getElementById('acctSettingsMsg');
-    if (!msg) { if (typeof showToast === 'function') showToast(text); return; }
-    msg.innerText = text;
-    msg.className = `text-[11px] font-semibold p-2.5 rounded-xl border ${isError
-      ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300'
-      : 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-300'}`;
-    msg.classList.remove('hidden');
-  }
-
-  async function submitChangePassword() {
-    const curEl = document.getElementById('acctCurrentPassword');
-    const newEl = document.getElementById('acctNewPassword');
-    if (!window.LuminaDB || typeof window.LuminaDB.changePassword !== 'function') return;
-    const res = await window.LuminaDB.changePassword(curEl ? curEl.value : '', newEl ? newEl.value : '');
-    if (res && res.ok) {
-      if (curEl) curEl.value = '';
-      if (newEl) newEl.value = '';
-      _acctMsg('✓ Password changed. Use the new password next time you sign in.', false);
-    } else {
-      _acctMsg((res && res.error) || 'Could not change the password.', true);
-    }
-  }
-  window.submitChangePassword = submitChangePassword;
-
-  async function submitChangeEmail() {
-    const curEl = document.getElementById('acctCurrentPassword');
-    const emailEl = document.getElementById('acctNewEmail');
-    if (!window.LuminaDB || typeof window.LuminaDB.changeEmail !== 'function') return;
-    const res = await window.LuminaDB.changeEmail(curEl ? curEl.value : '', emailEl ? emailEl.value : '');
-    if (res && res.ok) {
-      if (curEl) curEl.value = '';
-      const warn = res.wouldLoseAdmin
-        ? ' ⚠️ Note: this new address does not carry owner/admin rights — if this is the owner account, ask before confirming.'
-        : '';
-      _acctMsg(res.verificationSent
-        ? `✓ Confirmation sent to the new email — click the link in that inbox to finish changing your sign-in email.${warn}`
-        : `✓ Sign-in email changed.${warn}`, false);
-      updateFamilyAuthUI();
-    } else {
-      _acctMsg((res && res.error) || 'Could not change the email.', true);
-    }
-  }
-  window.submitChangeEmail = submitChangeEmail;
 
   function continueOfflineMode() {
     authModalManuallyOpened = false;
