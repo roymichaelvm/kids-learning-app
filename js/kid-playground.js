@@ -362,12 +362,13 @@
       const btn = document.getElementById(`kidCat-${c.key}`);
       if (!btn) return;
       if (c.key === cat) {
-        btn.className = "kid-cat-btn p-3.5 rounded-3xl bg-amber-400 text-slate-950 font-bold text-sm shadow-kids-btn btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-amber-500";
+        btn.className = "kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-amber-400 text-slate-950 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-btn btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-amber-500";
       } else {
-        btn.className = "kid-cat-btn p-3.5 rounded-3xl bg-white hover:bg-amber-50 text-slate-800 font-bold text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-1 border-2 border-slate-200";
+        btn.className = "kid-cat-btn h-[92px] sm:h-auto px-1 py-1.5 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] leading-tight sm:text-sm shadow-kids-card btn-tactile flex flex-col items-center justify-center gap-0.5 sm:gap-1 border-2 border-slate-200 dark:border-slate-700";
       }
     });
 
+    syncKidActivityTitle(cat);
     renderKidFlashcard();
     generateKidQuizRound();
     setKidViewTab(kidViewTab || 'practice');
@@ -986,6 +987,39 @@
   window.getGeneratedMathQuestions = getGeneratedMathQuestions;
   window.initKidPlayground = initKidPlayground;
   window.selectKidCategory = selectKidCategory;
+
+  /* Launcher navigation (mobile design C): tapping a subject opens it
+     full-screen; the back bar returns to the icon-grid home. On larger
+     screens these classes have no visual effect. */
+  function syncKidActivityTitle(cat) {
+    const title = document.getElementById('kidActivityTitle');
+    const btn = document.getElementById('kidCat-' + cat);
+    if (!title || !btn) return;
+    const emoji = btn.children[0] ? btn.children[0].textContent : '';
+    const label = btn.children[1] ? btn.children[1].textContent : '';
+    title.textContent = (emoji + ' ' + label).trim();
+  }
+
+  function kidCategoryTap(cat) {
+    selectKidCategory(cat);
+    const sec = document.getElementById('section-kid-playground');
+    if (sec) {
+      sec.classList.add('kid-in-activity');
+      if (typeof sec.scrollIntoView === 'function') sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function exitKidActivity() {
+    const sec = document.getElementById('section-kid-playground');
+    if (sec) {
+      sec.classList.remove('kid-in-activity');
+      if (typeof sec.scrollIntoView === 'function') sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  window.kidCategoryTap = kidCategoryTap;
+  window.exitKidActivity = exitKidActivity;
+  window.syncKidActivityTitle = syncKidActivityTitle;
   window.getActiveKidItemList = getActiveKidItemList;
   window.renderKidFlashcard = renderKidFlashcard;
   window.stepKidCard = stepKidCard;
