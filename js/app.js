@@ -474,7 +474,13 @@
     pickerOpen = true;
     const grid = document.getElementById('profilePickerGrid');
     if (!grid || !window.LuminaDB) return;
-    grid.innerHTML = window.LuminaDB.getAllProfiles().map(p => {
+    // Friend Preview: guests only ever see the two preview profiles.
+    // The family's own profiles appear only after a real sign-in.
+    let visibleProfiles = window.LuminaDB.getAllProfiles();
+    if (isPreviewMode() && !signedIn && window.LuminaDB.isPreviewProfile) {
+      visibleProfiles = visibleProfiles.filter(p => window.LuminaDB.isPreviewProfile(p));
+    }
+    grid.innerHTML = visibleProfiles.map(p => {
       const today = window.LuminaDB.getLastNDaysSummary(p.id, 1)[0];
       return `
         <button onclick="switchProfile('${p.id}')" class="p-6 rounded-3xl border-4 ${p.ageGroup === 'kid' ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50' : 'border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50'} btn-tactile transition flex flex-col items-center gap-2">
@@ -552,6 +558,11 @@
     if (target && window.LuminaDB.isPreviewProfile && window.LuminaDB.isPreviewProfile(target)) {
       completeProfileSwitch(profileId);
       refreshPreviewBanner();
+      return;
+    }
+    // In Friend Preview (not signed in), family profiles stay locked away.
+    if (isPreviewMode() && !(window.LuminaDB && window.LuminaDB.getCurrentUser && window.LuminaDB.getCurrentUser())) {
+      showToast('Sign in to use family profiles, or keep exploring the preview.');
       return;
     }
     promptProfilePin(profileId);
@@ -1393,6 +1404,17 @@
      Preview profiles live only on this device: firebase-db.js excludes
      them from every cloud push and preserves them across cloud pulls.
      ===================================================================== */
+  // Phones only: move the Questions/Time goal strip to the very bottom of
+  // the page so the exercise comes first. Tablet/desktop keep it up top.
+  function placeGoalStrip() {
+    const section = document.getElementById('todayGoalSection');
+    const main = document.getElementById('mainAppContent');
+    if (!section || !main) return;
+    if (window.innerWidth < 640 && main.lastElementChild !== section) {
+      main.appendChild(section);
+    }
+  }
+
   function isPreviewMode() {
     try { return sessionStorage.getItem('lumina_preview_mode') === '1'; } catch (e) { return false; }
   }
@@ -2268,7 +2290,7 @@
         badge.className = 'kid-cat-xp-badge';
         btn.appendChild(badge);
       }
-      badge.className = `kid-cat-xp-badge px-2 py-0.5 rounded-full text-[10px] font-black mt-1 ${isHigh ? 'bg-rose-500 text-white shadow-xs animate-bounce' : 'bg-slate-900/10 text-slate-800'}`;
+      badge.className = `kid-cat-xp-badge px-2 py-0.5 rounded-full text-[10px] font-black mt-1 ${isHigh ? 'bg-rose-500 text-white shadow-xs animate-bounce' : 'bg-slate-900/10 text-slate-800 dark:bg-white/10 dark:text-slate-200'}`;
       badge.innerText = isHigh ? `🔥 +${xp} XP` : `+${xp} XP`;
     });
 
@@ -2999,6 +3021,7 @@
   window.startFriendPreview = startFriendPreview;
   window.exitFriendPreview = exitFriendPreview;
   window.isPreviewMode = isPreviewMode;
+    window.placeGoalStrip = placeGoalStrip;
   window.updateFamilyAuthUI = updateFamilyAuthUI;
   window.openParentAdminPortal = openParentAdminPortal;
   window.closeParentAdminPortal = closeParentAdminPortal;
@@ -3126,6 +3149,7 @@
     mergeCustomKidCards();
     applyActiveProfileView();
     refreshStudentXPBadges();
+    placeGoalStrip();
 
     if (window.LuminaDB && typeof window.LuminaDB.pullFromCloud === 'function') {
       const res = await window.LuminaDB.pullFromCloud();
