@@ -252,24 +252,24 @@
       .dict-vault-bottom button { padding: 0.6rem 1.4rem; font-size: 0.8rem; }
     }
 
-    /* Phones: SAT simulator toolbar — the domain dropdown gets its own
-       full-width line (its option text is very long and otherwise pushes
-       the whole page sideways), and the tool buttons (stopwatch,
-       Eliminator, Passage, flag) form ONE horizontal swipeable row,
-       like the Explorer chip strip. Nothing can widen the page. */
+    /* Phones: SAT simulator toolbar — EVERYTHING in one line, like the
+       Explorer chip strip: the two toolbar groups flatten into a single
+       horizontal swipeable row (Dashboard, Domain dropdown, difficulty,
+       Q count, stopwatch, Eliminator, Passage, flag). The dropdown gets
+       a fixed slice of the row so its long option text can no longer
+       push the page sideways. */
     @media (max-width: 639px) {
       #section-teen-sat { overflow-x: clip; }
-      #satToolbar { flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.7rem; }
-      #satToolbarLeft { flex-wrap: wrap; gap: 0.5rem; width: 100%; }
-      #satDomainWrap { order: 3; flex: 1 1 100%; min-width: 0; }
-      #satDomainFilter { flex: 1 1 auto; min-width: 0; width: 100%; }
-      #satToolbarRight {
+      #satToolbar {
         flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
-        gap: 0.5rem; width: 100%; padding-bottom: 2px;
+        gap: 0.5rem; padding: 0.55rem 0.6rem; align-items: center;
         scrollbar-width: none; -ms-overflow-style: none;
       }
-      #satToolbarRight::-webkit-scrollbar { display: none; }
-      #satToolbarRight > * { flex: 0 0 auto; }
+      #satToolbar::-webkit-scrollbar { display: none; }
+      #satToolbarLeft, #satToolbarRight { display: contents; }
+      #satToolbarLeft > *, #satToolbarRight > * { flex: 0 0 auto; }
+      #satDomainWrap { flex: 0 0 auto; min-width: 0; gap: 0.35rem; }
+      #satDomainFilter { width: 10.5rem; min-width: 0; }
     }
 
     /* Phones: OPTION B - subjects become a slim swipeable chip strip stuck
