@@ -1185,7 +1185,7 @@
       }
       const appBody = document.getElementById('appBody');
       if (appBody) appBody.className = "bg-[#FFFBEB] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-kids transition-colors duration-300";
-      if (kidSec) { kidSec.classList.remove('hidden'); kidSec.classList.remove('kid-in-activity'); }
+      if (kidSec) kidSec.classList.remove('hidden');
       renderSubNavForKid();
       if (typeof window.initKidPlayground === 'function') {
         window.initKidPlayground();
