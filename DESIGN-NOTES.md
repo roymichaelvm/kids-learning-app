@@ -160,3 +160,21 @@ the section (phones, Scholar only), and the in-page rows retire:
   (they were duplicates of the same switch). Language sub-modes
   stay in-page, compacted, since the bar has no room for both
   dimensions — same trade-off as Scholar's compact view tabs.
+
+## Round 6 — Explorer topic switcher (phone space saver)
+- The whole chip strip retires on phones: `body.kid-mode
+  #kidCategoryGrid` is `display:none` ≤639px, so the question
+  card moves up by the strip's full height.
+- In its place, the kid bottom bar gains a middle **Topics**
+  button showing the current topic (emoji + name, like the
+  profile switcher shows the current profile). Tapping it opens
+  a **topic picker overlay** mirroring the profile picker
+  (backdrop, card, 2-column grid of all 12 subjects, active one
+  highlighted); one tap switches topic (`selectKidCategory`)
+  and closes the overlay.
+- Wiring: `openTopicPicker` / `closeTopicPicker` /
+  `renderTopicPicker` / `syncKidTopicButton` in kid-playground.js
+  (sync runs at the end of `selectKidCategory`, so the button
+  always shows the live topic); `applyActiveProfileView` closes
+  the overlay on profile switch. Desktop unchanged (chip strip
+  still there; the bar is phone-only).

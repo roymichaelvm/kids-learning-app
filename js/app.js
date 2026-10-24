@@ -1150,6 +1150,7 @@
   window.resetTopicQuestions = resetTopicQuestions;
 
   function applyActiveProfileView() {
+    if (typeof window.closeTopicPicker === 'function') window.closeTopicPicker();
     const p = activeProfile();
     const badge = document.getElementById('activeModeBadge');
     const adminSec = document.getElementById('section-parent-admin');

@@ -592,6 +592,12 @@
       body.kid-mode #mainAppContent { padding-bottom: 5.25rem !important; }
       body.kid-mode #subNavBar,
       body.kid-mode #kidViewTabsBar { display: none !important; }
+      /* The chip strip retires on phones: the bottom bar's Topics
+         button opens the topic picker instead, saving the whole
+         strip's height above the question. */
+      body.kid-mode #kidCategoryGrid { display: none !important; }
+      #mobileKidBar #kidTopicBtn { flex: 1 1 auto; min-width: 0; }
+      #mobileKidBar #kidTopicBtn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
       #kidLangSubNav { flex-wrap: wrap; gap: 0.4rem !important; }
       #kidLangSubNav button { padding: 0.4rem 0.7rem !important; font-size: 0.72rem !important; }
     }
@@ -1673,11 +1679,14 @@
   <nav id="mobileTeenContextBar" aria-label="Section options"></nav>
 
   <!-- EXPLORER BOTTOM BAR (phones only, kid mode only): the
-       Practice/Flashcards switch lives here, replacing the top
-       sub-nav buttons and the in-section view cards on phones.
-       Active state synced in setKidViewTab. -->
+       Practice/Flashcards switch plus the topic switcher, replacing
+       the top chip strip, the top sub-nav buttons and the in-section
+       view cards on phones. Active state synced in setKidViewTab;
+       the Topics button shows the current topic like the profile
+       switcher shows the current profile. -->
   <nav id="mobileKidBar" aria-label="Explorer options">
     <button type="button" data-kview="practice" onclick="setKidViewTab('practice')"><span class="mtab-ico" aria-hidden="true">🎮</span><span>Practice</span></button>
+    <button type="button" id="kidTopicBtn" onclick="openTopicPicker()"><span class="mtab-ico" id="kidTopicBtnIco" aria-hidden="true">🐝</span><span id="kidTopicBtnLabel">Spelling Bee</span></button>
     <button type="button" data-kview="flashcards" onclick="setKidViewTab('flashcards')"><span class="mtab-ico" aria-hidden="true">🃏</span><span>Flashcards</span></button>
   </nav>
 
@@ -1692,6 +1701,21 @@
       <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center text-xs text-slate-500 dark:text-slate-400">
         <button onclick="hideProfilePicker()" class="font-semibold hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer">Continue as current profile</button>
       </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       TOPIC PICKER OVERLAY (Explorer): the topic switcher, mirroring
+       the profile picker — opened from the kid bottom bar's Topics
+       button, listing every subject; one tap switches topic.
+       ===================================================================== -->
+  <div id="topicPickerOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Choose a topic 📚</h2>
+        <button onclick="closeTopicPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+      <div id="topicPickerGrid" class="grid grid-cols-2 gap-3 mt-5"></div>
     </div>
   </div>
 
