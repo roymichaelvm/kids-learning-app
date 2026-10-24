@@ -60,3 +60,17 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   hiding (round 6), modes/views bar gating (round 7), shrunken
   buttons + moved badge (round 8). Each follows as its own step
   with its own phone test.
+
+## Explorer port — Step 2: topic switcher (Round 6 only)
+- `#kidTopicBtn` joins the bar (Practice / Topics / Flashcards);
+  the button shows the current topic's icon + name, synced by
+  `syncKidTopicButton()` at the end of `selectKidCategory`.
+- `#topicPickerOverlay` lists all 12 subjects; one tap switches
+  topic and closes (renderTopicPicker / openTopicPicker /
+  closeTopicPicker in kid-playground.js, window-exposed like
+  the other kid handlers).
+- Phones in kid mode: the chip strip (`#kidCategoryGrid`) is
+  hidden — the Topics button replaces it.
+- Deliberately NOT in this step: the modes/views bar gating
+  (round 7) — all three bar buttons show for now, on every
+  subject, until that step adds the language sub-modes.

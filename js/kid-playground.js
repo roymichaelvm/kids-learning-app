@@ -385,10 +385,46 @@
     generateKidQuizRound();
     setKidViewTab(kidViewTab || 'practice');
     renderKidProgressSummary();
+    syncKidTopicButton();
     if (typeof window.refreshStudentXPBadges === 'function') {
       window.refreshStudentXPBadges();
     }
   }
+
+  // Topic switcher (Explorer, phones): like the profile switcher —
+  // the bottom bar's Topics button shows the current topic, and
+  // this overlay lists every subject for a one-tap switch.
+  function renderTopicPicker() {
+    const grid = document.getElementById('topicPickerGrid');
+    if (!grid) return;
+    const current = window.appData && window.appData.kidCategory;
+    grid.innerHTML = ALL_KID_CATEGORIES.map(c => {
+      const active = c.key === current;
+      return `<button onclick="selectKidCategory('${c.key}'); closeTopicPicker();" class="p-4 rounded-3xl border-2 ${active ? 'border-amber-500 bg-amber-400 text-slate-950 shadow-kids-btn' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-amber-50 dark:hover:bg-slate-700'} btn-tactile transition flex flex-col items-center gap-1.5">
+        <span class="text-4xl">${c.emoji}</span>
+        <span class="font-extrabold text-sm font-kids">${c.name}</span>
+      </button>`;
+    }).join('');
+  }
+  function openTopicPicker() {
+    renderTopicPicker();
+    const overlay = document.getElementById('topicPickerOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+  }
+  function closeTopicPicker() {
+    const overlay = document.getElementById('topicPickerOverlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+  function syncKidTopicButton() {
+    const cat = window.appData && window.appData.kidCategory;
+    const entry = ALL_KID_CATEGORIES.find(c => c.key === cat) || ALL_KID_CATEGORIES[0];
+    const ico = document.getElementById('kidTopicBtnIco');
+    const label = document.getElementById('kidTopicBtnLabel');
+    if (ico) ico.textContent = entry.emoji;
+    if (label) label.textContent = entry.name;
+  }
+  window.openTopicPicker = openTopicPicker;
+  window.closeTopicPicker = closeTopicPicker;
 
   function stripTranslit(s) {
     return String(s || '').replace(/\s*\([^)]*\)\s*/g, ' ').trim();
