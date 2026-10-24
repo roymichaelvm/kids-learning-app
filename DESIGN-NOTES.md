@@ -57,3 +57,28 @@ Vercel builds a preview for this branch (Deployments → this branch),
 or run `npm run build` and serve `dist/`. Compare Scholar dashboard
 (cover hero, divider tabs) in light + dark, then Explorer on a phone
 width — Explorer should feel familiar, Scholar should feel new.
+
+## Round 2 — Focus Home + bottom tab bar (declutter)
+Feedback on round 1: the skin changed but the page still felt
+congested. This round rearranges instead of repainting:
+
+- **Focus Home (Scholar dashboard):** the hero is now a slim banner
+  (description kept on desktop only). The 14-day calendar + mastery
+  cards and the timing/second-guess telemetry moved into collapsed
+  panels ("📅 Study calendar & subject mastery", "⏱️ Timing &
+  second-guess analytics") — native `<details>`, closed by default,
+  one tap to open. Home now shows: banner, topic launchers, and the
+  two quiet panel bars.
+- **App-style bottom bar (phones, Scholar only):** Home · SAT ·
+  Spelling · Languages · Wallet fixed at the thumb, active tab marked
+  with the highlighter swipe. It replaces the top tab strip on phones
+  (desktop keeps the divider tabs). Visibility is CSS-driven from
+  `body.teen-mode` + the main content being shown, so it never appears
+  for Explorer or when signed out.
+- **Header diet (phones, Scholar):** the Wallet and Rankings pills
+  leave the header — Wallet lives in the bottom bar, Rankings is a
+  banner button on Home. Explorer keeps its header pills.
+- **Goal strip, thinnest form (phones):** avatar + greeting + the
+  Questions bar only; the Active Time block and accuracy line retire
+  on small screens (all of it still on desktop, and the strip still
+  relocates to the page bottom on phones as before).

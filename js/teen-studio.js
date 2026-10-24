@@ -82,6 +82,12 @@
           : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
       }"><span class="teen-tab-label-full">${t.label}</span><span class="teen-tab-label-short">${t.shortLabel}</span></button>
     `).join('');
+    // Focus Home / app-style layout: teen mode drives the mobile bottom
+    // bar (body classes gate its CSS) and its active-tab highlight.
+    document.body.classList.add('teen-mode', 'has-bottom-bar');
+    document.querySelectorAll('#mobileTeenBar [data-mtab]').forEach(b => {
+      b.classList.toggle('mtab-active', b.getAttribute('data-mtab') === activeTab);
+    });
   }
 
   function renderTeenDashboard() {

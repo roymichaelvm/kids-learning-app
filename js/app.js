@@ -1228,6 +1228,8 @@
     const container = document.getElementById('subNavTabs');
     if (!container) return;
     container.classList.remove('teen-main-tabs');
+    // Explorer mode: the Scholar bottom bar and teen header rules switch off.
+    document.body.classList.remove('teen-mode', 'has-bottom-bar');
     const currentTab = window.kidViewTab || 'practice';
     const isPractice = currentTab === 'practice';
     const isFlash = currentTab === 'flashcards';
