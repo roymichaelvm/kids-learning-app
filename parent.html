@@ -169,6 +169,25 @@
       html { scroll-behavior: auto; }
       .animate-subtle-bounce, .animate-fade { animation: none !important; }
     }
+
+    /* WORKBOOK REDESIGN (branch: redesign-frontend-design) — the portal
+       shares the workbook paper so both pages feel like one book. */
+    #appBody {
+      background-color: #F5F7FA;
+      background-image:
+        linear-gradient(rgba(22, 35, 61, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(22, 35, 61, 0.045) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    html.dark #appBody {
+      background-color: #0B1322;
+      background-image:
+        linear-gradient(rgba(226, 232, 240, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(226, 232, 240, 0.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    header { border-bottom: 2px solid #16233D !important; }
+    html.dark header { border-bottom-color: #2B4BD8 !important; }
   </style>
 </head>
 <body id="appBody" class="bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
