@@ -589,6 +589,22 @@
       #mobileKidBar .mtab-ico { font-size: 19px; line-height: 1.15; }
       #mobileKidBar button.mtab-active { color: #92400E; box-shadow: inset 0 3px 0 #FBBF24; }
       html.dark #mobileKidBar button.mtab-active { color: #FDE68A; }
+      /* Two-state kid bar: non-language subjects show Practice /
+         Topics / Flashcards; language subjects show Topics, the
+         four sub-modes, and a Practice↔Flashcards toggle. */
+      #mobileKidBar button { display: none; }
+      body.kid-bar-views #mobileKidBar [data-kview],
+      body.kid-bar-views #mobileKidBar #kidTopicBtn { display: flex; }
+      body.kid-bar-modes #mobileKidBar [data-ksub],
+      body.kid-bar-modes #mobileKidBar #kidTopicBtn,
+      body.kid-bar-modes #mobileKidBar #kidViewToggleBtn { display: flex; }
+      body.kid-bar-modes #kidLangSubNav { display: none !important; }
+      /* ROUND 7 — every Scholar question page, phones: the toolbar,
+         the tier row and the language view tabs all retire into
+         the bottom bar / picker overlays. */
+      body.teen-context-bar #satToolbar,
+      body.teen-context-bar #teenSpellingTierBar,
+      body.teen-context-bar #teenViewTabsBar { display: none !important; }
       body.kid-mode #mainAppContent { padding-bottom: 5.25rem !important; }
       body.kid-mode #subNavBar,
       body.kid-mode #kidViewTabsBar { display: none !important; }
@@ -1025,7 +1041,7 @@
           <div>
             <div class="flex items-center justify-between mb-3 text-xs font-bold text-slate-400">
               <span>Question Prompt</span>
-              <span id="satQuestionCounterText">1 of 10</span>
+              <span><span id="satQuestionCounterText">1 of 10</span><span class="font-mono"> • ⏱ <span id="satPhoneStopwatch">00:00.0</span></span></span>
             </div>
 
             <div id="satQuestionPrompt" class="text-slate-900 dark:text-slate-100 font-extrabold text-base sm:text-lg leading-snug mb-6"></div>
@@ -1688,6 +1704,11 @@
     <button type="button" data-kview="practice" onclick="setKidViewTab('practice')"><span class="mtab-ico" aria-hidden="true">🎮</span><span>Practice</span></button>
     <button type="button" id="kidTopicBtn" onclick="openTopicPicker()"><span class="mtab-ico" id="kidTopicBtnIco" aria-hidden="true">🐝</span><span id="kidTopicBtnLabel">Spelling Bee</span></button>
     <button type="button" data-kview="flashcards" onclick="setKidViewTab('flashcards')"><span class="mtab-ico" aria-hidden="true">🃏</span><span>Flashcards</span></button>
+    <button type="button" data-ksub="letters" onclick="setKidSubMode('letters')"><span class="mtab-ico" aria-hidden="true">🔤</span><span>Alphabet</span></button>
+    <button type="button" data-ksub="words" onclick="setKidSubMode('words')"><span class="mtab-ico" aria-hidden="true">📖</span><span>Words</span></button>
+    <button type="button" data-ksub="sentences" onclick="setKidSubMode('sentences')"><span class="mtab-ico" aria-hidden="true">💬</span><span>Sentences</span></button>
+    <button type="button" data-ksub="spelling" onclick="setKidSubMode('spelling')"><span class="mtab-ico" aria-hidden="true">🐝</span><span>Bee</span></button>
+    <button type="button" id="kidViewToggleBtn" onclick="toggleKidViewTab()"><span class="mtab-ico" aria-hidden="true">🃏</span><span>Cards</span></button>
   </nav>
 
   <!-- =====================================================================
@@ -1716,6 +1737,32 @@
         <button onclick="closeTopicPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
       </div>
       <div id="topicPickerGrid" class="grid grid-cols-2 gap-3 mt-5"></div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       SAT DOMAIN PICKER + SPELLING TIER PICKER OVERLAYS (Scholar):
+       same overlay pattern as the topic picker — opened from the
+       SAT / Spelling bottom bars on phones, so the toolbar and
+       tier row can leave the question page.
+       ===================================================================== -->
+  <div id="satDomainPickerOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Choose a topic 📝</h2>
+        <button onclick="closeSatDomainPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+      <div id="satDomainPickerGrid" class="space-y-2.5 mt-5"></div>
+    </div>
+  </div>
+
+  <div id="teenSpellTierOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Choose a tier 🎯</h2>
+        <button onclick="closeTeenSpellTierPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+      <div id="teenSpellTierGrid" class="space-y-2.5 mt-5"></div>
     </div>
   </div>
 

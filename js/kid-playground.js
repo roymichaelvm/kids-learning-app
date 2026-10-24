@@ -293,6 +293,10 @@
     kidCardIdx = 0;
     renderKidFlashcard();
     generateKidQuizRound();
+    // Explorer bar (phones): sub-mode active highlight.
+    document.querySelectorAll('#mobileKidBar [data-ksub]').forEach(b => {
+      b.classList.toggle('mtab-active', b.getAttribute('data-ksub') === mode);
+    });
   }
 
   function setKidViewTab(tab) {
@@ -333,7 +337,19 @@
     document.querySelectorAll('#mobileKidBar [data-kview]').forEach(b => {
       b.classList.toggle('mtab-active', b.getAttribute('data-kview') === tab);
     });
+    // View toggle (language subjects): one button jumping to the
+    // OTHER view, since the bar carries the sub-modes.
+    const vt = document.getElementById('kidViewToggleBtn');
+    if (vt) {
+      const toFlash = tab !== 'flashcards';
+      vt.innerHTML = `<span class="mtab-ico" aria-hidden="true">${toFlash ? '🃏' : '🎮'}</span><span>${toFlash ? 'Cards' : 'Quiz'}</span>`;
+    }
   }
+
+  function toggleKidViewTab() {
+    setKidViewTab(kidViewTab === 'flashcards' ? 'practice' : 'flashcards');
+  }
+  window.toggleKidViewTab = toggleKidViewTab;
 
   function initKidPlayground() {
     const startCat = (window.appData && window.appData.kidCategory && window.multiLangData && window.multiLangData[window.appData.kidCategory])
@@ -386,6 +402,16 @@
     setKidViewTab(kidViewTab || 'practice');
     renderKidProgressSummary();
     syncKidTopicButton();
+    // Two-state kid bar (phones): language subjects show the
+    // sub-modes + a view toggle; other subjects show Practice /
+    // Topics / Flashcards.
+    if (isLangPackCategory(cat)) {
+      document.body.classList.add('kid-bar-modes');
+      document.body.classList.remove('kid-bar-views');
+    } else {
+      document.body.classList.add('kid-bar-views');
+      document.body.classList.remove('kid-bar-modes');
+    }
     if (typeof window.refreshStudentXPBadges === 'function') {
       window.refreshStudentXPBadges();
     }

@@ -94,7 +94,7 @@
     // Focus Home / app-style layout: teen mode drives the mobile bottom
     // bar (body classes gate its CSS) and its active-tab highlight.
     document.body.classList.add('teen-mode', 'has-bottom-bar');
-    document.body.classList.remove('kid-mode');
+    document.body.classList.remove('kid-mode', 'kid-bar-modes', 'kid-bar-views');
     document.querySelectorAll('#mobileTeenBar [data-mtab]').forEach(b => {
       b.classList.toggle('mtab-active', b.getAttribute('data-mtab') === activeTab);
     });
@@ -397,6 +397,8 @@
       const secs = (satElapsedSeconds % 60).toFixed(1).padStart(4, '0');
       const sw = document.getElementById('satStopwatch') || document.getElementById('satTimerDisplay');
       if (sw) sw.innerText = `${mins}:${secs}`;
+      const swPhone = document.getElementById('satPhoneStopwatch');
+      if (swPhone) swPhone.innerText = `${mins}:${secs}`;
 
       const paceHint = document.getElementById('satPaceHint');
       if (paceHint) {
@@ -828,6 +830,7 @@
         renderTeenLanguageQuiz();
       }
     }
+    syncLangViewToggle();
   }
 
   function setTeenLangSubMode(mode) {
@@ -1899,21 +1902,25 @@
     }
     const item = (ico, label, fn, attrs) => `<button type="button" onclick="${fn}" ${attrs || ''}><span class="mtab-ico" aria-hidden="true">${ico}</span><span>${label}</span></button>`;
     if (state === 'languages') {
+      const toFlash = teenLangViewTab !== 'flashcards';
       bar.innerHTML =
         item('←', 'Back', "teenContextBack('languages')") +
         item('🔤', 'Alphabet', "setTeenLangSubMode('letters')", 'data-clang="letters"') +
         item('📖', 'Words', "setTeenLangSubMode('words')", 'data-clang="words"') +
         item('💬', 'Sentences', "setTeenLangSubMode('sentences')", 'data-clang="sentences"') +
-        item('🐝', 'Bee', "setTeenLangSubMode('spelling')", 'data-clang="spelling"');
+        item('🐝', 'Bee', "setTeenLangSubMode('spelling')", 'data-clang="spelling"') +
+        item(toFlash ? '🃏' : '🎮', toFlash ? 'Cards' : 'Quiz', 'toggleTeenLangViewTab()', 'id="langViewToggleBtn"');
     } else if (state === 'spelling') {
       bar.innerHTML =
         item('←', 'Back', "teenContextBack('spelling')") +
         item('⌨️', 'Builder', "setTeenSpellingMode('builder')", 'data-cspell="builder"') +
         item('📝', 'Quiz', "setTeenSpellingMode('quiz')", 'data-cspell="quiz"') +
-        item('🃏', 'Flashcards', "setTeenSpellingMode('flashcards')", 'data-cspell="flashcards"');
+        item('🃏', 'Flashcards', "setTeenSpellingMode('flashcards')", 'data-cspell="flashcards"') +
+        item('🎯', 'Tier', 'openTeenSpellTierPicker()');
     } else if (state === 'sat') {
       bar.innerHTML =
         item('←', 'Exit', "teenContextBack('sat')") +
+        item('📝', 'Topic', 'openSatDomainPicker()') +
         `<button type="button" id="btnBarEliminator" onclick="toggleEliminatorMode()"><span class="mtab-ico" aria-hidden="true">✂️</span><span>Eliminator</span></button>` +
         item('📖', 'Passage', 'toggleSatPassageMobile()') +
         item('🚩', 'Flag', 'toggleFlagSatQuestion()') +
@@ -1958,6 +1965,70 @@
   }
   window.showTeenLangPicker = showTeenLangPicker;
   window.pickTeenLanguage = pickTeenLanguage;
+
+  // Round 7 — question pages, phones: every remaining in-page
+  // control moves into the bottom bar or a picker overlay.
+  // SAT topic picker: mirrors the toolbar's domain dropdown.
+  function openSatDomainPicker() {
+    const grid = document.getElementById('satDomainPickerGrid');
+    const sel = document.getElementById('satDomainFilter');
+    if (!grid || !sel) return;
+    grid.innerHTML = [...sel.options].map(o => {
+      const active = o.value === sel.value;
+      return `<button onclick="pickSatDomain('${o.value.replace(/'/g, "\\'")}')" class="px-4 py-3 rounded-2xl font-bold text-sm text-left transition ${active ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-700'}">${escapeHtml(o.text)}</button>`;
+    }).join('');
+    const overlay = document.getElementById('satDomainPickerOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+  }
+  function pickSatDomain(value) {
+    const sel = document.getElementById('satDomainFilter');
+    if (sel) sel.value = value;
+    closeSatDomainPicker();
+    onFilterSatQuestions();
+  }
+  function closeSatDomainPicker() {
+    const overlay = document.getElementById('satDomainPickerOverlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+  // Spelling tier picker: mirrors the tier pill row.
+  function openTeenSpellTierPicker() {
+    const grid = document.getElementById('teenSpellTierGrid');
+    if (!grid) return;
+    const tiers = [
+      { id: 'all', label: 'All Tiers' },
+      { id: 'core', label: '🎯 High School Core' },
+      { id: 'sat', label: '🎓 SAT Honors' },
+      { id: 'bee', label: '🏆 Scripps Bee' }
+    ];
+    grid.innerHTML = tiers.map(t => {
+      const active = t.id === teenSpellingTier;
+      return `<button onclick="setTeenSpellingTier('${t.id}'); closeTeenSpellTierPicker();" class="px-4 py-3 rounded-2xl font-bold text-sm text-left transition ${active ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-700'}">${t.label}</button>`;
+    }).join('');
+    const overlay = document.getElementById('teenSpellTierOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+  }
+  function closeTeenSpellTierPicker() {
+    const overlay = document.getElementById('teenSpellTierOverlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+  // Language view toggle: one bar button that jumps to the OTHER
+  // view (Practice ↔ Flashcards), since the bar has no room for
+  // both the sub-modes and two view buttons.
+  function toggleTeenLangViewTab() {
+    setTeenLangViewTab(teenLangViewTab === 'flashcards' ? 'practice' : 'flashcards');
+  }
+  function syncLangViewToggle() {
+    const b = document.getElementById('langViewToggleBtn');
+    if (!b) return;
+    const toFlash = teenLangViewTab !== 'flashcards';
+    b.innerHTML = `<span class="mtab-ico" aria-hidden="true">${toFlash ? '🃏' : '🎮'}</span><span>${toFlash ? 'Cards' : 'Quiz'}</span>`;
+  }
+  window.openSatDomainPicker = openSatDomainPicker;
+  window.pickSatDomain = pickSatDomain;
+  window.closeSatDomainPicker = closeSatDomainPicker;
+  window.openTeenSpellTierPicker = openTeenSpellTierPicker;
+  window.closeTeenSpellTierPicker = closeTeenSpellTierPicker;
+  window.toggleTeenLangViewTab = toggleTeenLangViewTab;
   window.teenLangViewTab = teenLangViewTab;
   window.setTeenLangViewTab = setTeenLangViewTab;
   window.setTeenLangSubMode = setTeenLangSubMode;

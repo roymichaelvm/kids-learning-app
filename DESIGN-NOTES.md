@@ -178,3 +178,36 @@ the section (phones, Scholar only), and the in-page rows retire:
   always shows the live topic); `applyActiveProfileView` closes
   the overlay on profile switch. Desktop unchanged (chip strip
   still there; the bar is phone-only).
+
+## Round 7 — Same pattern on every question page (phones)
+- **SAT exam:** the whole toolbar retires on phones (Dashboard
+  was redundant with the bar's Exit; Domain moves out; the
+  difficulty pill is display-only per-question info). The bar
+  gains a **📝 Topic** button opening a domain picker overlay
+  built from the toolbar dropdown's options (one tap sets the
+  domain and reloads question 1). Exam status is preserved
+  inside the question card itself: its header already carried
+  "N of M", and now also carries the stopwatch
+  (`#satPhoneStopwatch`, updated by the same timer tick).
+  Bar: ← Exit · 📝 Topic · ✂️ Eliminator · 📖 Passage · 🚩 Flag ·
+  📖 Dictionary.
+- **Spelling:** the tier pill row retires on phones; the bar
+  gains a **🎯 Tier** button opening a tier picker overlay
+  (All Tiers / Core / SAT Honors / Scripps Bee, active
+  highlighted). Bar: ← Back · Builder · Quiz · Flashcards · Tier.
+- **Languages (Scholar):** the in-page Practice/Flashcards tabs
+  retire on phones; the bar gains a **view toggle** — one button
+  jumping to the other view (🃏 Cards while practicing,
+  🎮 Quiz while on flashcards), synced in
+  `setTeenLangViewTab`. Bar: ← Back · Alphabet · Words ·
+  Sentences · Bee · Cards/Quiz.
+- **Languages (Explorer):** the kid bar is now two-state —
+  `kid-bar-modes` for language subjects (Topics · Alphabet ·
+  Words · Sentences · Bee · Cards/Quiz toggle, sub-nav hidden)
+  vs `kid-bar-views` for other subjects (Practice · Topics ·
+  Flashcards), switched in `selectKidCategory` and cleared by
+  the teen renderer. Sub-mode active state syncs in
+  `setKidSubMode`; the toggle syncs in `setKidViewTab`.
+- The dashboard is not a question page, so it keeps its summary
+  role (slim hero + collapsed panels + goal strip at bottom).
+  Desktop is unchanged throughout.
