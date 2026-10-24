@@ -1230,6 +1230,7 @@
     container.classList.remove('teen-main-tabs');
     // Explorer mode: the kid bottom bar switches on (phones).
     document.body.classList.add('kid-mode');
+    document.body.classList.remove('teen-mode', 'has-bottom-bar');
     const currentTab = window.kidViewTab || 'practice';
     const isPractice = currentTab === 'practice';
     const isFlash = currentTab === 'flashcards';

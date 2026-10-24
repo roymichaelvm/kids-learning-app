@@ -599,6 +599,35 @@
       body.kid-bar-modes #mobileKidBar #kidViewToggleBtn { display: flex; }
       body.kid-bar-modes #kidLangSubNav { display: none !important; }
     }
+    /* SCHOLAR STEP 1 — TEEN BOTTOM BAR (phones, teen mode only):
+       Home / SAT / Spelling / Languages / Wallet live in the bar,
+       so the top tab strip and the header Wallet + Rankings pills
+       retire on phones in teen mode. */
+    #mobileTeenBar { display: none; }
+    @media (max-width: 639px) {
+      body.teen-mode #mainAppContent:not(.hidden) ~ #mobileTeenBar {
+        display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+        justify-content: space-around; align-items: stretch;
+        background: rgba(255, 255, 255, 0.97);
+        border-top: 2px solid #16233D;
+        padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom));
+      }
+      html.dark body.teen-mode #mainAppContent:not(.hidden) ~ #mobileTeenBar {
+        background: rgba(11, 19, 34, 0.97); border-top-color: #2B4BD8;
+      }
+      #mobileTeenBar button {
+        display: flex; flex-direction: column; align-items: center; gap: 1px;
+        min-width: 3.6rem; padding: 0.32rem 0.4rem; border-radius: 10px;
+        font-size: 10px; font-weight: 700; color: #5B6577;
+      }
+      html.dark #mobileTeenBar button { color: #94A3B8; }
+      #mobileTeenBar .mtab-ico { font-size: 19px; line-height: 1.15; }
+      #mobileTeenBar button.mtab-active { color: #16233D; box-shadow: inset 0 3px 0 #FFCF3F; }
+      html.dark #mobileTeenBar button.mtab-active { color: #F1F5F9; }
+      body.has-bottom-bar #mainAppContent { padding-bottom: 5.25rem !important; }
+      #subNavTabs.teen-main-tabs { display: none !important; }
+      body.teen-mode #headerRewardsPill, body.teen-mode #headerLeaderboardBtn { display: none !important; }
+    }
   </style>
 </head>
 <body id="appBody" class="bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
@@ -1588,6 +1617,18 @@
     </section>
 
   </main>
+
+  <!-- MOBILE SCHOLAR BOTTOM BAR (phones only, teen mode only — app-style
+       thumb navigation; visibility is CSS-driven from body.teen-mode and
+       the main content being shown, active tab synced in
+       renderSubNavForTeen) -->
+  <nav id="mobileTeenBar" aria-label="Scholar sections">
+    <button type="button" data-mtab="dashboard" onclick="openTeenTab('dashboard')"><span class="mtab-ico" aria-hidden="true">🏠</span><span>Home</span></button>
+    <button type="button" data-mtab="sat" onclick="openTeenTab('sat')"><span class="mtab-ico" aria-hidden="true">📝</span><span>SAT</span></button>
+    <button type="button" data-mtab="spelling" onclick="openTeenTab('spelling')"><span class="mtab-ico" aria-hidden="true">🐝</span><span>Spelling</span></button>
+    <button type="button" data-mtab="languages" onclick="openTeenTab('languages')"><span class="mtab-ico" aria-hidden="true">🌏</span><span>Languages</span></button>
+    <button type="button" onclick="openRewardsModal()"><span class="mtab-ico" aria-hidden="true">👛</span><span>Wallet</span></button>
+  </nav>
 
   <!-- EXPLORER BOTTOM BAR (phones only, kid mode only): the
        Practice/Flashcards switch, replacing the top sub-nav buttons

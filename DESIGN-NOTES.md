@@ -96,3 +96,23 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   exposed) flips the view.
 - Deliberately NOT in this step: shrunken buttons + moved badge
   (round 8) — the last Explorer piece.
+
+## Scholar port — Step 1: main teen bar (Round 2 bar only)
+- `#mobileTeenBar` nav (Home / SAT / Spelling / Languages /
+  Wallet) placed after `</main>`; hidden by default, shown on
+  phones only when `body.teen-mode` and `#mainAppContent` is
+  visible. Wallet opens the existing rewards modal.
+- Phones in teen mode: the top tab strip
+  (`#subNavTabs.teen-main-tabs`) and the header Wallet +
+  Rankings pills retire (the bar replaces them); content
+  bottom padding 5.25rem so the bar never covers content.
+- JS: `renderSubNavForTeen` adds `teen-mode` + `has-bottom-bar`,
+  removes all kid-bar classes, and syncs the bar's `mtab-active`
+  highlight; `renderSubNavForKid` removes `teen-mode` +
+  `has-bottom-bar` so the bars never show together.
+- Deliberately NOT in this step: the contextual per-section bar
+  (round 4), the language picker (round 5), the SAT/spelling/
+  language pickers (round 7), the SAT More sheet (round 3),
+  the goal-strip thinning (round 2 polish). The in-page
+  section controls stay where they are until the context-bar
+  step moves them.
