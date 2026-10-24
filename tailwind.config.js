@@ -14,7 +14,7 @@ export default {
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       boxShadow: {
-        'bento': '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03)',
+        'bento': '0 1px 2px rgba(22, 35, 61, 0.05), 3px 3px 0 0 rgba(22, 35, 61, 0.08)',
         'kids-btn': '0 6px 0 0 #d97706',
         'kids-btn-active': '0 2px 0 0 #d97706',
         'kids-card': '0 8px 0 0 rgba(0,0,0,0.06)',
