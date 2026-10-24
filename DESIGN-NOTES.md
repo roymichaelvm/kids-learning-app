@@ -74,3 +74,11 @@ First Vercel build of this branch failed (deployment error page, tree verified c
 - Deliberately NOT in this step: the modes/views bar gating
   (round 7) — all three bar buttons show for now, on every
   subject, until that step adds the language sub-modes.
+
+## Explorer port — Step 1 correction: stickers card id
+- The Round 5 phone rule hides `#kidStickersCard`, but main's
+  stickers card div had no id — so the rule matched nothing and
+  the card stayed visible on phones. Fix: the card div now
+  carries `id="kidStickersCard"` (identical markup to the
+  redesign branch apart from that id). No JS touches the id;
+  desktop is unaffected (the rule is phone-only).
