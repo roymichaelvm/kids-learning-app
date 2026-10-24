@@ -1228,8 +1228,10 @@
     const container = document.getElementById('subNavTabs');
     if (!container) return;
     container.classList.remove('teen-main-tabs');
-    // Explorer mode: the Scholar bottom bars switch off entirely.
-    document.body.classList.remove('teen-mode', 'has-bottom-bar', 'teen-context-bar');
+    // Explorer mode: the Scholar bottom bars switch off entirely,
+    // and the Explorer bar switches on (phones).
+    document.body.classList.remove('teen-mode', 'has-bottom-bar', 'teen-context-bar', 'teen-lang-picking');
+    document.body.classList.add('kid-mode');
     const ctxBar = document.getElementById('mobileTeenContextBar');
     if (ctxBar) ctxBar.innerHTML = '';
     const currentTab = window.kidViewTab || 'practice';

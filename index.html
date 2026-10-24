@@ -551,8 +551,53 @@
          cards to a compact segmented row on phones. */
       #teenViewTabsBar { gap: 0.5rem !important; margin-top: 0.75rem !important; margin-bottom: 0.75rem !important; }
       #teenViewTabsBar button { padding: 0.5rem 0.85rem !important; font-size: 0.78rem !important; }
+
+      /* PHONE DECLUTTER, BOTH MODES: the Active Learner quick bar
+         retires — the header Switch button already opens the
+         profile picker. The stickers/stars card leaves the kid
+         question page (desktop keeps both). */
+      #profileQuickBar, #kidStickersCard { display: none !important; }
+      /* LANGUAGE PICKER (phones): the studio heading + language
+         pills never show on phones — Languages opens the picker,
+         and a picked language opens its question page directly. */
+      #teenLangStudioHeader { display: none !important; }
+      body.teen-lang-picking #teenLangSubNav,
+      body.teen-lang-picking #teenViewTabsBar,
+      body.teen-lang-picking #teenSectionPractice,
+      body.teen-lang-picking #teenSectionFlashcards { display: none !important; }
+      body.teen-lang-picking #teenLangPicker { display: block; }
+      /* EXPLORER BOTTOM BAR (phones): Practice/Flashcards live in
+         the bar, so the top sub-nav buttons and the in-section
+         view cards retire on phones. Language sub-modes stay
+         in-page, compacted. */
+      body.kid-mode #mainAppContent:not(.hidden) ~ #mobileKidBar {
+        display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+        justify-content: space-around; align-items: stretch;
+        background: rgba(255, 251, 235, 0.97);
+        border-top: 2px solid #F59E0B;
+        padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom));
+      }
+      html.dark body.kid-mode #mainAppContent:not(.hidden) ~ #mobileKidBar {
+        background: rgba(11, 19, 34, 0.97); border-top-color: #F59E0B;
+      }
+      #mobileKidBar button {
+        display: flex; flex-direction: column; align-items: center; gap: 1px;
+        min-width: 3.6rem; padding: 0.32rem 0.4rem; border-radius: 10px;
+        font-size: 10px; font-weight: 700; color: #5B6577;
+      }
+      html.dark #mobileKidBar button { color: #94A3B8; }
+      #mobileKidBar .mtab-ico { font-size: 19px; line-height: 1.15; }
+      #mobileKidBar button.mtab-active { color: #92400E; box-shadow: inset 0 3px 0 #FBBF24; }
+      html.dark #mobileKidBar button.mtab-active { color: #FDE68A; }
+      body.kid-mode #mainAppContent { padding-bottom: 5.25rem !important; }
+      body.kid-mode #subNavBar,
+      body.kid-mode #kidViewTabsBar { display: none !important; }
+      #kidLangSubNav { flex-wrap: wrap; gap: 0.4rem !important; }
+      #kidLangSubNav button { padding: 0.4rem 0.7rem !important; font-size: 0.72rem !important; }
     }
   #mobileTeenContextBar { display: none; }
+  #mobileKidBar { display: none; }
+  #teenLangPicker { display: none; }
   </style>
 </head>
 <body id="appBody" class="bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
@@ -1033,9 +1078,36 @@
          3. TRILINGUAL LANGUAGE STUDIO (MALAYALAM, HINDI, SPANISH)
          =================================================================== -->
     <section id="section-languages" class="hidden space-y-8 animate-fade">
-      
+
+      <!-- LANGUAGE PICKER (phones only): tapping Languages shows all
+           five languages first; one more tap opens that language's
+           question page with no landing chrome. -->
+      <div id="teenLangPicker" class="space-y-3">
+        <div>
+          <h2 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Choose a language</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Tap a language to start practicing</p>
+        </div>
+        <div class="space-y-2.5">
+          <button onclick="pickTeenLanguage('malayalam')" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-sm text-slate-900 dark:text-slate-100 text-left shadow-bento">
+            <span class="text-xl">🌴</span><span>Malayalam (മലയാളം)</span><span class="ml-auto text-slate-400">→</span>
+          </button>
+          <button onclick="pickTeenLanguage('hindi')" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-sm text-slate-900 dark:text-slate-100 text-left shadow-bento">
+            <span class="text-xl">🪔</span><span>Hindi (हिंदी)</span><span class="ml-auto text-slate-400">→</span>
+          </button>
+          <button onclick="pickTeenLanguage('spanish')" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-sm text-slate-900 dark:text-slate-100 text-left shadow-bento">
+            <span class="text-xl">🇪🇸</span><span>Spanish (Español)</span><span class="ml-auto text-slate-400">→</span>
+          </button>
+          <button onclick="pickTeenLanguage('french')" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-sm text-slate-900 dark:text-slate-100 text-left shadow-bento">
+            <span class="text-xl">🇫🇷</span><span>French (Français)</span><span class="ml-auto text-slate-400">→</span>
+          </button>
+          <button onclick="pickTeenLanguage('italian')" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-sm text-slate-900 dark:text-slate-100 text-left shadow-bento">
+            <span class="text-xl">🇮🇹</span><span>Italian (Italiano)</span><span class="ml-auto text-slate-400">→</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Language Pill Switcher & Sub-Navigation Header -->
-      <div class="flex flex-wrap items-center justify-between gap-4">
+      <div id="teenLangStudioHeader" class="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">World Language Studio</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400">Native pronunciation, scripts, flashcards, and small sentences</p>
@@ -1569,7 +1641,7 @@
       </div>
 
       <!-- Kid's Daily Sticker Calendar & Topic Stars -->
-      <div class="bg-white dark:bg-slate-900 rounded-[32px] border-4 border-amber-200 dark:border-amber-800/80 p-6 shadow-lg">
+      <div id="kidStickersCard" class="bg-white dark:bg-slate-900 rounded-[32px] border-4 border-amber-200 dark:border-amber-800/80 p-6 shadow-lg">
         <h3 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
           <span>🌟</span>
           <span>My Daily Stickers &amp; Subject Stars</span>
@@ -1599,6 +1671,15 @@
        can disappear and the question frame owns the screen.
        Buttons are rendered by setTeenContextBar in teen-studio.js. -->
   <nav id="mobileTeenContextBar" aria-label="Section options"></nav>
+
+  <!-- EXPLORER BOTTOM BAR (phones only, kid mode only): the
+       Practice/Flashcards switch lives here, replacing the top
+       sub-nav buttons and the in-section view cards on phones.
+       Active state synced in setKidViewTab. -->
+  <nav id="mobileKidBar" aria-label="Explorer options">
+    <button type="button" data-kview="practice" onclick="setKidViewTab('practice')"><span class="mtab-ico" aria-hidden="true">🎮</span><span>Practice</span></button>
+    <button type="button" data-kview="flashcards" onclick="setKidViewTab('flashcards')"><span class="mtab-ico" aria-hidden="true">🃏</span><span>Flashcards</span></button>
+  </nav>
 
   <!-- =====================================================================
        "WHO'S LEARNING TODAY?" PROFILE PICKER OVERLAY

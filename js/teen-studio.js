@@ -67,6 +67,7 @@
       document.getElementById('section-languages').classList.remove('hidden');
       setTeenLangViewTab(teenLangViewTab || 'practice');
       renderTeenLanguageStudio();
+      showTeenLangPicker();
     }
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
@@ -93,6 +94,7 @@
     // Focus Home / app-style layout: teen mode drives the mobile bottom
     // bar (body classes gate its CSS) and its active-tab highlight.
     document.body.classList.add('teen-mode', 'has-bottom-bar');
+    document.body.classList.remove('kid-mode');
     document.querySelectorAll('#mobileTeenBar [data-mtab]').forEach(b => {
       b.classList.toggle('mtab-active', b.getAttribute('data-mtab') === activeTab);
     });
@@ -1932,11 +1934,30 @@
   }
   function teenContextBack(from) {
     if (from === 'sat') { openTeenTab('dashboard'); return; }
+    if (from === 'languages') { showTeenLangPicker(); return; }
     setTeenContextBar(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   window.setTeenContextBar = setTeenContextBar;
   window.teenContextBack = teenContextBack;
+
+  // Language picker (phones): Languages opens the picker first;
+  // picking a language opens its question page with no landing
+  // chrome (heading + pills stay hidden on phones; Back returns
+  // to the picker, not to a stacked landing page).
+  function showTeenLangPicker() {
+    document.body.classList.add('teen-lang-picking');
+    setTeenContextBar(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function pickTeenLanguage(lang) {
+    selectActiveLanguage(lang);
+    document.body.classList.remove('teen-lang-picking');
+    setTeenContextBar('languages');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  window.showTeenLangPicker = showTeenLangPicker;
+  window.pickTeenLanguage = pickTeenLanguage;
   window.teenLangViewTab = teenLangViewTab;
   window.setTeenLangViewTab = setTeenLangViewTab;
   window.setTeenLangSubMode = setTeenLangSubMode;

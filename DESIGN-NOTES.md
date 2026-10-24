@@ -133,3 +133,30 @@ the section (phones, Scholar only), and the in-page rows retire:
   section; `setTeenLangSubMode` / `setTeenSpellingMode` /
   `toggleEliminatorMode` re-sync the active highlight.
   Explorer is untouched (kid renderer clears the class + bar).
+
+## Round 5 — Language picker + Explorer parity (phone declutter)
+- **Language picker:** tapping Languages now opens a picker first
+  ("Choose a language", all five as full-width rows); one more tap
+  opens that language's question page with NO landing chrome —
+  the studio heading + language pills never render on phones
+  (`#teenLangStudioHeader` hidden ≤639px), sub-nav already lives
+  in the contextual bar, and the bar's ← Back returns to the
+  picker (not to a stacked landing page). Wiring:
+  `showTeenLangPicker` / `pickTeenLanguage` in teen-studio.js,
+  hooked into `openTeenTab('languages')` and
+  `teenContextBack('languages')`. Desktop unchanged (picker CSS
+  is phone-only; pills still work there).
+- **Active Learner bar retired on phones** (both modes): the
+  header Switch button already opens the profile picker, so
+  `#profileQuickBar` is `display:none` ≤639px. Profile switching
+  is unaffected.
+- **Stickers & stars leave the question page:** `#kidStickersCard`
+  hidden ≤639px (desktop keeps it).
+- **Explorer bottom bar:** `#mobileKidBar` (phones, kid mode) with
+  🎮 Practice / 🃏 Flashcards, active state synced in
+  `setKidViewTab`; `renderSubNavForKid` sets `body.kid-mode`
+  (teen renderer clears it). While it shows, the top sub-nav
+  buttons and the in-section view cards hide on phones
+  (they were duplicates of the same switch). Language sub-modes
+  stay in-page, compacted, since the bar has no room for both
+  dimensions — same trade-off as Scholar's compact view tabs.
