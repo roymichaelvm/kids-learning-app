@@ -578,10 +578,10 @@
     const btn = document.getElementById('btnEliminatorTool');
     const hint = document.getElementById('eliminatorActiveHint');
     if (eliminatorMode) {
-      if (btn) btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 text-white border border-rose-500 transition flex items-center gap-1.5";
+      if (btn) btn.className = "w-full justify-start px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-600 text-white border border-rose-500 transition flex items-center gap-2";
       if (hint) hint.classList.remove('hidden');
     } else {
-      if (btn) btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5";
+      if (btn) btn.className = "w-full justify-start px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-2";
       if (hint) hint.classList.add('hidden');
     }
   }
@@ -1854,6 +1854,20 @@
     if (card) card.classList.toggle('hidden');
   }
   window.toggleSatPassageMobile = toggleSatPassageMobile;
+
+  // Exam tools pop-up menu (bottom sheet on phones, centered card on
+  // desktop): secondary tools live here so the passage, question and
+  // choices own the main area.
+  function toggleSatMoreMenu() {
+    const wrap = document.getElementById('satMoreMenuWrap');
+    if (wrap) wrap.classList.toggle('hidden');
+  }
+  function closeSatMoreMenu() {
+    const wrap = document.getElementById('satMoreMenuWrap');
+    if (wrap) wrap.classList.add('hidden');
+  }
+  window.toggleSatMoreMenu = toggleSatMoreMenu;
+  window.closeSatMoreMenu = closeSatMoreMenu;
   window.teenLangViewTab = teenLangViewTab;
   window.setTeenLangViewTab = setTeenLangViewTab;
   window.setTeenLangSubMode = setTeenLangSubMode;

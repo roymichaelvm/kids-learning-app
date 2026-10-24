@@ -476,6 +476,16 @@
     html.dark .focus-panel-chevron { color: #FFCF3F; }
     @media (prefers-reduced-motion: reduce) { .focus-panel-chevron { transition: none; } }
 
+    /* Exam tools pop-up menu: one gentle slide-up when it opens on
+       phones (motion that answers a tap, per the design skill).
+       Scoped to phones only — the desktop card is centered with
+       translate utilities that a transform animation would fight. */
+    @media (max-width: 639px) {
+      #satMoreSheet { animation: sheetUp 0.22s ease both; }
+      @keyframes sheetUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    }
+    @media (prefers-reduced-motion: reduce) { #satMoreSheet { animation: none; } }
+
     #mobileTeenBar { display: none; }
     @media (max-width: 639px) {
       /* Show the bar only in teen mode while the app content is up */
@@ -847,21 +857,46 @@
           </div>
           <span id="satPaceHint" class="hidden sm:inline text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg">Pace: On Track</span>
 
-          <!-- Choice Eliminator Mode Toggle Button -->
-          <button id="btnEliminatorTool" onclick="toggleEliminatorMode()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition flex items-center gap-1.5" title="Eliminate choices with strike-through">
-            <span>✂️</span>
-            <span>Eliminator</span>
+          <!-- More exam tools: a pop-up menu (Duolingo/Khan-style focus:
+               the question area keeps only what's needed; secondary
+               tools live one tap away in a bottom sheet) -->
+          <button id="btnSatMoreMenu" onclick="toggleSatMoreMenu()" class="px-3.5 py-1.5 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition flex items-center gap-1.5" title="More exam tools">
+            <span class="text-base leading-none">⋮</span>
+            <span>More</span>
           </button>
+        </div>
+      </div>
 
-          <!-- Flag for review button -->
-          <button id="btnTogglePassageMobile" onclick="toggleSatPassageMobile()" class="lg:hidden px-3.5 py-1.5 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition" title="Show or hide the passage on small screens">
-            <span>📖</span>
-            <span>Passage</span>
-          </button>
-
-          <button id="btnFlagQuestion" onclick="toggleFlagSatQuestion()" class="p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 transition" title="Flag this question for review">
-            <i data-lucide="bookmark" class="w-4 h-4"></i>
-          </button>
+      <!-- SAT More menu: bottom sheet on phones, centered card on desktop.
+           Secondary tools moved out of the toolbar so the passage,
+           question and choices own the main area. -->
+      <div id="satMoreMenuWrap" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeSatMoreMenu()"></div>
+        <div id="satMoreSheet" role="menu" class="absolute inset-x-0 bottom-0 sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[22rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-t-3xl sm:rounded-3xl shadow-2xl p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div class="flex items-center justify-between px-2 pb-2">
+            <span class="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Exam tools</span>
+            <button onclick="closeSatMoreMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold" title="Close menu">✕</button>
+          </div>
+          <div class="space-y-1.5">
+            <button id="btnEliminatorTool" onclick="toggleEliminatorMode(); closeSatMoreMenu();" class="w-full justify-start px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition flex items-center gap-2" title="Eliminate choices with strike-through">
+              <span>✂️</span>
+              <span>Eliminator</span>
+            </button>
+            <div class="lg:hidden">
+              <button id="btnTogglePassageMobile" onclick="toggleSatPassageMobile(); closeSatMoreMenu();" class="w-full justify-start px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition flex items-center gap-2" title="Show or hide the passage on small screens">
+                <span>📖</span>
+                <span>Passage</span>
+              </button>
+            </div>
+            <button id="btnFlagQuestion" onclick="toggleFlagSatQuestion(); closeSatMoreMenu();" class="w-full justify-start px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition flex items-center gap-2" title="Flag this question for review">
+              <span>🚩</span>
+              <span>Flag this question</span>
+            </button>
+            <button onclick="openDictionaryModal(); closeSatMoreMenu();" class="w-full justify-start px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition flex items-center gap-2" title="Instant Dictionary lookup & Tough Words Vault">
+              <span>📖</span>
+              <span>Dictionary &amp; Vault</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -82,3 +82,23 @@ congested. This round rearranges instead of repainting:
   Questions bar only; the Active Time block and accuracy line retire
   on small screens (all of it still on desktop, and the strip still
   relocates to the page bottom on phones as before).
+
+## Round 3 — Exam tools pop-up menu (focus the question area)
+Borrowing from popular apps, applied with the frontend-design skill:
+
+- **Duolingo / Khan Academy lesson screens:** only the progress
+  indicator and the question are on screen; everything else is one
+  tap away. The SAT toolbar now keeps just Dashboard, Domain,
+  difficulty, Q counter, stopwatch, and a ⋮ More button.
+- **YouTube / Spotify mobile sheets:** tapping ⋮ opens a bottom
+  sheet on phones (centered card on desktop) with the secondary
+  tools: ✂️ Eliminator, 📖 Passage (phones only, as before),
+  🚩 Flag this question, and 📖 Dictionary & Vault. Tapping any
+  item runs it and closes the sheet; tapping outside closes it.
+- The passage, question and choices now own the main area; the
+  Eliminator's active state still shows via its amber banner, and
+  its menu row keeps the full-width row styling (the JS class
+  strings were updated for the sheet layout). Motion is one gentle
+  slide-up on phones only, off with reduced motion.
+- Same sheet pattern can extend later to the Language Studio quiz
+  and the bottom bar's extra actions if wanted.
