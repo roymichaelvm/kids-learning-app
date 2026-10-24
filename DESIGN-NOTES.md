@@ -42,3 +42,6 @@ that branch's drift from main), not in the layout. If buttons
 are still dead here, the breakage is in the CSS/HTML itself
 or in the preview deployment, and the next step is to bisect
 the CSS block.
+
+## Redeploy note
+First Vercel build of this branch failed (deployment error page, tree verified complete). Retriggering the build with this note.
