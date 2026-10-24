@@ -211,3 +211,27 @@ the section (phones, Scholar only), and the in-page rows retire:
 - The dashboard is not a question page, so it keeps its summary
   role (slim hero + collapsed panels + goal strip at bottom).
   Desktop is unchanged throughout.
+
+## Round 8 — Smaller in-card controls + title above the frame
+- **Explorer (the circled items):** the practice card's
+  **Read Aloud** (`#kidBtnReadAloud`) and **Next Question**
+  (`#kidBtnNextQuestion`) buttons shrink on phones
+  (0.4rem × 0.65rem padding, 0.75rem font, no 44px min-height).
+  The game title badge (`#kidQuizHeaderBadge` — "Find the Match
+  Game!", "Letter Sound Match!", …) moves out of the card to
+  sit **above the frame**, smaller (`.quiz-badge-out`), via
+  `placeQuizHeaders()` in app.js (phones only, same once-at-init
+  pattern as placeGoalStrip; the element itself moves, so the
+  JS that updates its text by id keeps working). The badge
+  hides on the flashcards view (`setKidViewTab` toggles it when
+  moved) since it belongs to the practice card.
+- **Scholar, same design:** the language practice badge
+  (`#teenQuizHeaderBadge`) moves above its card the same way
+  (hidden on the flashcards view and on the language picker
+  screen); Listen Prompt, language flashcard speak/Prev/Next,
+  spelling speaker + Prev/Next Word, and SAT Prev/Next +
+  explanation-drawer Next all shrink with the same phone rule.
+  SAT/passage card headers were already text-xs, so they are
+  untouched. Kid flashcard nav (Back / Say It / Next) is
+  intentionally untouched — it is the question's primary
+  interaction for a young learner, not chrome.

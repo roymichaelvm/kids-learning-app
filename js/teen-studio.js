@@ -831,6 +831,10 @@
       }
     }
     syncLangViewToggle();
+    // Moved title badge (phones): it belongs to the practice card,
+    // so it hides on the flashcards view.
+    const tb = document.getElementById('teenQuizHeaderBadge');
+    if (tb && tb.classList.contains('quiz-badge-out')) tb.classList.toggle('hidden', tab !== 'practice');
   }
 
   function setTeenLangSubMode(mode) {

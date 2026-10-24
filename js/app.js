@@ -1450,6 +1450,29 @@
     }
   }
 
+  // Phones only: the question title badge (kid "Find the Match
+  // Game!", Scholar "Active Recall Challenge") leaves the question
+  // card and sits above the frame, smaller — the card then opens
+  // straight on the controls + prompt. Desktop keeps it in-card.
+  // The badge element itself is moved (not copied), so the JS
+  // that updates its text by id keeps working.
+  function placeQuizHeaders() {
+    if (window.innerWidth >= 640) return;
+    const moves = [
+      ['kidQuizHeaderBadge', 'kidSectionPractice'],
+      ['teenQuizHeaderBadge', 'teenSectionPractice']
+    ];
+    moves.forEach(([badgeId, cardId]) => {
+      const badge = document.getElementById(badgeId);
+      const card = document.getElementById(cardId);
+      if (!badge || !card || !card.parentNode) return;
+      if (badge.parentNode !== card.parentNode || badge.nextElementSibling !== card) {
+        card.parentNode.insertBefore(badge, card);
+      }
+      badge.classList.add('quiz-badge-out');
+    });
+  }
+
   function isPreviewMode() {
     try { return sessionStorage.getItem('lumina_preview_mode') === '1'; } catch (e) { return false; }
   }
@@ -3228,6 +3251,7 @@
   window.isPreviewMode = isPreviewMode;
     window.placeGoalStrip = placeGoalStrip;
     window.placeDictionaryVault = placeDictionaryVault;
+    window.placeQuizHeaders = placeQuizHeaders;
   window.updateFamilyAuthUI = updateFamilyAuthUI;
   window.openParentAdminPortal = openParentAdminPortal;
   window.closeParentAdminPortal = closeParentAdminPortal;
@@ -3357,6 +3381,7 @@
     refreshStudentXPBadges();
     placeGoalStrip();
     placeDictionaryVault();
+    placeQuizHeaders();
 
     if (window.LuminaDB && typeof window.LuminaDB.pullFromCloud === 'function') {
       const res = await window.LuminaDB.pullFromCloud();

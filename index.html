@@ -605,6 +605,19 @@
       body.teen-context-bar #satToolbar,
       body.teen-context-bar #teenSpellingTierBar,
       body.teen-context-bar #teenViewTabsBar { display: none !important; }
+      /* ROUND 8 — smaller in-card controls, phones: the question
+         title badge moves above the frame (see placeQuizHeaders)
+         and all in-card action buttons shrink. */
+      .quiz-badge-out { display: inline-block; font-size: 0.72rem !important; padding: 0.3rem 0.7rem !important; margin-bottom: 0.5rem; }
+      body.teen-lang-picking #teenQuizHeaderBadge.quiz-badge-out { display: none !important; }
+      #kidBtnReadAloud, #kidBtnNextQuestion,
+      #teenBtnListenPrompt,
+      #teenFlashBtnSpeak, #teenFlashBtnPrev, #teenFlashBtnNext,
+      #teenSpellBtnSpeakWord, #teenSpellBtnSpeakSentence, #teenSpellBtnSpeakQuiz,
+      #teenSpellBtnSpeakCard, #teenSpellBtnPrevWord, #teenSpellBtnNextWord,
+      #btnSatPrev, #btnSatNext, #btnSatDrawerNext {
+        padding: 0.4rem 0.65rem !important; font-size: 0.75rem !important; min-height: 0 !important;
+      }
       body.kid-mode #mainAppContent { padding-bottom: 5.25rem !important; }
       body.kid-mode #subNavBar,
       body.kid-mode #kidViewTabsBar { display: none !important; }
@@ -1083,7 +1096,7 @@
               <p id="satFeedbackTelemetryLine" class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5"></p>
             </div>
           </div>
-          <button onclick="navigateSat(1)" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md">
+          <button onclick="navigateSat(1)" id="btnSatDrawerNext" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md">
             Next Question →
           </button>
         </div>
@@ -1189,7 +1202,7 @@
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="speakTeenQuizPrompt()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
+              <button onclick="speakTeenQuizPrompt()" id="teenBtnListenPrompt" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
                 <i data-lucide="volume-2" class="w-4 h-4"></i>
                 <span>Listen Prompt</span>
               </button>
@@ -1257,13 +1270,13 @@
         </div>
 
         <div class="mt-6 flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-          <button onclick="speakCurrentTeenWord()" class="px-5 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs sm:text-sm flex items-center gap-2 transition border border-indigo-200/60 dark:border-indigo-800 shadow-xs">
+          <button onclick="speakCurrentTeenWord()" id="teenFlashBtnSpeak" class="px-5 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs sm:text-sm flex items-center gap-2 transition border border-indigo-200/60 dark:border-indigo-800 shadow-xs">
             <i data-lucide="volume-2" class="w-4 h-4"></i>
             <span>Pronounce Audio</span>
           </button>
           <div class="flex items-center gap-2">
-            <button onclick="stepTeenLangCard(-1)" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition">← Prev Card</button>
-            <button onclick="stepTeenLangCard(1)" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition shadow-sm">Next Card →</button>
+            <button onclick="stepTeenLangCard(-1)" id="teenFlashBtnPrev" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition">← Prev Card</button>
+            <button onclick="stepTeenLangCard(1)" id="teenFlashBtnNext" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition shadow-sm">Next Card →</button>
           </div>
         </div>
       </div>
@@ -1325,11 +1338,11 @@
             <span id="teenSpellBuilderRemaining" class="text-xs font-mono font-semibold text-slate-400"></span>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="speakTeenSpellingWord()" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-xs btn-tactile">
+            <button onclick="speakTeenSpellingWord()" id="teenSpellBtnSpeakWord" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-xs btn-tactile">
               <span>🔊</span>
               <span>Pronounce Word</span>
             </button>
-            <button onclick="speakTeenSpellingSentence()" class="px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
+            <button onclick="speakTeenSpellingSentence()" id="teenSpellBtnSpeakSentence" class="px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
               <span>🗣️</span>
               <span>Hear in Context</span>
             </button>
@@ -1388,7 +1401,7 @@
           <span id="teenSpellQuizBadge" class="px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold text-xs">
             📝 High-Frequency Spelling Trap Challenge
           </span>
-          <button onclick="speakTeenSpellingWord()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
+          <button onclick="speakTeenSpellingWord()" id="teenSpellBtnSpeakQuiz" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
             <span>🔊</span>
             <span>Listen to Word</span>
           </button>
@@ -1430,13 +1443,13 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-          <button onclick="speakTeenSpellingWord()" class="px-5 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs sm:text-sm flex items-center gap-2 transition border border-indigo-200/60 dark:border-indigo-800">
+          <button onclick="speakTeenSpellingWord()" id="teenSpellBtnSpeakCard" class="px-5 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs sm:text-sm flex items-center gap-2 transition border border-indigo-200/60 dark:border-indigo-800">
             <i data-lucide="volume-2" class="w-4 h-4"></i>
             <span>Pronounce Word</span>
           </button>
           <div class="flex items-center gap-2">
-            <button onclick="stepTeenSpellingCard(-1)" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition">← Prev Word</button>
-            <button onclick="stepTeenSpellingCard(1)" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition shadow-sm">Next Word →</button>
+            <button onclick="stepTeenSpellingCard(-1)" id="teenSpellBtnPrevWord" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition">← Prev Word</button>
+            <button onclick="stepTeenSpellingCard(1)" id="teenSpellBtnNextWord" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition shadow-sm">Next Word →</button>
           </div>
         </div>
       </div>
@@ -1530,10 +1543,10 @@
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="speakKidQuizPrompt()" class="px-3.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-bold text-sm flex items-center gap-1 border border-sky-200 dark:border-sky-800">
+              <button onclick="speakKidQuizPrompt()" id="kidBtnReadAloud" class="px-3.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-bold text-sm flex items-center gap-1 border border-sky-200 dark:border-sky-800">
                 🔊 Read Aloud
               </button>
-              <button onclick="handleKidNextQuizBtn()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm">
+              <button onclick="handleKidNextQuizBtn()" id="kidBtnNextQuestion" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm">
                 Next Question ➡️
               </button>
             </div>

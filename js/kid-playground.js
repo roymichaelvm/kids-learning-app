@@ -344,6 +344,10 @@
       const toFlash = tab !== 'flashcards';
       vt.innerHTML = `<span class="mtab-ico" aria-hidden="true">${toFlash ? '🃏' : '🎮'}</span><span>${toFlash ? 'Cards' : 'Quiz'}</span>`;
     }
+    // Moved title badge (phones): it belongs to the practice card,
+    // so it hides on the flashcards view.
+    const kb = document.getElementById('kidQuizHeaderBadge');
+    if (kb && kb.classList.contains('quiz-badge-out')) kb.classList.toggle('hidden', tab !== 'practice');
   }
 
   function toggleKidViewTab() {
