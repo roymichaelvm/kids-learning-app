@@ -239,27 +239,22 @@
     bar.classList.toggle('hidden', !isMath);
     if (!isMath) return;
 
+    // Symbol-only operation buttons (Step 6): the counts (25) and the
+    // XP pills are gone — a young learner just taps ➕ ➖ ✖️ ➗ (or 🌟
+    // for all). The name lives in title/aria-label for screen readers.
     const ops = [
-      ['all', '🌟 All Math'],
-      ['addition', '➕ Addition'],
-      ['subtraction', '➖ Subtraction'],
-      ['multiplication', '✖️ Multiplication'],
-      ['division', '➗ Division']
+      ['all', '🌟', 'All Math'],
+      ['addition', '➕', 'Addition'],
+      ['subtraction', '➖', 'Subtraction'],
+      ['multiplication', '✖️', 'Multiplication'],
+      ['division', '➗', 'Division']
     ];
-    bar.innerHTML = ops.map(([key, label]) => {
-      const count = getGeneratedMathQuestions(key).length;
+    bar.innerHTML = ops.map(([key, symbol, name]) => {
       const active = key === mathOpFilter;
       const cls = active
         ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-sm'
         : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50';
-      const xpVal = (typeof window.getSectionXP === 'function' && key !== 'all')
-        ? window.getSectionXP(`math_${key}`)
-        : null;
-      const isBonus = xpVal && xpVal >= 40;
-      const xpPill = xpVal
-        ? `<span class="ml-1 text-[10px] font-black px-1.5 py-0.2 rounded-full ${isBonus ? 'bg-rose-500 text-white shadow-xs' : 'bg-slate-900/10 text-slate-800 dark:bg-white/10 dark:text-slate-200'}">${isBonus ? '🔥 +' : '+'}${xpVal}</span>`
-        : '';
-      return `<button id="math-op-${key}" onclick="setMathOpFilter('${key}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition ${cls}">${label} <span class="opacity-60">(${count})</span>${xpPill}</button>`;
+      return `<button id="math-op-${key}" title="${name}" aria-label="${name}" onclick="setMathOpFilter('${key}')" class="w-11 h-11 rounded-2xl text-xl border-2 transition flex items-center justify-center ${cls}">${symbol}</button>`;
     }).join('');
   }
 
@@ -360,8 +355,30 @@
     renderKidProgressSummary();
   }
 
+  // Per-profile courses (Step 6): hide the kid grid buttons of
+  // courses the parent turned off, and never land on a hidden one.
+  function kidCourseOn(key) {
+    const p = (typeof window.activeProfile === 'function') ? window.activeProfile() : null;
+    return typeof window.isCourseEnabled !== 'function' || window.isCourseEnabled(p, key);
+  }
+  function firstEnabledKidCategory() {
+    for (const c of ALL_KID_CATEGORIES) { if (kidCourseOn(c.key)) return c.key; }
+    return ALL_KID_CATEGORIES[0].key;
+  }
+  function applyKidCourseVisibility() {
+    ALL_KID_CATEGORIES.forEach(c => {
+      const btn = document.getElementById(`kidCat-${c.key}`);
+      if (btn) btn.style.display = kidCourseOn(c.key) ? '' : 'none';
+    });
+  }
+  window.applyKidCourseVisibility = applyKidCourseVisibility;
+
   function selectKidCategory(cat) {
     if (!window.multiLangData || !window.multiLangData[cat]) cat = 'spelling';
+    // A course the parent turned off can still be the stored category
+    // (changed on another device) — fall through to the first course
+    // that is on instead of showing a hidden subject.
+    if (!kidCourseOn(cat)) cat = firstEnabledKidCategory();
     if (window.appData) window.appData.kidCategory = cat;
     kidCardIdx = 0;
     kidQuizIdx = 0;
@@ -415,6 +432,7 @@
     if (typeof window.refreshStudentXPBadges === 'function') {
       window.refreshStudentXPBadges();
     }
+    applyKidCourseVisibility();
   }
 
   // Topic switcher (Explorer, phones): like the profile switcher —
@@ -424,7 +442,7 @@
     const grid = document.getElementById('topicPickerGrid');
     if (!grid) return;
     const current = window.appData && window.appData.kidCategory;
-    grid.innerHTML = ALL_KID_CATEGORIES.map(c => {
+    grid.innerHTML = ALL_KID_CATEGORIES.filter(c => kidCourseOn(c.key)).map(c => {
       const active = c.key === current;
       return `<button onclick="selectKidCategory('${c.key}'); closeTopicPicker();" class="p-4 rounded-3xl border-2 ${active ? 'border-amber-500 bg-amber-400 text-slate-950 shadow-kids-btn' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-amber-50 dark:hover:bg-slate-700'} btn-tactile transition flex flex-col items-center gap-1.5">
         <span class="text-4xl">${c.emoji}</span>
@@ -1251,7 +1269,7 @@
     if (!p) return;
     const el = document.getElementById('kidProgressSummaryGrid');
     if (!el || !window.multiLangData) return;
-    el.innerHTML = ALL_KID_CATEGORIES.map(c => {
+    el.innerHTML = ALL_KID_CATEGORIES.filter(c => kidCourseOn(c.key)).map(c => {
       const label = window.multiLangData[c.key]?.label || c.name;
       const m = (p.domainMastery && p.domainMastery[label]) || { attempted: 0, correct: 0, cardsViewed: 0 };
       return `

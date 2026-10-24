@@ -28,6 +28,72 @@
     return (p || activeProfile()).ageGroup !== 'kid';
   }
 
+  // ------------------------------------------------------------------
+  // Per-profile courses (Step 6): a parent picks which courses a
+  // learner sees, per profile, from the Parent Portal. Storage is
+  // profile.enabledCourses (array of course keys); null/undefined
+  // means "all courses on", so older profiles need no migration.
+  // Kid courses are the 12 ALL_KID_CATEGORIES keys; teen courses
+  // are the 3 sections (sat/spelling/languages) + the 5 languages.
+  // ------------------------------------------------------------------
+  const TEEN_SECTION_COURSES = [
+    { key: 'sat', emoji: '📝', name: 'Digital SAT' },
+    { key: 'spelling', emoji: '🐝', name: 'Spelling Bee' },
+    { key: 'languages', emoji: '🌏', name: 'Language Studio' }
+  ];
+  const LANG_COURSES = [
+    { key: 'malayalam', emoji: '🌴', name: 'Malayalam' },
+    { key: 'hindi', emoji: '🪔', name: 'Hindi' },
+    { key: 'spanish', emoji: '🇪🇸', name: 'Spanish' },
+    { key: 'french', emoji: '🇫🇷', name: 'French' },
+    { key: 'italian', emoji: '🇮🇹', name: 'Italian' }
+  ];
+  function getCourseCatalogForProfile(p) {
+    if ((p || {}).ageGroup === 'kid') {
+      const cats = (typeof window !== 'undefined' && Array.isArray(window.ALL_KID_CATEGORIES))
+        ? window.ALL_KID_CATEGORIES : [];
+      return [{ group: 'Subjects', items: cats.map(c => ({ key: c.key, emoji: c.emoji, name: c.name })) }];
+    }
+    return [
+      { group: 'Sections', items: TEEN_SECTION_COURSES.slice() },
+      { group: 'Languages', items: LANG_COURSES.slice() }
+    ];
+  }
+  function getCourseKeysForProfile(p) {
+    return getCourseCatalogForProfile(p).reduce((acc, g) => acc.concat(g.items.map(i => i.key)), []);
+  }
+  function getEnabledCourses(p) {
+    if (!p || !Array.isArray(p.enabledCourses)) return null; // null = all on
+    return p.enabledCourses;
+  }
+  function isCourseEnabled(p, key) {
+    const list = getEnabledCourses(p);
+    return list === null || list.indexOf(key) !== -1;
+  }
+  function setProfileCourseEnabled(profileId, key, enabled) {
+    const p = (window.LuminaDB && typeof window.LuminaDB.getProfileById === 'function')
+      ? window.LuminaDB.getProfileById(profileId) : null;
+    if (!p) return false;
+    const all = getCourseKeysForProfile(p);
+    if (all.indexOf(key) === -1) return false;
+    let cur = getEnabledCourses(p);
+    if (cur === null) cur = all.slice();
+    if (enabled) {
+      if (cur.indexOf(key) === -1) cur.push(key);
+    } else {
+      cur = cur.filter(k => k !== key);
+    }
+    if (cur.length === 0) return false; // keep at least one course on
+    p.enabledCourses = (cur.length === all.length) ? null : cur;
+    saveState();
+    return true;
+  }
+  function firstEnabledCourseKey(p) {
+    const all = getCourseKeysForProfile(p);
+    for (const k of all) { if (isCourseEnabled(p, k)) return k; }
+    return all[0] || null;
+  }
+
   function getQuestionSignature(item) {
     if (!item) return '';
     if (item.id) return item.id;
@@ -1231,6 +1297,7 @@
     // Explorer mode: the kid bottom bar switches on (phones).
     document.body.classList.add('kid-mode');
     document.body.classList.remove('teen-mode', 'has-bottom-bar');
+    if (typeof window.applyKidCourseVisibility === 'function') window.applyKidCourseVisibility();
     const currentTab = window.kidViewTab || 'practice';
     const isPractice = currentTab === 'practice';
     const isFlash = currentTab === 'flashcards';
@@ -1837,6 +1904,71 @@
     return tracks;
   }
 
+  // Courses card (Parent Portal): one toggle row per course for the
+  // selected student. Toggling saves instantly (profile.enabledCourses
+  // via saveState, which syncs to the cloud) and re-renders the
+  // portal. Turning a course off only hides it — progress is kept,
+  // and it can be turned back on any time.
+  function renderAdminCoursesBox(student) {
+    const box = document.getElementById('adminCoursesBox');
+    if (!box || !student) return;
+    const catalog = getCourseCatalogForProfile(student);
+    const keys = getCourseKeysForProfile(student);
+    const onCount = keys.filter(k => isCourseEnabled(student, k)).length;
+    const rows = (items) => items.map(c => {
+      const on = isCourseEnabled(student, c.key);
+      return `
+      <button type="button" onclick="toggleAdminCourse('${c.key}')" aria-pressed="${on}" class="w-full min-h-[48px] px-3.5 py-2.5 rounded-2xl border-2 text-left flex items-center gap-3 transition btn-tactile ${on ? 'border-indigo-200 dark:border-indigo-800 bg-indigo-50/60 dark:bg-indigo-950/40' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 opacity-70'}">
+        <span class="text-2xl shrink-0">${c.emoji}</span>
+        <span class="flex-1 min-w-0">
+          <span class="block font-extrabold text-sm text-slate-900 dark:text-slate-100 truncate">${escapeHtml(c.name)}</span>
+          <span class="block text-[11px] font-semibold ${on ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}">${on ? 'Shown to ' + escapeHtml(student.name || 'student') : 'Hidden — tap to show again'}</span>
+        </span>
+        <span class="shrink-0 w-11 h-6 rounded-full relative transition ${on ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'}">
+          <span class="absolute top-0.5 ${on ? 'right-0.5' : 'left-0.5'} w-5 h-5 rounded-full bg-white shadow transition-all"></span>
+        </span>
+      </button>`;
+    }).join('');
+    box.innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+        <h3 class="text-sm font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
+          <span>📚</span><span>Courses — ${escapeHtml(student.name || 'Student')}</span>
+        </h3>
+        <span class="px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-black">${onCount} of ${keys.length} on</span>
+      </div>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Choose which courses ${escapeHtml(student.name || 'this student')} sees in the Learning Hub. Turn off anything not relevant right now — progress is kept, and you can turn it back on any time. Changes save instantly and sync to their device.</p>
+      ${catalog.map(g => `
+        <p class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mt-4 mb-2">${escapeHtml(g.group)}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${rows(g.items)}</div>
+      `).join('')}
+      <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2">
+        <button onclick="resetAdminCoursesToAll('${student.id}')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition btn-tactile">↺ Show all courses</button>
+      </div>`;
+  }
+  function toggleAdminCourse(key) {
+    const student = (window.LuminaDB && typeof window.LuminaDB.getProfileById === 'function')
+      ? window.LuminaDB.getProfileById(adminActiveStudentId) : null;
+    if (!student) return;
+    const turningOn = !isCourseEnabled(student, key);
+    const ok = setProfileCourseEnabled(student.id, key, turningOn);
+    if (!ok) {
+      showToast(`Keep at least one course on for ${student.name || 'this student'}.`);
+      return;
+    }
+    renderAdminPortal();
+    const label = (getCourseCatalogForProfile(student).reduce((a, g) => a.concat(g.items), []).find(c => c.key === key) || {}).name || key;
+    showToast(turningOn ? `✅ ${label} is back on for ${student.name || 'this student'}.` : `👋 ${label} hidden for ${student.name || 'this student'} — progress kept.`);
+  }
+  function resetAdminCoursesToAll(pid) {
+    const p = (window.LuminaDB && typeof window.LuminaDB.getProfileById === 'function')
+      ? window.LuminaDB.getProfileById(pid) : null;
+    if (!p) return;
+    p.enabledCourses = null;
+    saveState();
+    renderAdminPortal();
+    showToast('✅ All courses are on again.');
+  }
+
   function renderAdminPortal() {
     const allProfiles = (window.LuminaDB && typeof window.LuminaDB.getAllProfiles === 'function')
       ? window.LuminaDB.getAllProfiles()
@@ -1916,6 +2048,9 @@
           </div>` : '<p class="mt-3 text-xs text-slate-400">No manual adjustments yet for this student.</p>'}
       `;
     }
+
+    // 1d. Courses for this student (per-profile customization)
+    renderAdminCoursesBox(student);
 
     // 1c. Wrong-Answer Penalty control
     const penaltyBox = document.getElementById('adminPenaltyBox');
@@ -3193,6 +3328,11 @@
   window.appData = appData;
   window.selectedCalendarDateKey = selectedCalendarDateKey;
   window.activeProfile = activeProfile;
+  window.isCourseEnabled = isCourseEnabled;
+  window.getCourseCatalogForProfile = getCourseCatalogForProfile;
+  window.getEnabledCourses = getEnabledCourses;
+  window.setProfileCourseEnabled = setProfileCourseEnabled;
+  window.firstEnabledCourseKey = firstEnabledCourseKey;
   window.isTeenProfile = isTeenProfile;
   window.getTeenQuestions = getTeenQuestions;
   window.getKidQuestionsByDomain = getKidQuestionsByDomain;
@@ -3228,6 +3368,9 @@
   window.openParentAdminPortal = openParentAdminPortal;
   window.closeParentAdminPortal = closeParentAdminPortal;
   window.selectAdminStudent = selectAdminStudent;
+  window.renderAdminCoursesBox = renderAdminCoursesBox;
+  window.toggleAdminCourse = toggleAdminCourse;
+  window.resetAdminCoursesToAll = resetAdminCoursesToAll;
   window.getStudentTrackProgressList = getStudentTrackProgressList;
   window.renderAdminPortal = renderAdminPortal;
   window.resetStudentArea = resetStudentArea;

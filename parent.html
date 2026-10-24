@@ -157,13 +157,52 @@
        controls themselves (answer choices, letter tiles, flashcard nav) -
        those keep their big, finger-friendly size. Tablet/desktop unchanged. */
     @media (max-width: 639px) {
-      main button:not(#kidSectionPractice button):not(#kidSectionFlashcards button):not(#section-teen-sat button):not(#section-languages button):not(#section-teen-spelling button),
+      main button:not(#kidSectionPractice button):not(#kidSectionFlashcards button):not(#section-teen-sat button):not(#section-languages button):not(#section-teen-spelling button):not(#adminCoursesBox button),
       #familyAuthModal button, #profilePickerOverlay button, #profilePinModal button {
         padding-top: 0.42rem !important; padding-bottom: 0.42rem !important;
         padding-left: 0.65rem !important; padding-right: 0.65rem !important;
         min-height: 34px !important;
       }
     }
+
+    /* DESKTOP MOBILE-PREVIEW TOGGLE (QA tool, same as index.html):
+       a floating button on desktop opens this page inside a 390px
+       phone frame, so the portal's phone layout can be tested
+       visually without a phone. Hidden on phones, and the script
+       removes it inside the frame itself. */
+    #mobileViewToggleBtn { display: none; }
+    @media (min-width: 640px) {
+      #mobileViewToggleBtn {
+        display: flex; position: fixed; right: 1rem; bottom: 1rem; z-index: 60;
+        align-items: center; gap: 0.4rem;
+        padding: 0.6rem 0.9rem; border-radius: 9999px; border: none;
+        background: #2B4BD8; color: #fff; font-size: 0.8rem; font-weight: 700;
+        box-shadow: 0 8px 24px rgba(22,35,61,.35); cursor: pointer;
+      }
+      #mobileViewToggleBtn:hover { background: #16233D; }
+    }
+    #mobilePreviewOverlay { display: none; }
+    #mobilePreviewOverlay.open {
+      display: flex; position: fixed; inset: 0; z-index: 70;
+      background: rgba(11,19,34,.85); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    #mobilePreviewFrame {
+      width: 390px; max-width: 94vw; height: min(844px, 94vh);
+      background: #fff; border-radius: 2rem; overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5); border: 6px solid #16233D;
+      display: flex; flex-direction: column;
+    }
+    #mobilePreviewBar {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+      padding: 0.5rem 0.75rem; background: #16233D; color: #fff;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    }
+    #mobilePreviewBar button {
+      padding: 0.35rem 0.7rem; border-radius: 0.6rem; border: none; cursor: pointer;
+      background: #FFCF3F; color: #16233D; font-size: 0.75rem; font-weight: 800;
+    }
+    #mobilePreviewIframe { flex: 1; width: 100%; border: 0; background: #fff; }
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -278,6 +317,11 @@
           <div id="adminStudentResetAllBtnContainer"></div>
         </div>
         <div id="adminStudentPillsBar" class="flex flex-wrap items-center gap-2.5"></div>
+      </div>
+
+      <!-- COURSES FOR THIS STUDENT (per-profile customization) -->
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-indigo-200 dark:border-indigo-800 p-5 sm:p-6 shadow-sm">
+        <div id="adminCoursesBox"></div>
       </div>
 
       <!-- ADJUST POINTS CARD -->
@@ -652,6 +696,41 @@
        APPLICATION SCRIPTS
        ===================================================================== -->
   <script type="module" src="/src/entry.js"></script>
+
+  <!-- DESKTOP MOBILE-PREVIEW TOGGLE (QA tool, same as index.html):
+       a floating button on desktop opens this same page inside a
+       390px phone frame, so the portal's phone layout can be tested
+       visually on desktop. The button removes itself inside the
+       frame so previews cannot nest. -->
+  <button type="button" id="mobileViewToggleBtn" onclick="openMobilePreview()" title="See this page at phone width">📱 Mobile view</button>
+  <div id="mobilePreviewOverlay" role="dialog" aria-label="Mobile preview">
+    <div id="mobilePreviewFrame">
+      <div id="mobilePreviewBar"><span>📱 Mobile view — 390px • live page</span><button type="button" onclick="closeMobilePreview()">💻 Desktop view ✕</button></div>
+      <iframe id="mobilePreviewIframe" title="Mobile preview of the Parent Portal"></iframe>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var btn = document.getElementById('mobileViewToggleBtn');
+      if (window.self !== window.top) { if (btn) btn.remove(); return; }
+      window.openMobilePreview = function () {
+        var overlay = document.getElementById('mobilePreviewOverlay');
+        var frame = document.getElementById('mobilePreviewIframe');
+        if (!overlay || !frame) return;
+        if (!frame.getAttribute('src')) frame.setAttribute('src', window.location.pathname + window.location.search);
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      };
+      window.closeMobilePreview = function () {
+        var overlay = document.getElementById('mobilePreviewOverlay');
+        var frame = document.getElementById('mobilePreviewIframe');
+        if (overlay) overlay.classList.remove('open');
+        if (frame) frame.removeAttribute('src');
+        document.body.style.overflow = '';
+      };
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') window.closeMobilePreview(); });
+    })();
+  </script>
 </body>
 </html>
 

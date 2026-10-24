@@ -32,6 +32,13 @@
   let teenQuizIdx = 0;
 
   function openTeenTab(tabName) {
+    // A section the parent turned off for this profile sends the
+    // learner back to Courses instead of opening a hidden section.
+    const _p = (typeof window.activeProfile === 'function') ? window.activeProfile() : null;
+    if (tabName !== 'dashboard' && typeof window.isCourseEnabled === 'function' && _p && !window.isCourseEnabled(_p, tabName)) {
+      if (typeof window.showToast === 'function') window.showToast('That course is turned off for this profile — a parent can turn it back on in the Parent Portal.');
+      tabName = 'dashboard';
+    }
     if (window.appData) window.appData.teenSubTab = tabName;
     ['section-teen-dashboard', 'section-teen-sat', 'section-languages', 'section-teen-spelling', 'section-kid-playground', 'section-parent-admin']
       .forEach(id => {
@@ -78,12 +85,13 @@
     const container = document.getElementById('subNavTabs');
     if (!container) return;
     container.classList.add('teen-main-tabs');
+    const _p = (typeof window.activeProfile === 'function') ? window.activeProfile() : null;
     const tabs = [
       { id: 'dashboard', label: '📊 Analytics, Streak Calendar & Topics', shortLabel: '📊 Analytics' },
       { id: 'sat', label: '📝 Digital SAT & Topic Simulator', shortLabel: '📝 Digital SAT' },
       { id: 'spelling', label: '🐝 SAT & Academic Spelling Bee', shortLabel: '🐝 SAT & Academic Spelling Bee' },
       { id: 'languages', label: '🌏 Language Studio (Mal/Hin/Spa/Fr/It)', shortLabel: '🌏 Language Studio' }
-    ];
+    ].filter(t => t.id === 'dashboard' || typeof window.isCourseEnabled !== 'function' || window.isCourseEnabled(_p, t.id));
     container.innerHTML = tabs.map(t => `
       <button onclick="openTeenTab('${t.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
         activeTab === t.id
@@ -96,6 +104,8 @@
     document.body.classList.add('teen-mode', 'has-bottom-bar');
     document.body.classList.remove('kid-mode', 'kid-bar-modes', 'kid-bar-views');
     document.querySelectorAll('#mobileTeenBar [data-mtab]').forEach(b => {
+      const m = b.getAttribute('data-mtab');
+      b.style.display = (m !== 'dashboard' && typeof window.isCourseEnabled === 'function' && _p && !window.isCourseEnabled(_p, m)) ? 'none' : '';
       b.classList.toggle('mtab-active', b.getAttribute('data-mtab') === activeTab);
     });
   }
@@ -185,7 +195,14 @@
   // current language and restores the context bar.
   function showTeenLangPicker() {
     const overlay = document.getElementById('teenLangPickerOverlay');
-    if (overlay) overlay.classList.remove('hidden');
+    if (overlay) {
+      // Hide languages the parent turned off for this profile.
+      const p = (typeof window.activeProfile === 'function') ? window.activeProfile() : null;
+      overlay.querySelectorAll('[data-course]').forEach(row => {
+        row.style.display = (typeof window.isCourseEnabled === 'function' && p && !window.isCourseEnabled(p, row.getAttribute('data-course'))) ? 'none' : '';
+      });
+      overlay.classList.remove('hidden');
+    }
     setTeenContextBar(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -213,7 +230,14 @@
   // restores the right bar for that section.
   function openTeenSectionPicker() {
     const overlay = document.getElementById('teenSectionPickerOverlay');
-    if (overlay) overlay.classList.remove('hidden');
+    if (overlay) {
+      // Hide sections the parent turned off for this profile.
+      const p = (typeof window.activeProfile === 'function') ? window.activeProfile() : null;
+      overlay.querySelectorAll('[data-course]').forEach(row => {
+        row.style.display = (typeof window.isCourseEnabled === 'function' && p && !window.isCourseEnabled(p, row.getAttribute('data-course'))) ? 'none' : '';
+      });
+      overlay.classList.remove('hidden');
+    }
   }
   function closeTeenSectionPicker() {
     const overlay = document.getElementById('teenSectionPickerOverlay');
@@ -308,7 +332,16 @@
     ];
 
     const grid = document.getElementById('teenTopicsBentoGrid');
-    if (grid) {
+    if (grid && typeof window.isCourseEnabled === 'function' && !window.isCourseEnabled(p, 'sat')) {
+      // Digital SAT is turned off for this profile — the topic tiles
+      // would only lead back to Courses, so show a quiet note instead.
+      grid.innerHTML = `
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-bento text-center">
+          <p class="text-2xl mb-1">📝</p>
+          <p class="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Digital SAT is turned off for this profile</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">A parent can turn it back on anytime in the Parent Portal → Courses.</p>
+        </div>`;
+    } else if (grid) {
       const entries = Object.entries(allDomainCounts);
       grid.innerHTML = entries.map(([domain, totalCount], idx) => {
         const theme = colors[idx % colors.length];
@@ -1037,6 +1070,14 @@
   }
 
   function selectActiveLanguage(lang) {
+    // A language the parent turned off falls back to the first
+    // language that is on, so the studio never opens a hidden one.
+    const _p = (typeof window.activeProfile === 'function') ? window.activeProfile() : null;
+    if (typeof window.isCourseEnabled === 'function' && _p && !window.isCourseEnabled(_p, lang)) {
+      const fallback = ['malayalam', 'hindi', 'spanish', 'french', 'italian'].find(l => window.isCourseEnabled(_p, l));
+      if (!fallback) return;
+      lang = fallback;
+    }
     if (window.appData) window.appData.activeLanguage = lang;
     ['malayalam', 'hindi', 'spanish', 'french', 'italian'].forEach(l => {
       const pill = document.getElementById(`pill-${l}`);

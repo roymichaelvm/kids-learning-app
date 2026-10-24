@@ -255,6 +255,10 @@
       completedQuestionIds: Array.isArray(fields.completedQuestionIds) ? fields.completedQuestionIds : [],
       pin: fields.pin || '1234',
       isPreview: !!fields.isPreview,
+      // Per-profile courses (Step 6): null = all courses on. Kept as
+      // a plain array of course keys so it round-trips through
+      // Firestore/localStorage with the rest of the profile.
+      enabledCourses: Array.isArray(fields.enabledCourses) ? fields.enabledCourses.slice() : null,
       cashBalance: Number(fields.cashBalance) || 0,
       redemptions: Array.isArray(fields.redemptions) ? fields.redemptions : [],
       totalXpSpent: Number(fields.totalXpSpent) || 0

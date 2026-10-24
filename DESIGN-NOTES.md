@@ -250,3 +250,43 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   present on desktop, open sets the frame src + locks outer
   scroll, close clears it, CSS gates the button to >=640px
   and sizes the frame at 390px.
+
+## Step 6 — Symbol-only math buttons + per-profile courses (2026-10-24)
+- Math operation filter bar (kid Numbers & Math): the five buttons
+  are now symbol-only — 🌟 ➕ ➖ ✖️ ➗, 44px square targets, no
+  (25) counts, no XP pills. Names live in title/aria-label.
+  (ensureMathOpBar in js/kid-playground.js.)
+- Per-profile courses: profile.enabledCourses (array of course
+  keys; null/undefined = all on, so older profiles need no
+  migration; newProfile passes the field through). Kid catalog =
+  the 12 ALL_KID_CATEGORIES subjects; teen catalog = 3 sections
+  (Digital SAT, Spelling Bee, Language Studio) + 5 languages.
+  Helpers in js/app.js: getCourseCatalogForProfile,
+  isCourseEnabled, setProfileCourseEnabled (refuses to turn off
+  the last course; collapses back to null when all are on),
+  firstEnabledCourseKey. Saves via saveState() (local + cloud).
+- Enforcement: kid grid buttons hide, topic picker + progress
+  summary filter, selectKidCategory falls through to the first
+  enabled subject; teen main tabs + bottom bar + section picker
+  + language picker filter, openTeenTab redirects a turned-off
+  section to Courses with a toast, selectActiveLanguage falls
+  back to the first enabled language, dashboard shows a quiet
+  note instead of SAT tiles when SAT is off.
+- Parent Portal (parent.html): new "📚 Courses — <Student>" card
+  right after the student selector, rendered by
+  renderAdminCoursesBox in js/app.js. One 48px toggle row per
+  course with a switch, on/off state text, "X of Y on" badge,
+  "Show all courses" reset. Toggles save instantly + toast.
+  Design review (UI designer + visual QA): portal already has a
+  consistent card system + polish layer (brand tokens, card
+  shadows, focus rings, phone button-compaction rule); the
+  Courses card follows the Adjust Points card pattern. One real
+  find fixed in this step: the phone compaction rule would have
+  shrunk the 48px course toggles to 34px — #adminCoursesBox
+  buttons are now excluded, like the exercise controls. The
+  portal is a long single scroll on phones (no jump nav) — noted
+  as a follow-up, not changed here. parent.html also gains the
+  same 📱 Mobile view toggle/frame as index.html for desktop QA.
+- Verified in jsdom (coursetest.js 28/28 PASS): symbol-only bar,
+  kid/teen filtering + guards, admin card toggles + last-course
+  guard + reset, parent mobile preview open/close.
