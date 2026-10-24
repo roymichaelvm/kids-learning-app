@@ -235,3 +235,84 @@ the section (phones, Scholar only), and the in-page rows retire:
   untouched. Kid flashcard nav (Back / Say It / Next) is
   intentionally untouched — it is the question's primary
   interaction for a young learner, not chrome.
+
+## Round 9 — Scholar question focus: audit, tokens, question-first pages
+User verdict after Round 8: Scholar sections are still not good.
+The structure rounds (bars, pickers, sheets) cleared the chrome
+around the questions, but the questions themselves never became
+the hero. This round audits the question areas against the
+frontend-design rules, then fixes them.
+
+### Audit (what was wrong)
+- **Prompts did not dominate.** SAT prompt (`text-base/lg`,
+  extrabold) was the same size as the passage text and smaller
+  than section headings (`text-xl`). Language and spelling
+  prompts lived inside muted grey inset boxes, so the question
+  read as a footnote inside chrome, not the page's subject.
+- **Phone order was passage-first.** The SAT grid stacks the
+  passage card above the question card below `lg`, so on phones
+  the learner scrolls past reading before reaching the task.
+- **Chrome stacked above every question.** SAT: "Question
+  Prompt" label + counter + stopwatch. Languages: badge +
+  Listen + XP line. Spelling builder: tier badge + 3 buttons.
+  Three competing rows before the question itself.
+- **Color sprawl vs the Workbook tokens.** Badges used emerald
+  (language quiz, spelling quiz) and indigo (spelling builder)
+  for the same "label" role; speak buttons were amber-solid in
+  one place and indigo-outline in another for the same action;
+  meta was middot-joined strings ("1 of 10 • ⏱ 00:00.0",
+  "+20 XP • Logged…").
+- **ALL-CAPS labels** ("Translate or Identify:", "Root /
+  Etymology", "Type the Spelling…") — a documented generic
+  tell — and no consistent prompt size across SAT / language /
+  spelling (SAT `sm/base`, language choices `xs/sm`, spelling
+  quiz `sm/base`).
+- **Sign-in modal (Friend Preview tap issue).** The modal is
+  `fixed inset-0` with no scroll: on a phone with the keyboard
+  open, the viewport shrinks and the card's bottom — the Friend
+  Preview button — clips out of reach with no way to scroll to
+  it. The phone compact rule also forced that button to 34px
+  tall, below a thumb target. Likely mechanism for the user's
+  "not clickable on my phone" report (the button works in a
+  desktop browser). Fix: scrollable modal + 44px target.
+
+### Tokens (extend the Workbook system; roles, not hues)
+- Ink `#16233D` — prompt text, headings, primary emphasis.
+- Ballpoint `#2B4BD8` — primary actions ONLY (Submit, Check,
+  Pronounce, selected-choice border/chip).
+- Paper `#FFFFFF` on Exam Paper `#F5F7FA` — question cards.
+- Graphite `#5B6577` — meta lines, labels, secondary text.
+- Highlighter `#FFCF3F` — active-tab swipe only (unchanged).
+- Red Pen `#D64541` — wrong / eliminated / flag states only.
+- Marking Green (emerald tint) — correct / feedback states
+  only; badges stop using emerald as decoration.
+- Hairline `rgba(22,35,61,0.14)` — inner rules replace the
+  grey inset boxes.
+- Type scale (Scholar): question prompt 1.3rem phone /
+  1.5rem desktop, weight 700, line-height 1.3; passage/body
+  1rem / 1.125rem, serif for passages; choice text 0.95rem /
+  1rem, line-height 1.6; meta 0.75rem, weight 600, Graphite,
+  sentence case, no middots, no ALL-CAPS; timer mono
+  0.75rem, weight 700, Ink.
+
+### Moves (index.html only — no JS touched)
+- One quiet `.q-meta` line above each prompt (topic + counter,
+  or tier + letters); the redundant "Question Prompt" label
+  and the middot-joined strings are gone.
+- Grey inset prompt boxes become prompt-on-paper: transparent,
+  borderless, hairline rule underneath where grouping is
+  needed (spelling definition box).
+- All question-area badges share one quiet style (ink text on
+  paper, hairline border); tier/activity info stays in text.
+- Speak actions unified: dictation Pronounce is the Ballpoint
+  primary; every other Listen/Hear is a ghost ink-outline.
+- Phones: SAT question card renders before the passage card
+  (CSS order below `lg`; the bar's Passage toggle is
+  untouched). Desktop keeps the side-by-side split.
+- Sign-in modal scrolls (`overflow-y-auto`, card `m-auto`)
+  and the Friend Preview button gets a real 44px target
+  (`#btnFriendPreview`, overriding the phone compact rule).
+- Nothing JS-managed is re-classed: all restyles are CSS
+  overrides on ids or new ids (`#satQuestionCard`,
+  `#teenSpellDefBox`, `#teenSpellQuizPromptBox`,
+  `#teenLangBeePromptBox`, `#btnFriendPreview`).

@@ -630,6 +630,110 @@
       #kidLangSubNav { flex-wrap: wrap; gap: 0.4rem !important; }
       #kidLangSubNav button { padding: 0.4rem 0.7rem !important; font-size: 0.72rem !important; }
     }
+    /* ================================================================
+       ROUND 9 — SCHOLAR QUESTION FOCUS (same redesign branch)
+       Audit result: the structure rounds cleared the chrome around
+       the questions, but the questions never became the hero —
+       prompts were body-sized, grey inset boxes made them read as
+       secondary, badges/speak buttons used a different color per
+       section, and on phones the SAT passage stacked above the
+       question. Tokens are roles, not hues; see DESIGN-NOTES.md.
+       ================================================================ */
+    :root {
+      --q-ink: #16233D;
+      --q-ballpoint: #2B4BD8;
+      --q-graphite: #5B6577;
+      --q-hairline: rgba(22, 35, 61, 0.14);
+    }
+    html.dark {
+      --q-ink: #F1F5F9;
+      --q-graphite: #94A3B8;
+      --q-hairline: rgba(148, 163, 184, 0.28);
+    }
+
+    /* One quiet meta line above each prompt: topic + counter, or
+       tier + letters. Sentence case, graphite, no middots, no
+       ALL-CAPS eyebrows. */
+    .q-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.75rem; font-size: 0.75rem; font-weight: 600; color: var(--q-graphite);
+    }
+    .q-meta .font-mono { color: var(--q-ink); }
+
+    /* The prompt is the largest text in every question card. */
+    #satQuestionPrompt, #teenLangQuizQuestion, #teenSpellMeaningText,
+    #teenSpellQuizPrompt, #teenLangSpellMeaning {
+      font-size: 1.3rem; line-height: 1.3; color: var(--q-ink);
+    }
+    @media (min-width: 640px) {
+      #satQuestionPrompt, #teenLangQuizQuestion, #teenSpellMeaningText,
+      #teenSpellQuizPrompt, #teenLangSpellMeaning { font-size: 1.5rem; }
+    }
+
+    /* Prompt-on-paper: the grey inset boxes go away; the question
+       sits on the sheet, grouped by a hairline rule where needed. */
+    #teenLangQuizPromptBox, #teenLangBeePromptBox {
+      background: transparent !important; border: none !important; padding: 0 !important;
+    }
+    #teenSpellDefBox, #teenSpellQuizPromptBox {
+      background: transparent !important; border: none !important; border-bottom: 1px solid var(--q-hairline) !important;
+      border-radius: 0 !important; padding: 0 0 1rem !important;
+    }
+    /* Labels stop shouting: sentence case, graphite. (JS writes
+       these texts in title case; the old uppercase class is
+       overridden here, not in the markup.) */
+    #teenQuizPromptSub, #teenSpellRootText, #teenSpellQuizRoot {
+      text-transform: none; letter-spacing: normal; color: var(--q-graphite);
+    }
+
+    /* Choices share one scale across SAT / language / spelling. */
+    #satOptionsList .choice-content, #teenLangQuizChoices button,
+    #teenSpellQuizChoices button { font-size: 0.95rem; line-height: 1.6; }
+    @media (min-width: 640px) {
+      #satOptionsList .choice-content, #teenLangQuizChoices button,
+      #teenSpellQuizChoices button { font-size: 1rem; }
+    }
+
+    /* One quiet badge style for the whole question area: ink text
+       on paper, hairline border. Tier/activity info stays in text. */
+    #teenQuizHeaderBadge.quiz-badge-out, #teenSpellBuilderBadge, #teenSpellQuizBadge {
+      background-color: #ffffff !important; color: var(--q-ink) !important;
+      border-color: var(--q-hairline) !important;
+    }
+    html.dark #teenQuizHeaderBadge.quiz-badge-out, html.dark #teenSpellBuilderBadge,
+    html.dark #teenSpellQuizBadge {
+      background-color: #0f172a !important; color: var(--q-ink) !important;
+    }
+
+    /* Speak actions unified: dictation Pronounce is the Ballpoint
+       primary; every other Listen/Hear is a ghost ink-outline. */
+    #teenSpellBtnSpeakWord {
+      background-color: var(--q-ballpoint) !important; color: #ffffff !important;
+      border-color: var(--q-ballpoint) !important;
+    }
+    #teenSpellBtnSpeakWord:hover { background-color: #1d3fbf !important; }
+    #teenBtnListenPrompt, #teenSpellBtnSpeakSentence, #teenSpellBtnSpeakQuiz,
+    #teenLangSpellBtnSpeak {
+      background-color: transparent !important; color: var(--q-ink) !important;
+      border-color: var(--q-hairline) !important;
+    }
+
+    /* Phones: the SAT question comes before the passage (the bar's
+       Passage toggle still shows/hides the passage card). Desktop
+       keeps the side-by-side split. */
+    @media (max-width: 1023.98px) {
+      #section-teen-sat .grid { display: flex; flex-direction: column; align-items: stretch; }
+      #satQuestionCard { order: 1; }
+      #satPassageCard { order: 2; }
+    }
+
+    /* Sign-in modal: scrollable, so the Friend Preview button can
+       never clip out of reach when the phone keyboard shrinks the
+       viewport; and a real 44px thumb target (the phone compact
+       rule forces other modal buttons to 34px). */
+    #familyAuthModal { overflow-y: auto; }
+    #familyAuthModal #btnFriendPreview { min-height: 44px !important; }
+
   #mobileTeenContextBar { display: none; }
   #mobileKidBar { display: none; }
   #teenLangPicker { display: none; }
@@ -1050,11 +1154,11 @@
         </div>
 
         <!-- Right: Question Prompt & 4 Interactive Choices -->
-        <div class="lg:col-span-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento flex flex-col justify-between">
+        <div id="satQuestionCard" class="lg:col-span-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-bento flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-3 text-xs font-bold text-slate-400">
-              <span>Question Prompt</span>
-              <span><span id="satQuestionCounterText">1 of 10</span><span class="font-mono"> • ⏱ <span id="satPhoneStopwatch">00:00.0</span></span></span>
+            <div class="q-meta mb-4">
+              <span>Question <span id="satQuestionCounterText">1 of 10</span></span>
+              <span class="font-mono">⏱ <span id="satPhoneStopwatch">00:00.0</span></span>
             </div>
 
             <div id="satQuestionPrompt" class="text-slate-900 dark:text-slate-100 font-extrabold text-base sm:text-lg leading-snug mb-6"></div>
@@ -1222,13 +1326,13 @@
 
         <!-- Language Spelling Bee: hear the word, type its spelling -->
         <div id="teenLangSpellPanel" class="hidden">
-          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700 mb-5 text-center">
+          <div id="teenLangBeePromptBox" class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700 mb-5 text-center">
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">🐝 Spelling Bee — how do you spell the word for</p>
             <div id="teenLangSpellEmoji" class="text-5xl my-2">🐘</div>
             <h3 id="teenLangSpellMeaning" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-snug">Elephant</h3>
             <p id="teenLangSpellHint" class="hidden text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400 mt-1.5"></p>
             <div class="mt-3 flex items-center justify-center gap-2">
-              <button onclick="teenLangSpellSpeak()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
+              <button onclick="teenLangSpellSpeak()" id="teenLangSpellBtnSpeak" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition">
                 <span>🔊</span><span>Hear the Word</span>
               </button>
               <button onclick="teenLangSpellShowHint()" class="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition">💡 Hint</button>
@@ -1353,7 +1457,7 @@
         </div>
 
         <!-- Definition, Root & Blanked Context Sentence -->
-        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 space-y-2.5">
+        <div id="teenSpellDefBox" class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 space-y-2.5">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400" id="teenSpellRootText">Root / Etymology</span>
             <span class="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400" id="teenSpellLengthBadge">11 Letters</span>
@@ -1407,7 +1511,7 @@
           </button>
         </div>
 
-        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 space-y-2">
+        <div id="teenSpellQuizPromptBox" class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 space-y-2">
           <p id="teenSpellQuizRoot" class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400"></p>
           <h3 id="teenSpellQuizPrompt" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 leading-snug"></h3>
           <p id="teenSpellQuizSentence" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 italic font-serif"></p>
@@ -2007,8 +2111,8 @@
   </div>
 
   <!-- FAMILY ACCOUNT SIGN-IN MODAL (MANDATORY AUTH GATE) -->
-  <div id="familyAuthModal" class="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 animate-fade">
+  <div id="familyAuthModal" class="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-md flex overflow-y-auto p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 animate-fade m-auto">
       <div class="text-center space-y-2">
         <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl mx-auto border border-indigo-100 dark:border-indigo-800">
           <i data-lucide="shield-check" class="w-6 h-6"></i>
@@ -2053,7 +2157,7 @@
           <button type="button" onclick="continueOfflineMode()" class="w-full px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition flex items-center justify-center gap-1.5">
             <span>⚡ Continue in Local / Offline Mode</span>
           </button>
-          <button type="button" onclick="startFriendPreview()" class="w-full px-5 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 text-xs font-bold transition flex items-center justify-center gap-1.5 border border-amber-200 dark:border-amber-800">
+          <button type="button" id="btnFriendPreview" onclick="startFriendPreview()" class="w-full px-5 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 text-xs font-bold transition flex items-center justify-center gap-1.5 border border-amber-200 dark:border-amber-800">
             <span>🎁 Try the Friend Preview — No Sign-In Needed</span>
           </button>
           <p class="text-[11px] text-slate-400 text-center">Visiting as a friend? Preview with demo profiles — progress stays on this device and never touches the family account.</p>
