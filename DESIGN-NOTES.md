@@ -117,18 +117,43 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   section controls stay where they are until the context-bar
   step moves them.
 
-## Scholar Step 2 REVERTED (2026-10-24)
-- The whole Step 2 push (Languages context bar, language
-  picker popup, Courses rename, Wallet-to-top move) was
-  reverted at the user's request after they reported buttons
-  stopped working on their phone — the same symptom as the
-  redesign-branch dead-button problem. The branch is back to
-  the Step 1 state (teen bar: Home / SAT / Spelling /
-  Languages / Wallet; header pills hidden on phones in teen
-  mode; no context bar, no picker).
-- Inspection note: Step 2's code placement looked correct
-  (setTeenContextBar inside the teen-studio scope, view-toggle
-  block inside setTeenLangViewTab, sub-mode sync inside
-  setTeenLangSubMode) — the phone-side cause is still
-  unknown. Re-introduce Step 2's pieces one at a time, with
-  a phone test after each, rather than as one push.
+## Scholar port — Step 2: Languages context bar + language popup (Rounds 4+5 teen, Languages only)
+- Main bar first button renamed Home → 📚 Courses (still opens
+  the dashboard); Wallet moved OUT of the bar back to the top
+  navigation (header pill unhidden on phones in teen mode) —
+  the bar is now Courses / SAT / Spelling / Languages.
+- `#mobileTeenContextBar` (empty nav after the main bar) is
+  rendered by `setTeenContextBar` (teen-studio.js). Selecting
+  Languages swaps the bottom bar for Back / Alphabet / Words /
+  Sentences / Bee / Cards↔Quiz toggle, and on phones the
+  Language Studio header (title + language pills), the
+  sub-mode row, and the view tabs retire from the page.
+- Back: one tap goes up one level (Languages → language
+  picker popup); a double tap (within 400ms) goes straight to
+  Courses (dashboard). The first tap acts immediately, so no
+  tap delay on the single-tap action.
+- `#teenLangPickerOverlay` mirrors the Explorer topic-picker
+  overlay: 5 full-width language rows calling
+  `pickTeenLanguage` (existing `selectActiveLanguage` +
+  context-bar restore); closing without picking keeps the
+  current language and restores the context bar.
+- `setTeenLangSubMode` syncs the bar highlight;
+  `setTeenLangViewTab` updates the toggle label;
+  `toggleTeenLangViewTab` flips practice↔flashcards.
+- `openTeenTab` now wires the context bar (Languages →
+  'languages', everything else → main bar for now).
+- Deliberately NOT in this step: Spelling and SAT context
+  states (their Tier/Topic pickers arrive with their steps),
+  the SAT More sheet (round 3), the goal-strip thinning.
+
+## Scholar Step 2 RESTORED (2026-10-24)
+- Step 2 was reverted at e711ff7 after the user reported dead
+  buttons on their phone, but the revert did NOT fix their
+  phone while a new incognito tab worked — proving the
+  breakage was their main browser's cached copy (frozen
+  during deploy propagation), not Step 2's code. Step 2 is
+  therefore re-pushed unchanged for a clean-browser test.
+  Lesson: after every push, confirm the preview serves the
+  new bundle on two consecutive checks before asking the
+  user to test, so a half-propagated deploy can't fake a
+  regression.

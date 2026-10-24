@@ -41,6 +41,13 @@
 
     renderSubNavForTeen(tabName);
 
+    // Scholar context bar (phones): the selected section swaps the
+    // bottom bar for its own options; Courses (dashboard) restores
+    // the main bar. Only Languages is wired in this step; Spelling
+    // and SAT states land with their steps.
+    if (tabName === 'languages') setTeenContextBar('languages');
+    else setTeenContextBar(null);
+
     if (tabName === 'dashboard') {
       stopSatTimer();
       document.getElementById('section-teen-dashboard').classList.remove('hidden');
@@ -91,6 +98,82 @@
       b.classList.toggle('mtab-active', b.getAttribute('data-mtab') === activeTab);
     });
   }
+
+  // Scholar context bar (phones): selecting a section swaps the bottom
+  // bar for that section's options. Only Languages is wired in this
+  // step; Spelling and SAT states land with their steps.
+  function setTeenContextBar(state) {
+    const bar = document.getElementById('mobileTeenContextBar');
+    if (!bar) return;
+    if (state !== 'languages') {
+      bar.innerHTML = '';
+      document.body.classList.remove('teen-context-bar');
+      return;
+    }
+    const item = (ico, label, fn, attrs) => `<button type="button" onclick="${fn}" ${attrs || ''}><span class="mtab-ico" aria-hidden="true">${ico}</span><span>${label}</span></button>`;
+    const toFlash = teenLangViewTab !== 'flashcards';
+    bar.innerHTML =
+      item('←', 'Back', "teenContextBackTap('languages')") +
+      item('🔤', 'Alphabet', "setTeenLangSubMode('letters')", 'data-clang="letters"') +
+      item('📖', 'Words', "setTeenLangSubMode('words')", 'data-clang="words"') +
+      item('💬', 'Sentences', "setTeenLangSubMode('sentences')", 'data-clang="sentences"') +
+      item('🐝', 'Bee', "setTeenLangSubMode('spelling')", 'data-clang="spelling"') +
+      item(toFlash ? '🃏' : '🎮', toFlash ? 'Cards' : 'Quiz', 'toggleTeenLangViewTab()', 'id="langViewToggleBtn"');
+    document.body.classList.add('teen-context-bar');
+    syncTeenContextBar();
+  }
+  function syncTeenContextBar() {
+    document.querySelectorAll('#mobileTeenContextBar [data-clang]').forEach(b => {
+      b.classList.toggle('mtab-active', b.getAttribute('data-clang') === teenSubMode);
+    });
+  }
+  // Back: one tap goes up one level (Languages → language picker);
+  // a double tap goes straight to Courses (dashboard). The first
+  // tap acts immediately, so a double tap lands on Courses either
+  // way — no tap delay on the single-tap action.
+  let lastContextBackTap = 0;
+  function teenContextBackTap(from) {
+    const now = Date.now();
+    if (now - lastContextBackTap < 400) {
+      lastContextBackTap = 0;
+      openTeenTab('dashboard');
+      return;
+    }
+    lastContextBackTap = now;
+    teenContextBack(from);
+  }
+  function teenContextBack(from) {
+    if (from === 'languages') { showTeenLangPicker(); return; }
+    setTeenContextBar(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  // Language picker popup (phones): same overlay pattern as the
+  // Explorer topic picker. Picking a language opens its practice
+  // with the context bar; closing without picking keeps the
+  // current language and restores the context bar.
+  function showTeenLangPicker() {
+    const overlay = document.getElementById('teenLangPickerOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+    setTeenContextBar(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function closeTeenLangPicker() {
+    const overlay = document.getElementById('teenLangPickerOverlay');
+    if (overlay) overlay.classList.add('hidden');
+    setTeenContextBar('languages');
+  }
+  function pickTeenLanguage(lang) {
+    selectActiveLanguage(lang);
+    const overlay = document.getElementById('teenLangPickerOverlay');
+    if (overlay) overlay.classList.add('hidden');
+    setTeenContextBar('languages');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  window.setTeenContextBar = setTeenContextBar;
+  window.teenContextBackTap = teenContextBackTap;
+  window.showTeenLangPicker = showTeenLangPicker;
+  window.closeTeenLangPicker = closeTeenLangPicker;
+  window.pickTeenLanguage = pickTeenLanguage;
 
   function renderTeenDashboard() {
     // Question bank now loads per-domain on demand: make sure the teen
@@ -819,7 +902,19 @@
         renderTeenLanguageQuiz();
       }
     }
+    // Context-bar view toggle (Languages): one button jumping to the
+    // OTHER view, since the bar carries the sub-modes.
+    const vt = document.getElementById('langViewToggleBtn');
+    if (vt) {
+      const toFlash = tab !== 'flashcards';
+      vt.innerHTML = `<span class="mtab-ico" aria-hidden="true">${toFlash ? '🃏' : '🎮'}</span><span>${toFlash ? 'Cards' : 'Quiz'}</span>`;
+    }
   }
+
+  function toggleTeenLangViewTab() {
+    setTeenLangViewTab(teenLangViewTab === 'flashcards' ? 'practice' : 'flashcards');
+  }
+  window.toggleTeenLangViewTab = toggleTeenLangViewTab;
 
   function setTeenLangSubMode(mode) {
     const pack = getActiveLangPack();
@@ -840,6 +935,7 @@
     teenCardIdx = 0;
     teenQuizIdx = 0;
     renderTeenLanguageStudio();
+    syncTeenContextBar();
   }
 
   function selectActiveLanguage(lang) {
