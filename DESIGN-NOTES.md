@@ -233,3 +233,20 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   spelling page, restoring the old header + tab row above the
   question — the reported "builder tab not fixed, questions
   not first" layout). Double-tap Back still goes to Courses.
+
+## Step 5 — Desktop mobile-view toggle (2026-10-24, QA tool)
+- The test browser has no viewport/emulation control and local
+  headless screenshots produced no output, so phone layout could
+  not be visually verified from here. Fix: a "📱 Mobile view"
+  button (desktop widths only, bottom-right) opens the live app
+  inside a 390px phone frame overlay; the frame loads this same
+  page in an iframe, so every phone media query and JS width
+  check applies naturally, and profile/progress storage is
+  shared (same origin). "💻 Desktop view" (or Escape) closes
+  it and unloads the frame. The button removes itself inside
+  the frame so previews cannot nest. QA tool for the preview
+  branch — remove before any main merge if it should not ship.
+- Verified in jsdom (mobilepreviewtest.js 9/9 PASS): button
+  present on desktop, open sets the frame src + locks outer
+  scroll, close clears it, CSS gates the button to >=640px
+  and sizes the frame at 390px.

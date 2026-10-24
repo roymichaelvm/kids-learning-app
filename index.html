@@ -668,6 +668,44 @@
       body.teen-context-bar #teenSpellModeTabs,
       body.teen-context-bar #satToolbar { display: none !important; }
     }
+    /* DESKTOP MOBILE-PREVIEW TOGGLE (QA tool, fresh-layout only):
+       on desktop widths a floating button opens the live app inside
+       a 390px phone frame, so the phone layout (bars, question-first,
+       pickers) can be tested visually without a phone. Hidden on
+       phones, and the script removes it inside the frame itself. */
+    #mobileViewToggleBtn { display: none; }
+    @media (min-width: 640px) {
+      #mobileViewToggleBtn {
+        display: flex; position: fixed; right: 1rem; bottom: 1rem; z-index: 45;
+        align-items: center; gap: 0.4rem;
+        padding: 0.6rem 0.9rem; border-radius: 9999px; border: none;
+        background: #16233D; color: #fff; font-size: 0.8rem; font-weight: 700;
+        box-shadow: 0 8px 24px rgba(22,35,61,.35); cursor: pointer;
+      }
+      #mobileViewToggleBtn:hover { background: #2B4BD8; }
+    }
+    #mobilePreviewOverlay { display: none; }
+    #mobilePreviewOverlay.open {
+      display: flex; position: fixed; inset: 0; z-index: 70;
+      background: rgba(11,19,34,.85); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    #mobilePreviewFrame {
+      width: 390px; max-width: 94vw; height: min(844px, 94vh);
+      background: #fff; border-radius: 2rem; overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5); border: 6px solid #16233D;
+      display: flex; flex-direction: column;
+    }
+    #mobilePreviewBar {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+      padding: 0.5rem 0.75rem; background: #16233D; color: #fff;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    }
+    #mobilePreviewBar button {
+      padding: 0.35rem 0.7rem; border-radius: 0.6rem; border: none; cursor: pointer;
+      background: #FFCF3F; color: #16233D; font-size: 0.75rem; font-weight: 800;
+    }
+    #mobilePreviewIframe { flex: 1; width: 100%; border: 0; background: #fff; }
   </style>
 </head>
 <body id="appBody" class="bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
@@ -2074,5 +2112,41 @@
        ===================================================================== -->
   <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script type="module" src="/src/entry.js"></script>
+
+  <!-- DESKTOP MOBILE-PREVIEW TOGGLE (QA tool, fresh-layout only):
+       a floating button on desktop opens this same page inside a
+       390px phone frame, so the phone layout can be tested visually
+       on desktop. The frame loads the live app (same origin, so
+       profile/progress storage is shared); the button removes
+       itself inside the frame so previews cannot nest. -->
+  <button type="button" id="mobileViewToggleBtn" onclick="openMobilePreview()" title="See this app at phone width">📱 Mobile view</button>
+  <div id="mobilePreviewOverlay" role="dialog" aria-label="Mobile preview">
+    <div id="mobilePreviewFrame">
+      <div id="mobilePreviewBar"><span>📱 Mobile view — 390px • live app</span><button type="button" onclick="closeMobilePreview()">💻 Desktop view ✕</button></div>
+      <iframe id="mobilePreviewIframe" title="Mobile preview of Roy's Learning Hub"></iframe>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var btn = document.getElementById('mobileViewToggleBtn');
+      if (window.self !== window.top) { if (btn) btn.remove(); return; }
+      window.openMobilePreview = function () {
+        var overlay = document.getElementById('mobilePreviewOverlay');
+        var frame = document.getElementById('mobilePreviewIframe');
+        if (!overlay || !frame) return;
+        if (!frame.getAttribute('src')) frame.setAttribute('src', window.location.pathname + window.location.search);
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      };
+      window.closeMobilePreview = function () {
+        var overlay = document.getElementById('mobilePreviewOverlay');
+        var frame = document.getElementById('mobilePreviewIframe');
+        if (overlay) overlay.classList.remove('open');
+        if (frame) frame.removeAttribute('src');
+        document.body.style.overflow = '';
+      };
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') window.closeMobilePreview(); });
+    })();
+  </script>
 </body>
 </html>
