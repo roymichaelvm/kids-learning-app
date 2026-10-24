@@ -43,9 +43,10 @@
 
     // Scholar context bar (phones): the selected section swaps the
     // bottom bar for its own options; Courses (dashboard) restores
-    // the main bar. Only Languages is wired in this step; Spelling
-    // and SAT states land with their steps.
+    // the main bar.
     if (tabName === 'languages') setTeenContextBar('languages');
+    else if (tabName === 'spelling') setTeenContextBar('spelling');
+    else if (tabName === 'sat') setTeenContextBar('sat');
     else setTeenContextBar(null);
 
     if (tabName === 'dashboard') {
@@ -105,21 +106,44 @@
   function setTeenContextBar(state) {
     const bar = document.getElementById('mobileTeenContextBar');
     if (!bar) return;
-    if (state !== 'languages') {
+    if (!state) {
       bar.innerHTML = '';
       document.body.classList.remove('teen-context-bar');
       return;
     }
     const item = (ico, label, fn, attrs) => `<button type="button" onclick="${fn}" ${attrs || ''}><span class="mtab-ico" aria-hidden="true">${ico}</span><span>${label}</span></button>`;
-    const toFlash = teenLangViewTab !== 'flashcards';
-    bar.innerHTML =
-      item('☰', 'Sections', 'openTeenSectionPicker()') +
-      item('←', 'Back', "teenContextBackTap('languages')") +
-      item('🔤', 'Alphabet', "setTeenLangSubMode('letters')", 'data-clang="letters"') +
-      item('📖', 'Words', "setTeenLangSubMode('words')", 'data-clang="words"') +
-      item('💬', 'Sentences', "setTeenLangSubMode('sentences')", 'data-clang="sentences"') +
-      item('🐝', 'Bee', "setTeenLangSubMode('spelling')", 'data-clang="spelling"') +
-      item(toFlash ? '🃏' : '🎮', toFlash ? 'Cards' : 'Quiz', 'toggleTeenLangViewTab()', 'id="langViewToggleBtn"');
+    if (state === 'languages') {
+      const toFlash = teenLangViewTab !== 'flashcards';
+      bar.innerHTML =
+        item('☰', 'Courses', 'openTeenSectionPicker()') +
+        item('←', 'Lang Select', "teenContextBackTap('languages')") +
+        item('🔤', 'Alphabet', "setTeenLangSubMode('letters')", 'data-clang="letters"') +
+        item('📖', 'Words', "setTeenLangSubMode('words')", 'data-clang="words"') +
+        item('💬', 'Sentences', "setTeenLangSubMode('sentences')", 'data-clang="sentences"') +
+        item('🐝', 'Bee', "setTeenLangSubMode('spelling')", 'data-clang="spelling"') +
+        item(toFlash ? '🃏' : '🎮', toFlash ? 'Cards' : 'Quiz', 'toggleTeenLangViewTab()', 'id="langViewToggleBtn"');
+    } else if (state === 'spelling') {
+      bar.innerHTML =
+        item('☰', 'Courses', 'openTeenSectionPicker()') +
+        item('←', 'Back', "teenContextBackTap('spelling')") +
+        item('⌨️', 'Builder', "setTeenSpellingMode('builder')", 'data-cspell="builder"') +
+        item('📝', 'Quiz', "setTeenSpellingMode('quiz')", 'data-cspell="quiz"') +
+        item('🃏', 'Flashcards', "setTeenSpellingMode('flashcards')", 'data-cspell="flashcards"') +
+        item('🎯', 'Tier', 'openTeenSpellTierPicker()');
+    } else if (state === 'sat') {
+      bar.innerHTML =
+        item('☰', 'Courses', 'openTeenSectionPicker()') +
+        item('←', 'Exit', "teenContextBackTap('sat')") +
+        item('📝', 'Topic', 'openSatDomainPicker()') +
+        `<button type="button" id="btnBarEliminator" onclick="toggleEliminatorMode()"><span class="mtab-ico" aria-hidden="true">✂️</span><span>Eliminator</span></button>` +
+        item('📖', 'Passage', 'toggleSatPassageMobile()') +
+        item('🚩', 'Flag', 'toggleFlagSatQuestion()') +
+        item('📖', 'Dictionary', 'openDictionaryModal()');
+    } else {
+      bar.innerHTML = '';
+      document.body.classList.remove('teen-context-bar');
+      return;
+    }
     document.body.classList.add('teen-context-bar');
     syncTeenContextBar();
   }
@@ -127,6 +151,11 @@
     document.querySelectorAll('#mobileTeenContextBar [data-clang]').forEach(b => {
       b.classList.toggle('mtab-active', b.getAttribute('data-clang') === teenSubMode);
     });
+    document.querySelectorAll('#mobileTeenContextBar [data-cspell]').forEach(b => {
+      b.classList.toggle('mtab-active', b.getAttribute('data-cspell') === teenSpellingMode);
+    });
+    const barElim = document.getElementById('btnBarEliminator');
+    if (barElim) barElim.classList.toggle('mtab-active', eliminatorMode);
   }
   // Back: one tap goes up one level (Languages → language picker);
   // a double tap goes straight to Courses (dashboard). The first
@@ -145,6 +174,7 @@
   }
   function teenContextBack(from) {
     if (from === 'languages') { showTeenLangPicker(); return; }
+    if (from === 'sat') { openTeenTab('dashboard'); return; }
     setTeenContextBar(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -195,6 +225,51 @@
   window.openTeenSectionPicker = openTeenSectionPicker;
   window.closeTeenSectionPicker = closeTeenSectionPicker;
   window.pickTeenSection = pickTeenSection;
+  // Spelling tier picker popup (phones): same overlay pattern.
+  function openTeenSpellTierPicker() {
+    const overlay = document.getElementById('teenSpellTierPickerOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+  }
+  function closeTeenSpellTierPicker() {
+    const overlay = document.getElementById('teenSpellTierPickerOverlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+  function pickTeenSpellTier(tier) {
+    setTeenSpellingTier(tier);
+    closeTeenSpellTierPicker();
+    syncTeenContextBar();
+  }
+  // SAT topic picker popup (phones): rows built from the toolbar's
+  // domain dropdown options at open time, so it always matches.
+  function openSatDomainPicker() {
+    const select = document.getElementById('satDomainFilter');
+    const grid = document.getElementById('satDomainPickerGrid');
+    if (select && grid) {
+      grid.innerHTML = Array.from(select.options).map(o =>
+        `<button onclick="pickSatDomain('${o.value}')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>${o.value === 'ALL' ? '📚' : '📝'}</span><span>${o.text}</span></button>`
+      ).join('');
+    }
+    const overlay = document.getElementById('satDomainPickerOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+  }
+  function closeSatDomainPicker() {
+    const overlay = document.getElementById('satDomainPickerOverlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+  function pickSatDomain(value) {
+    const select = document.getElementById('satDomainFilter');
+    if (select) {
+      select.value = value;
+      if (typeof onFilterSatQuestions === 'function') onFilterSatQuestions();
+    }
+    closeSatDomainPicker();
+  }
+  window.openTeenSpellTierPicker = openTeenSpellTierPicker;
+  window.closeTeenSpellTierPicker = closeTeenSpellTierPicker;
+  window.pickTeenSpellTier = pickTeenSpellTier;
+  window.openSatDomainPicker = openSatDomainPicker;
+  window.closeSatDomainPicker = closeSatDomainPicker;
+  window.pickSatDomain = pickSatDomain;
 
   function renderTeenDashboard() {
     // Question bank now loads per-domain on demand: make sure the teen
@@ -690,6 +765,7 @@
       if (btn) btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5";
       if (hint) hint.classList.add('hidden');
     }
+    syncTeenContextBar();
   }
 
   function toggleOptionStrikeout(letter) {
@@ -1512,6 +1588,7 @@
     if (fCard) fCard.classList.toggle('hidden', mode !== 'flashcards');
 
     renderTeenSpellingStudio();
+    syncTeenContextBar();
   }
 
   function renderTeenSpellingStudio() {

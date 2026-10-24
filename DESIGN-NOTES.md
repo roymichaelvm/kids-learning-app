@@ -173,3 +173,32 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   Courses/SAT/Spelling today; context bar for Languages).
 - Context-bar buttons now flex (`flex: 1 1 0; min-width: 0`)
   so 7 buttons fit a phone row instead of overflowing.
+
+## Scholar Step 3: all sections get bottom sub-menus (2026-10-24)
+- Context bar now covers every Scholar section, same clean
+  arrangement as Languages (question/reading material on top,
+  all chrome in the bottom bar):
+  - Languages: Courses / Lang Select / Alphabet / Words /
+    Sentences / Bee / Cards↔Quiz (Back renamed Lang Select,
+    since it opens the language picker).
+  - Spelling: Courses / Back / Builder / Quiz / Flashcards /
+    Tier (tier picker popup mirrors the tier pills).
+  - SAT: Courses / Exit / Topic / Eliminator / Passage / Flag
+    / Dictionary (topic picker rows built from the toolbar's
+    domain dropdown at open time).
+- Sections button renamed Courses everywhere (bar button +
+  "Choose a course" popup title).
+- SAT passage-first on phones: the question-before-passage
+  order rule is reversed (passage order 1, question order 2),
+  matching how language shows its material before the
+  question. The toolbar Passage control still shows/hides
+  the passage card.
+- Spelling question-on-top on phones: the header card (title
+  + tier pills) and the mode tabs retire under the context
+  bar, so the question card sits on top; their controls live
+  in the bar (Tier picker + mode buttons).
+- `openTeenTab` wires all three states; `syncTeenContextBar`
+  covers sub-mode, spelling-mode and Eliminator highlights;
+  `setTeenSpellingMode` and `toggleEliminatorMode` sync the
+  bar. SAT Back (Exit) goes to Courses; double-tap Back
+  anywhere goes to Courses.

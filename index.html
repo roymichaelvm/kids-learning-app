@@ -536,13 +536,13 @@
       border-color: var(--q-hairline) !important;
     }
 
-    /* Phones: the SAT question comes before the passage (the toolbar
+    /* Phones: the SAT passage comes before the question (the toolbar
        Passage control still shows/hides the passage card). Desktop
        keeps the side-by-side split. */
     @media (max-width: 1023.98px) {
       #section-teen-sat .grid { display: flex; flex-direction: column; align-items: stretch; }
-      #satQuestionCard { order: 1; }
-      #satPassageCard { order: 2; }
+      #satPassageCard { order: 1; }
+      #satQuestionCard { order: 2; }
     }
 
     /* Sign-in modal: scrollable, so the Friend Preview button can
@@ -660,6 +660,13 @@
       body.teen-context-bar #teenLangHeader,
       body.teen-context-bar #teenLangSubNav,
       body.teen-context-bar #teenViewTabsBar { display: none !important; }
+      /* Spelling on phones: header card (title + tier pills) and
+         mode tabs retire into the bar/popup, so the question card
+         sits on top. SAT on phones: the toolbar retires into the
+         bar (Topic/Eliminator/Passage/Flag/Dictionary). */
+      body.teen-context-bar #teenSpellHeader,
+      body.teen-context-bar #teenSpellModeTabs,
+      body.teen-context-bar #satToolbar { display: none !important; }
     }
   </style>
 </head>
@@ -1252,7 +1259,7 @@
     <section id="section-teen-spelling" class="hidden space-y-6 animate-fade">
       
       <!-- Top Header & Tier Selector -->
-      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-bento flex flex-wrap items-center justify-between gap-4">
+      <div id="teenSpellHeader" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-bento flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <button onclick="openTeenTab('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
@@ -1276,7 +1283,7 @@
       </div>
 
       <!-- Mode Switcher Tabs: Dictation & Builder vs 4-Choice Quiz vs Etymology Flashcards -->
-      <div class="flex flex-wrap items-center justify-center gap-3">
+      <div id="teenSpellModeTabs" class="flex flex-wrap items-center justify-center gap-3">
         <button id="tab-teen-spell-builder" onclick="setTeenSpellingMode('builder')" class="flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition bg-indigo-600 text-white shadow-md">
           <span>⌨️</span>
           <span>Audio Dictation &amp; Word Builder</span>
@@ -1738,7 +1745,7 @@
   <div id="teenSectionPickerOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center">
-        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Choose a section 📚</h2>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Choose a course 📚</h2>
         <button onclick="closeTeenSectionPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
       </div>
       <div class="grid grid-cols-1 gap-3 mt-5">
@@ -1747,6 +1754,35 @@
         <button onclick="pickTeenSection('spelling')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🐝</span><span>Spelling Bee</span></button>
         <button onclick="pickTeenSection('languages')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🌏</span><span>Language Studio</span></button>
       </div>
+    </div>
+  </div>
+
+  <!-- MOBILE SPELLING TIER PICKER POPUP (phones): same overlay
+       pattern; rows mirror the in-page tier pills. -->
+  <div id="teenSpellTierPickerOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Choose a tier 🎯</h2>
+        <button onclick="closeTeenSpellTierPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+      <div class="grid grid-cols-1 gap-3 mt-5">
+        <button onclick="pickTeenSpellTier('all')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>📚</span><span>All Tiers</span></button>
+        <button onclick="pickTeenSpellTier('core')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🎯</span><span>High School Core</span></button>
+        <button onclick="pickTeenSpellTier('sat')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🎓</span><span>SAT Honors</span></button>
+        <button onclick="pickTeenSpellTier('bee')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🏆</span><span>Scripps Bee</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE SAT TOPIC PICKER POPUP (phones): rows built from the
+       toolbar's domain dropdown at open time. -->
+  <div id="satDomainPickerOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Choose a topic 📝</h2>
+        <button onclick="closeSatDomainPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+      <div id="satDomainPickerGrid" class="grid grid-cols-1 gap-3 mt-5"></div>
     </div>
   </div>
 
