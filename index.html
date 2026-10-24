@@ -600,9 +600,10 @@
       body.kid-bar-modes #kidLangSubNav { display: none !important; }
     }
     /* SCHOLAR STEP 1 — TEEN BOTTOM BAR (phones, teen mode only):
-       Home / SAT / Spelling / Languages / Wallet live in the bar,
-       so the top tab strip and the header Wallet + Rankings pills
-       retire on phones in teen mode. */
+       Courses / SAT / Spelling / Languages live in the bar, so the
+       top tab strip retires on phones in teen mode. Wallet stays
+       in the top navigation (header pill, unhidden); the Rankings
+       pill retires. */
     #mobileTeenBar { display: none; }
     @media (max-width: 639px) {
       body.teen-mode #mainAppContent:not(.hidden) ~ #mobileTeenBar {
@@ -626,7 +627,39 @@
       html.dark #mobileTeenBar button.mtab-active { color: #F1F5F9; }
       body.has-bottom-bar #mainAppContent { padding-bottom: 5.25rem !important; }
       #subNavTabs.teen-main-tabs { display: none !important; }
-      body.teen-mode #headerRewardsPill, body.teen-mode #headerLeaderboardBtn { display: none !important; }
+      body.teen-mode #headerLeaderboardBtn { display: none !important; }
+    }
+    /* SCHOLAR STEP 2 — CONTEXT BAR (phones, teen mode only): when a
+       section is open, the context bar replaces the main bar, and
+       the section's in-page rows retire (the question frame owns
+       the screen). */
+    #mobileTeenContextBar { display: none; }
+    @media (max-width: 639px) {
+      body.teen-context-bar #mainAppContent:not(.hidden) ~ #mobileTeenContextBar {
+        display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+        justify-content: space-around; align-items: stretch;
+        background: rgba(255, 255, 255, 0.97);
+        border-top: 2px solid #16233D;
+        padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom));
+      }
+      html.dark body.teen-context-bar #mainAppContent:not(.hidden) ~ #mobileTeenContextBar {
+        background: rgba(11, 19, 34, 0.97); border-top-color: #2B4BD8;
+      }
+      #mobileTeenContextBar button {
+        display: flex; flex-direction: column; align-items: center; gap: 1px;
+        min-width: 3.6rem; padding: 0.32rem 0.4rem; border-radius: 10px;
+        font-size: 10px; font-weight: 700; color: #5B6577;
+      }
+      html.dark #mobileTeenContextBar button { color: #94A3B8; }
+      #mobileTeenContextBar .mtab-ico { font-size: 19px; line-height: 1.15; }
+      #mobileTeenContextBar button.mtab-active { color: #16233D; box-shadow: inset 0 3px 0 #FFCF3F; }
+      html.dark #mobileTeenContextBar button.mtab-active { color: #F1F5F9; }
+      body.teen-context-bar #mobileTeenBar { display: none !important; }
+      /* Language Studio on phones: header (title + language pills),
+         sub-mode row, and view tabs all retire into the bar/popup. */
+      body.teen-context-bar #teenLangHeader,
+      body.teen-context-bar #teenLangSubNav,
+      body.teen-context-bar #teenViewTabsBar { display: none !important; }
     }
   </style>
 </head>
@@ -1072,7 +1105,7 @@
     <section id="section-languages" class="hidden space-y-8 animate-fade">
       
       <!-- Language Pill Switcher & Sub-Navigation Header -->
-      <div class="flex flex-wrap items-center justify-between gap-4">
+      <div id="teenLangHeader" class="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">World Language Studio</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400">Native pronunciation, scripts, flashcards, and small sentences</p>
@@ -1623,12 +1656,17 @@
        the main content being shown, active tab synced in
        renderSubNavForTeen) -->
   <nav id="mobileTeenBar" aria-label="Scholar sections">
-    <button type="button" data-mtab="dashboard" onclick="openTeenTab('dashboard')"><span class="mtab-ico" aria-hidden="true">🏠</span><span>Home</span></button>
+    <button type="button" data-mtab="dashboard" onclick="openTeenTab('dashboard')"><span class="mtab-ico" aria-hidden="true">📚</span><span>Courses</span></button>
     <button type="button" data-mtab="sat" onclick="openTeenTab('sat')"><span class="mtab-ico" aria-hidden="true">📝</span><span>SAT</span></button>
     <button type="button" data-mtab="spelling" onclick="openTeenTab('spelling')"><span class="mtab-ico" aria-hidden="true">🐝</span><span>Spelling</span></button>
     <button type="button" data-mtab="languages" onclick="openTeenTab('languages')"><span class="mtab-ico" aria-hidden="true">🌏</span><span>Languages</span></button>
-    <button type="button" onclick="openRewardsModal()"><span class="mtab-ico" aria-hidden="true">👛</span><span>Wallet</span></button>
   </nav>
+
+  <!-- MOBILE SCHOLAR CONTEXT BAR (phones only): when a Scholar section
+       is open, this replaces the main bar with that section's options.
+       Its buttons are rendered by setTeenContextBar (teen-studio.js).
+       Back: one tap goes up one level, a double tap goes to Courses. -->
+  <nav id="mobileTeenContextBar" aria-label="Section options"></nav>
 
   <!-- EXPLORER BOTTOM BAR (phones only, kid mode only): the
        Practice/Flashcards switch, replacing the top sub-nav buttons
@@ -1671,6 +1709,26 @@
         <button onclick="closeTopicPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
       </div>
       <div id="topicPickerGrid" class="grid grid-cols-2 gap-3 mt-5"></div>
+    </div>
+  </div>
+
+  <!-- MOBILE LANGUAGE PICKER POPUP (phones): same overlay pattern as
+       the Explorer topic picker. Opened from Back in the Language
+       Studio; picking a language opens its practice with the
+       context bar, closing keeps the current language. -->
+  <div id="teenLangPickerOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Choose a language 🌏</h2>
+        <button onclick="closeTeenLangPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+      <div class="grid grid-cols-1 gap-3 mt-5">
+        <button onclick="pickTeenLanguage('malayalam')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🌴</span><span>Malayalam (മലയാളം)</span></button>
+        <button onclick="pickTeenLanguage('hindi')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🪔</span><span>Hindi (हिंदी)</span></button>
+        <button onclick="pickTeenLanguage('spanish')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🇪🇸</span><span>Spanish (Español)</span></button>
+        <button onclick="pickTeenLanguage('french')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🇫🇷</span><span>French (Français)</span></button>
+        <button onclick="pickTeenLanguage('italian')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🇮🇹</span><span>Italian (Italiano)</span></button>
+      </div>
     </div>
   </div>
 

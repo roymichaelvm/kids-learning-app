@@ -116,3 +116,32 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   the goal-strip thinning (round 2 polish). The in-page
   section controls stay where they are until the context-bar
   step moves them.
+
+## Scholar port — Step 2: Languages context bar + language popup (Rounds 4+5 teen, Languages only)
+- Main bar first button renamed Home → 📚 Courses (still opens
+  the dashboard); Wallet moved OUT of the bar back to the top
+  navigation (header pill unhidden on phones in teen mode) —
+  the bar is now Courses / SAT / Spelling / Languages.
+- `#mobileTeenContextBar` (empty nav after the main bar) is
+  rendered by `setTeenContextBar` (teen-studio.js). Selecting
+  Languages swaps the bottom bar for Back / Alphabet / Words /
+  Sentences / Bee / Cards↔Quiz toggle, and on phones the
+  Language Studio header (title + language pills), the
+  sub-mode row, and the view tabs retire from the page.
+- Back: one tap goes up one level (Languages → language
+  picker popup); a double tap (within 400ms) goes straight to
+  Courses (dashboard). The first tap acts immediately, so no
+  tap delay on the single-tap action.
+- `#teenLangPickerOverlay` mirrors the Explorer topic-picker
+  overlay: 5 full-width language rows calling
+  `pickTeenLanguage` (existing `selectActiveLanguage` +
+  context-bar restore); closing without picking keeps the
+  current language and restores the context bar.
+- `setTeenLangSubMode` syncs the bar highlight;
+  `setTeenLangViewTab` updates the toggle label;
+  `toggleTeenLangViewTab` flips practice↔flashcards.
+- `openTeenTab` now wires the context bar (Languages →
+  'languages', everything else → main bar for now).
+- Deliberately NOT in this step: Spelling and SAT context
+  states (their Tier/Topic pickers arrive with their steps),
+  the SAT More sheet (round 3), the goal-strip thinning.
