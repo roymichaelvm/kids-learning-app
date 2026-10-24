@@ -647,7 +647,7 @@
       }
       #mobileTeenContextBar button {
         display: flex; flex-direction: column; align-items: center; gap: 1px;
-        min-width: 3.6rem; padding: 0.32rem 0.4rem; border-radius: 10px;
+        flex: 1 1 0; min-width: 0; padding: 0.32rem 0.2rem; border-radius: 10px;
         font-size: 10px; font-weight: 700; color: #5B6577;
       }
       html.dark #mobileTeenContextBar button { color: #94A3B8; }
@@ -1728,6 +1728,24 @@
         <button onclick="pickTeenLanguage('spanish')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🇪🇸</span><span>Spanish (Español)</span></button>
         <button onclick="pickTeenLanguage('french')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🇫🇷</span><span>French (Français)</span></button>
         <button onclick="pickTeenLanguage('italian')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🇮🇹</span><span>Italian (Italiano)</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE SECTIONS PICKER POPUP (phones): the Explorer Topics
+       equivalent for Scholar — jump to any section from inside a
+       context bar, where the main bar is replaced. -->
+  <div id="teenSectionPickerOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-fade max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-kids">Choose a section 📚</h2>
+        <button onclick="closeTeenSectionPicker()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center transition cursor-pointer">✕</button>
+      </div>
+      <div class="grid grid-cols-1 gap-3 mt-5">
+        <button onclick="pickTeenSection('dashboard')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>📚</span><span>Courses</span></button>
+        <button onclick="pickTeenSection('sat')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>📝</span><span>Digital SAT</span></button>
+        <button onclick="pickTeenSection('spelling')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🐝</span><span>Spelling Bee</span></button>
+        <button onclick="pickTeenSection('languages')" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-900 dark:text-slate-100 text-left flex items-center gap-3 transition cursor-pointer"><span>🌏</span><span>Language Studio</span></button>
       </div>
     </div>
   </div>

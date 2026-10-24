@@ -113,6 +113,7 @@
     const item = (ico, label, fn, attrs) => `<button type="button" onclick="${fn}" ${attrs || ''}><span class="mtab-ico" aria-hidden="true">${ico}</span><span>${label}</span></button>`;
     const toFlash = teenLangViewTab !== 'flashcards';
     bar.innerHTML =
+      item('☰', 'Sections', 'openTeenSectionPicker()') +
       item('←', 'Back', "teenContextBackTap('languages')") +
       item('🔤', 'Alphabet', "setTeenLangSubMode('letters')", 'data-clang="letters"') +
       item('📖', 'Words', "setTeenLangSubMode('words')", 'data-clang="words"') +
@@ -174,6 +175,26 @@
   window.showTeenLangPicker = showTeenLangPicker;
   window.closeTeenLangPicker = closeTeenLangPicker;
   window.pickTeenLanguage = pickTeenLanguage;
+  // Sections picker popup (phones): the Explorer Topics equivalent
+  // for Scholar. The context bar replaces the main bar, so without
+  // this there is no visible way out of a section to SAT, Spelling
+  // or Courses. Picking a section switches to it; openTeenTab
+  // restores the right bar for that section.
+  function openTeenSectionPicker() {
+    const overlay = document.getElementById('teenSectionPickerOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+  }
+  function closeTeenSectionPicker() {
+    const overlay = document.getElementById('teenSectionPickerOverlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+  function pickTeenSection(tab) {
+    closeTeenSectionPicker();
+    openTeenTab(tab);
+  }
+  window.openTeenSectionPicker = openTeenSectionPicker;
+  window.closeTeenSectionPicker = closeTeenSectionPicker;
+  window.pickTeenSection = pickTeenSection;
 
   function renderTeenDashboard() {
     // Question bank now loads per-domain on demand: make sure the teen

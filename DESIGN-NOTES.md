@@ -157,3 +157,19 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   new bundle on two consecutive checks before asking the
   user to test, so a half-propagated deploy can't fake a
   regression.
+
+## Scholar Step 2 fix: Sections escape hatch (2026-10-24)
+- The Languages context bar replaced the main bar entirely,
+  leaving no VISIBLE way out of a section to SAT, Spelling or
+  Courses (Back → language picker, double-tap Back → Courses
+  is undiscoverable). Unlike Explorer, whose Topics button is
+  always in the bar, Scholar trapped the user in the section.
+- Fix, Explorer-style: the context bar gains a first button,
+  ☰ Sections, opening `#teenSectionPickerOverlay` (same
+  overlay pattern as the topic/language pickers) with rows
+  Courses / Digital SAT / Spelling Bee / Language Studio.
+  `pickTeenSection` closes the popup and calls `openTeenTab`,
+  which restores the right bar for that section (main bar for
+  Courses/SAT/Spelling today; context bar for Languages).
+- Context-bar buttons now flex (`flex: 1 1 0; min-width: 0`)
+  so 7 buttons fit a phone row instead of overflowing.
