@@ -202,3 +202,34 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   `setTeenSpellingMode` and `toggleEliminatorMode` sync the
   bar. SAT Back (Exit) goes to Courses; double-tap Back
   anywhere goes to Courses.
+
+## Step 4 — QA bug batch (2026-10-24, desktop audit + failed phone-emulation attempt)
+- Phone emulation is NOT available in the test browser (no viewport
+  control) and local headless screenshots produced no output, so
+  phone layout still rests on the user's real-device test. The
+  desktop audits did find real bugs, fixed here and verified in
+  jsdom (quotetest.js 12/12 PASS against the new bundle):
+- `&quot;` in SAT reading: `renderInteractiveText` (js/dictionary.js)
+  escaped the passage first, then wrapped words in spans — the
+  "quot" inside `&quot;` got wrapped, breaking the entity so
+  passages showed literal `&quot;`. Fixed by splitting the RAW
+  text into words first, then escaping each part (words get the
+  clickable span, everything else gets escaped). Same fix
+  benefits kid-mode passages, which share the function.
+- SAT eliminator buttons all showed a struck-through 'A'
+  (hardcoded `'̶A̶'`); each now shows its own struck letter.
+- Spelling Builder placeholder shortened to "Type the spelling
+  here..." (was truncating on phones).
+- Language Bee badge now names the language ("Malayalam
+  Spelling Bee"); the header Listen Prompt hides in Bee mode
+  (the panel's own Hear the Word covers audio); header XP text
+  reads +30 in Bee mode, +20 in quiz mode (was +20 always).
+  Badge/listens/XP restore when leaving Bee mode.
+- Bar consistency: Courses icon unified to 📚 in all context
+  bars (was ☰); SAT bar Passage 📖 -> 📄, Dictionary 📖 -> 🔍
+  (📖 was used twice in one bar).
+- Spelling Back renamed Exit and now goes straight to Courses
+  like SAT Exit (was: cleared the bar but stayed on the
+  spelling page, restoring the old header + tab row above the
+  question — the reported "builder tab not fixed, questions
+  not first" layout). Double-tap Back still goes to Courses.

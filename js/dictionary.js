@@ -1353,10 +1353,15 @@
 
   function renderInteractiveText(text) {
     if (!text) return '';
-    const safe = escapeHtml(text);
-    return safe.replace(/\b([a-zA-Z]{2,})\b/g, (match) => {
-      return `<span class="interactive-word cursor-pointer hover:bg-amber-200/90 hover:text-indigo-950 rounded px-1 py-0.5 transition inline-block select-none active:scale-95" onclick="handleWordSingleClick(event, '${match}')">${match}</span>`;
-    });
+    // Split the RAW text first, then escape each part: escaping before
+    // wrapping words broke HTML entities (the "quot" inside &quot;
+    // got wrapped in a span, so passages showed literal &quot;).
+    return String(text).split(/(\b[a-zA-Z]{2,}\b)/g).map(part => {
+      if (/^[a-zA-Z]{2,}$/.test(part)) {
+        return `<span class="interactive-word cursor-pointer hover:bg-amber-200/90 hover:text-indigo-950 rounded px-1 py-0.5 transition inline-block select-none active:scale-95" onclick="handleWordSingleClick(event, '${part}')">${part}</span>`;
+      }
+      return escapeHtml(part);
+    }).join('');
   }
 
   function handleWordSingleClick(event, word) {

@@ -115,7 +115,7 @@
     if (state === 'languages') {
       const toFlash = teenLangViewTab !== 'flashcards';
       bar.innerHTML =
-        item('☰', 'Courses', 'openTeenSectionPicker()') +
+        item('📚', 'Courses', 'openTeenSectionPicker()') +
         item('←', 'Lang Select', "teenContextBackTap('languages')") +
         item('🔤', 'Alphabet', "setTeenLangSubMode('letters')", 'data-clang="letters"') +
         item('📖', 'Words', "setTeenLangSubMode('words')", 'data-clang="words"') +
@@ -124,21 +124,21 @@
         item(toFlash ? '🃏' : '🎮', toFlash ? 'Cards' : 'Quiz', 'toggleTeenLangViewTab()', 'id="langViewToggleBtn"');
     } else if (state === 'spelling') {
       bar.innerHTML =
-        item('☰', 'Courses', 'openTeenSectionPicker()') +
-        item('←', 'Back', "teenContextBackTap('spelling')") +
+        item('📚', 'Courses', 'openTeenSectionPicker()') +
+        item('←', 'Exit', "teenContextBackTap('spelling')") +
         item('⌨️', 'Builder', "setTeenSpellingMode('builder')", 'data-cspell="builder"') +
         item('📝', 'Quiz', "setTeenSpellingMode('quiz')", 'data-cspell="quiz"') +
         item('🃏', 'Flashcards', "setTeenSpellingMode('flashcards')", 'data-cspell="flashcards"') +
         item('🎯', 'Tier', 'openTeenSpellTierPicker()');
     } else if (state === 'sat') {
       bar.innerHTML =
-        item('☰', 'Courses', 'openTeenSectionPicker()') +
+        item('📚', 'Courses', 'openTeenSectionPicker()') +
         item('←', 'Exit', "teenContextBackTap('sat')") +
         item('📝', 'Topic', 'openSatDomainPicker()') +
         `<button type="button" id="btnBarEliminator" onclick="toggleEliminatorMode()"><span class="mtab-ico" aria-hidden="true">✂️</span><span>Eliminator</span></button>` +
-        item('📖', 'Passage', 'toggleSatPassageMobile()') +
+        item('📄', 'Passage', 'toggleSatPassageMobile()') +
         item('🚩', 'Flag', 'toggleFlagSatQuestion()') +
-        item('📖', 'Dictionary', 'openDictionaryModal()');
+        item('🔍', 'Dictionary', 'openDictionaryModal()');
     } else {
       bar.innerHTML = '';
       document.body.classList.remove('teen-context-bar');
@@ -157,10 +157,10 @@
     const barElim = document.getElementById('btnBarEliminator');
     if (barElim) barElim.classList.toggle('mtab-active', eliminatorMode);
   }
-  // Back: one tap goes up one level (Languages → language picker);
-  // a double tap goes straight to Courses (dashboard). The first
-  // tap acts immediately, so a double tap lands on Courses either
-  // way — no tap delay on the single-tap action.
+  // Back: one tap goes up one level (Languages → language picker;
+  // Spelling and SAT have no intermediate level, so Back goes
+  // straight to Courses). A double tap also goes to Courses.
+  // The first tap acts immediately — no tap delay.
   let lastContextBackTap = 0;
   function teenContextBackTap(from) {
     const now = Date.now();
@@ -175,6 +175,7 @@
   function teenContextBack(from) {
     if (from === 'languages') { showTeenLangPicker(); return; }
     if (from === 'sat') { openTeenTab('dashboard'); return; }
+    if (from === 'spelling') { openTeenTab('dashboard'); return; }
     setTeenContextBar(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -746,7 +747,7 @@
       };
       strikeBtn.title = "Cross out / restore option";
       strikeBtn.className = "p-2.5 min-h-[44px] min-w-[44px] rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:border-rose-200 dark:hover:border-rose-800 text-slate-400 hover:text-rose-600 text-xs font-mono font-bold transition shrink-0";
-      strikeBtn.innerText = isEliminated ? 'Undo' : '̶A̶';
+      strikeBtn.innerText = isEliminated ? 'Undo' : ('\u0336' + letter + '\u0336');
 
       wrapper.appendChild(btn);
       wrapper.appendChild(strikeBtn);
@@ -1227,15 +1228,20 @@
       const el = document.getElementById(id);
       if (el) el.classList.toggle('hidden', spellingOn);
     });
-    if (spellingOn) {
-      const badge = document.getElementById('teenQuizHeaderBadge');
-      if (badge) badge.innerText = '🐝 Language Spelling Bee';
-    }
+    const badge = document.getElementById('teenQuizHeaderBadge');
+    if (badge) badge.innerText = spellingOn ? '🐝 Language Spelling Bee' : '🎮 Active Recall Challenge';
+    const listenBtn = document.getElementById('teenQuizListenBtn');
+    if (listenBtn) listenBtn.classList.toggle('hidden', spellingOn);
+    const xpText = document.getElementById('teenQuizXpText');
+    if (xpText) xpText.innerText = spellingOn ? '+30 XP • Logged to Daily Progress' : '+20 XP • Logged to Daily Progress';
   }
 
   function startTeenLangSpellRound() {
     const pack = getActiveLangPack();
     syncTeenLangPanels(true);
+    const langName = { malayalam: 'Malayalam', hindi: 'Hindi', spanish: 'Spanish', french: 'French', italian: 'Italian' }[getActiveLangCode()] || 'Language';
+    const beeBadge = document.getElementById('teenQuizHeaderBadge');
+    if (beeBadge) beeBadge.innerText = `🐝 ${langName} Spelling Bee`;
     if (!pack) return;
     const pool = window.getLangSpellPool(pack.teenCards);
     if (pool.length === 0) return;
