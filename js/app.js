@@ -1488,7 +1488,23 @@
   }
 
   function startFriendPreview() {
-    if (!window.LuminaDB) return;
+    // A tap must never die silently: on a slow phone connection the
+    // database layer can still be loading (or a cloud init can have
+    // failed), and both used to leave the sign-in card up with no
+    // feedback at all. Wait briefly for LuminaDB, then surface any
+    // failure as a visible message instead of a dead button.
+    if (!window.LuminaDB) {
+      var fpTries = 0;
+      var fpTimer = setInterval(function () {
+        if (window.LuminaDB) { clearInterval(fpTimer); startFriendPreview(); return; }
+        if (++fpTries >= 30) {
+          clearInterval(fpTimer);
+          if (typeof showToast === 'function') showToast('Preview could not start — please reload the page and try again.');
+        }
+      }, 100);
+      return;
+    }
+    try {
     try { sessionStorage.setItem('lumina_preview_mode', '1'); } catch (e) {}
     window.LuminaDB.upsertProfile({ id: 'preview_teen', name: 'Preview Scholar', avatar: '\uD83C\uDF93', ageGroup: 'teen', ageLabel: 'Friend Preview - Teen', dailyGoalQuestions: 12, dailyGoalMinutes: 20, isPreview: true });
     window.LuminaDB.upsertProfile({ id: 'preview_kid', name: 'Preview Explorer', avatar: '\uD83E\uDDED', ageGroup: 'kid', ageLabel: 'Friend Preview - Kid', dailyGoalQuestions: 10, dailyGoalMinutes: 15, isPreview: true });
@@ -1500,6 +1516,10 @@
     refreshPreviewBanner();
     if (typeof showToast === 'function') {
       showToast('\uD83C\uDF81 Friend Preview: demo profiles only - progress stays on this device.');
+    }
+    } catch (err) {
+      if (typeof console !== 'undefined' && console.error) console.error('startFriendPreview failed:', err);
+      if (typeof showToast === 'function') showToast('Preview could not start — please reload the page and try again.');
     }
   }
 

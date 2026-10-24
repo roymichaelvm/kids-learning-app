@@ -316,3 +316,24 @@ frontend-design rules, then fixes them.
   overrides on ids or new ids (`#satQuestionCard`,
   `#teenSpellDefBox`, `#teenSpellQuizPromptBox`,
   `#teenLangBeePromptBox`, `#btnFriendPreview`).
+
+## Round 9 follow-up — Friend Preview must never die silently
+User report: the Friend Preview button stopped responding on
+their phone from the last two builds, while it kept working in
+desktop browser tests. Root cause found in code: the handler
+had two silent death paths before the modal hides —
+`if (!window.LuminaDB) return;` when the database layer had
+not loaded (or a cloud init had failed), and any throw inside
+`upsertProfile` (e.g. uninitialised state) — both left the
+sign-in card up with zero feedback, which reads exactly as
+"not clickable" on a slow phone connection. Fix (app.js +
+index.html, redesign branch only): the handler now waits up
+to ~3s for LuminaDB, then shows a visible "reload and try
+again" toast instead of returning silently; its body is
+wrapped in try/catch with the same visible message. An inline
+stub in index.html covers the case where the app bundle
+itself has not loaded yet: a tap waits briefly for the real
+handler (the bundle overwrites the stub on load) and, if it
+never arrives, shows the error in the sign-in card's error
+box. Verified: fptest PASS (failure shows the reload
+message, retry succeeds, banner appears) + round9test PASS.

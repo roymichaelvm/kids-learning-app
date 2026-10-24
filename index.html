@@ -2166,6 +2166,33 @@
     </div>
   </div>
 
+  <!-- Friend Preview safety net: if the app bundle has not finished
+       loading yet (slow phone network), a tap waits briefly for the
+       real handler instead of dying silently; if it never arrives,
+       the sign-in card says so visibly. The bundle replaces this
+       stub with the real handler when it loads. -->
+  <script>
+    (function () {
+      if (typeof window.startFriendPreview === 'function') return;
+      var stub = function () {
+        var tries = 0;
+        var timer = setInterval(function () {
+          if (window.startFriendPreview !== stub) {
+            clearInterval(timer);
+            if (typeof window.startFriendPreview === 'function') window.startFriendPreview();
+            return;
+          }
+          if (++tries >= 30) {
+            clearInterval(timer);
+            var e = document.getElementById('familyAuthError');
+            if (e) { e.textContent = 'The page is still loading. Please reload and try again.'; e.classList.remove('hidden'); }
+          }
+        }, 100);
+      };
+      window.startFriendPreview = stub;
+    })();
+  </script>
+
   <!-- =====================================================================
        APPLICATION SCRIPTS (MODULAR ARCHITECTURE)
        ===================================================================== -->
