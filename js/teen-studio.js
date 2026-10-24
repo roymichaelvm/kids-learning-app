@@ -66,6 +66,7 @@
   }
 
   function renderSubNavForTeen(activeTab) {
+    document.body.classList.remove('kid-mode');
     const container = document.getElementById('subNavTabs');
     if (!container) return;
     container.classList.add('teen-main-tabs');

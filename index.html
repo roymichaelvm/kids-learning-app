@@ -553,6 +553,36 @@
     #familyAuthModal #btnFriendPreview { min-height: 44px !important; }
 
 
+    /* EXPLORER STEP 1 — KID BOTTOM BAR (phones, kid mode only):
+       Practice/Flashcards live in the bar, so the Active Learner
+       quick bar and the stickers card retire, and the top sub-nav
+       buttons and in-section view cards retire on phones. */
+    #mobileKidBar { display: none; }
+    @media (max-width: 639px) {
+      #profileQuickBar, #kidStickersCard { display: none !important; }
+      body.kid-mode #mainAppContent:not(.hidden) ~ #mobileKidBar {
+        display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+        justify-content: space-around; align-items: stretch;
+        background: rgba(255, 251, 235, 0.97);
+        border-top: 2px solid #F59E0B;
+        padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom));
+      }
+      html.dark body.kid-mode #mainAppContent:not(.hidden) ~ #mobileKidBar {
+        background: rgba(11, 19, 34, 0.97); border-top-color: #F59E0B;
+      }
+      #mobileKidBar button {
+        display: flex; flex-direction: column; align-items: center; gap: 1px;
+        min-width: 3.6rem; padding: 0.32rem 0.4rem; border-radius: 10px;
+        font-size: 10px; font-weight: 700; color: #5B6577;
+      }
+      html.dark #mobileKidBar button { color: #94A3B8; }
+      #mobileKidBar .mtab-ico { font-size: 19px; line-height: 1.15; }
+      #mobileKidBar button.mtab-active { color: #92400E; box-shadow: inset 0 3px 0 #FBBF24; }
+      html.dark #mobileKidBar button.mtab-active { color: #FDE68A; }
+      body.kid-mode #mainAppContent { padding-bottom: 5.25rem !important; }
+      body.kid-mode #subNavBar,
+      body.kid-mode #kidViewTabsBar { display: none !important; }
+    }
   </style>
 </head>
 <body id="appBody" class="bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
@@ -1542,6 +1572,15 @@
     </section>
 
   </main>
+
+  <!-- EXPLORER BOTTOM BAR (phones only, kid mode only): the
+       Practice/Flashcards switch, replacing the top sub-nav buttons
+       and the in-section view cards on phones. Active state synced
+       in setKidViewTab. -->
+  <nav id="mobileKidBar" aria-label="Explorer options">
+    <button type="button" data-kview="practice" onclick="setKidViewTab('practice')"><span class="mtab-ico" aria-hidden="true">🎮</span><span>Practice</span></button>
+    <button type="button" data-kview="flashcards" onclick="setKidViewTab('flashcards')"><span class="mtab-ico" aria-hidden="true">🃏</span><span>Flashcards</span></button>
+  </nav>
 
   <!-- =====================================================================
        "WHO'S LEARNING TODAY?" PROFILE PICKER OVERLAY

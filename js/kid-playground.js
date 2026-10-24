@@ -329,6 +329,10 @@
     if (typeof window.renderSubNavForKid === 'function') {
       window.renderSubNavForKid();
     }
+    // Explorer bottom bar (phones): Practice/Flashcards active state.
+    document.querySelectorAll('#mobileKidBar [data-kview]').forEach(b => {
+      b.classList.toggle('mtab-active', b.getAttribute('data-kview') === tab);
+    });
   }
 
   function initKidPlayground() {

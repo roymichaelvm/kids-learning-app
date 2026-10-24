@@ -45,3 +45,18 @@ the CSS block.
 
 ## Redeploy note
 First Vercel build of this branch failed (deployment error page, tree verified complete). Retriggering the build with this note.
+
+## Explorer port — Step 1: kid bottom bar (Round 5 kid parts only)
+- `#mobileKidBar` nav (Practice/Flashcards, `data-kview`) placed after
+  `</main>`; hidden by default, shown on phones only when
+  `body.kid-mode` and `#mainAppContent` is visible.
+- Phones in kid mode: `#profileQuickBar` + `#kidStickersCard` hidden,
+  `#subNavBar` + `#kidViewTabsBar` hidden, content bottom padding
+  5.25rem so the fixed bar never covers the question.
+- JS: `renderSubNavForKid` adds `kid-mode` to body;
+  `renderSubNavForTeen` removes it (so the bar never leaks into
+  Scholar); `setKidViewTab` syncs the bar's `mtab-active` state.
+- Deliberately NOT in this step: topic switcher (round 6), chip-strip
+  hiding (round 6), modes/views bar gating (round 7), shrunken
+  buttons + moved badge (round 8). Each follows as its own step
+  with its own phone test.

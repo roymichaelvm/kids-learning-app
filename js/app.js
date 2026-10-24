@@ -1228,6 +1228,8 @@
     const container = document.getElementById('subNavTabs');
     if (!container) return;
     container.classList.remove('teen-main-tabs');
+    // Explorer mode: the kid bottom bar switches on (phones).
+    document.body.classList.add('kid-mode');
     const currentTab = window.kidViewTab || 'practice';
     const isPractice = currentTab === 'practice';
     const isFlash = currentTab === 'flashcards';
