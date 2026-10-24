@@ -588,6 +588,16 @@
       body.kid-mode #kidCategoryGrid { display: none !important; }
       #mobileKidBar #kidTopicBtn { flex: 1 1 auto; min-width: 0; }
       #mobileKidBar #kidTopicBtn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+      /* Two-state kid bar: non-language subjects show Practice /
+         Topics / Flashcards; language subjects show Topics, the
+         four sub-modes, and a Practice↔Flashcards toggle. */
+      #mobileKidBar button { display: none; }
+      body.kid-bar-views #mobileKidBar [data-kview],
+      body.kid-bar-views #mobileKidBar #kidTopicBtn { display: flex; }
+      body.kid-bar-modes #mobileKidBar [data-ksub],
+      body.kid-bar-modes #mobileKidBar #kidTopicBtn,
+      body.kid-bar-modes #mobileKidBar #kidViewToggleBtn { display: flex; }
+      body.kid-bar-modes #kidLangSubNav { display: none !important; }
     }
   </style>
 </head>
@@ -1587,6 +1597,11 @@
     <button type="button" data-kview="practice" onclick="setKidViewTab('practice')"><span class="mtab-ico" aria-hidden="true">🎮</span><span>Practice</span></button>
     <button type="button" id="kidTopicBtn" onclick="openTopicPicker()"><span class="mtab-ico" id="kidTopicBtnIco" aria-hidden="true">🐝</span><span id="kidTopicBtnLabel">Spelling Bee</span></button>
     <button type="button" data-kview="flashcards" onclick="setKidViewTab('flashcards')"><span class="mtab-ico" aria-hidden="true">🃏</span><span>Flashcards</span></button>
+    <button type="button" data-ksub="letters" onclick="setKidSubMode('letters')"><span class="mtab-ico" aria-hidden="true">🔤</span><span>Alphabet</span></button>
+    <button type="button" data-ksub="words" onclick="setKidSubMode('words')"><span class="mtab-ico" aria-hidden="true">📖</span><span>Words</span></button>
+    <button type="button" data-ksub="sentences" onclick="setKidSubMode('sentences')"><span class="mtab-ico" aria-hidden="true">💬</span><span>Sentences</span></button>
+    <button type="button" data-ksub="spelling" onclick="setKidSubMode('spelling')"><span class="mtab-ico" aria-hidden="true">🐝</span><span>Bee</span></button>
+    <button type="button" id="kidViewToggleBtn" onclick="toggleKidViewTab()"><span class="mtab-ico" aria-hidden="true">🃏</span><span>Cards</span></button>
   </nav>
 
   <!-- =====================================================================

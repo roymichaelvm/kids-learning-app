@@ -82,3 +82,17 @@ First Vercel build of this branch failed (deployment error page, tree verified c
   carries `id="kidStickersCard"` (identical markup to the
   redesign branch apart from that id). No JS touches the id;
   desktop is unaffected (the rule is phone-only).
+
+## Explorer port — Step 3: language sub-modes bar gating (Round 7 kid parts)
+- The bar is now two-state, switched in `selectKidCategory` via
+  `isLangPackCategory`: non-language subjects show Practice /
+  Topics / Flashcards (`kid-bar-views`); language subjects show
+  Topics + Alphabet / Words / Sentences / Bee + a view toggle
+  (`kid-bar-modes`), and the in-page language sub-nav pills hide
+  on phones (the bar carries them).
+- `setKidSubMode` syncs the bar's sub-mode highlight;
+  `setKidViewTab` updates the toggle button to point at the
+  OTHER view (Cards ↔ Quiz); `toggleKidViewTab` (new, window-
+  exposed) flips the view.
+- Deliberately NOT in this step: shrunken buttons + moved badge
+  (round 8) — the last Explorer piece.
