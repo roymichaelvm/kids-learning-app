@@ -102,3 +102,34 @@ Borrowing from popular apps, applied with the frontend-design skill:
   slide-up on phones only, off with reduced motion.
 - Same sheet pattern can extend later to the Language Studio quiz
   and the bottom bar's extra actions if wanted.
+
+## Round 4 — Contextual bottom bar (question frame owns the screen)
+From the user's screenshot of Language Studio: the page stacked
+language pills + sub-mode pills + two big Practice/Flashcards
+cards before the question. Now the bottom bar itself changes with
+the section (phones, Scholar only), and the in-page rows retire:
+
+- **Languages:** ← Back · 🔤 Alphabet · 📖 Words · 💬 Sentences ·
+  🐝 Bee (the exact sub-modes). The `#teenLangSubNav` pill row is
+  hidden on phones while this bar is active; the language pills
+  stay (they are the picker).
+- **Spelling:** ← Back · ⌨️ Builder · 📝 Quiz · 🃏 Flashcards.
+  The `#teenSpellModeTabs` row hides on phones.
+- **SAT exam:** ← Exit · ✂️ Eliminator · 📖 Passage · 🚩 Flag ·
+  📖 Dictionary — the exam tools as thumb buttons; the toolbar's
+  ⋮ More button retires on phones (desktop keeps it).
+- **Dashboard:** the main bar (Home · SAT · Spelling · Languages ·
+  Wallet) returns.
+- **Back vs Home:** Back wins inside a section — it goes up one
+  level (Malayalam quiz → studio top, SAT exam → dashboard) and
+  keeps context; Home discards it. Home stays one tap away in the
+  main bar. Back on Languages/Spelling restores the main bar and
+  scrolls to the section top (pills/tiers); Back on SAT exits to
+  the dashboard.
+- The big Practice/Flashcards cards also shrink to a compact
+  segmented row on phones (`#teenViewTabsBar`).
+- Wiring: `setTeenContextBar(state)` renders the bar and toggles
+  `body.teen-context-bar`; `openTeenTab` sets the state per
+  section; `setTeenLangSubMode` / `setTeenSpellingMode` /
+  `toggleEliminatorMode` re-sync the active highlight.
+  Explorer is untouched (kid renderer clears the class + bar).

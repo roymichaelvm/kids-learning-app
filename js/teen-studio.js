@@ -41,6 +41,14 @@
 
     renderSubNavForTeen(tabName);
 
+    // Contextual bottom bar follows the section (phones, Scholar):
+    // dashboard keeps the main bar, every other section swaps in its
+    // own sub-options.
+    if (tabName === 'sat') setTeenContextBar('sat');
+    else if (tabName === 'spelling') setTeenContextBar('spelling');
+    else if (tabName === 'languages') setTeenContextBar('languages');
+    else setTeenContextBar(null);
+
     if (tabName === 'dashboard') {
       stopSatTimer();
       document.getElementById('section-teen-dashboard').classList.remove('hidden');
@@ -584,6 +592,7 @@
       if (btn) btn.className = "w-full justify-start px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-2";
       if (hint) hint.classList.add('hidden');
     }
+    syncTeenContextBar();
   }
 
   function toggleOptionStrikeout(letter) {
@@ -838,6 +847,7 @@
     teenCardIdx = 0;
     teenQuizIdx = 0;
     renderTeenLanguageStudio();
+    syncTeenContextBar();
   }
 
   function selectActiveLanguage(lang) {
@@ -1393,6 +1403,7 @@
     if (fCard) fCard.classList.toggle('hidden', mode !== 'flashcards');
 
     renderTeenSpellingStudio();
+    syncTeenContextBar();
   }
 
   function renderTeenSpellingStudio() {
@@ -1868,6 +1879,64 @@
   }
   window.toggleSatMoreMenu = toggleSatMoreMenu;
   window.closeSatMoreMenu = closeSatMoreMenu;
+
+  // Contextual bottom bar (phones, Scholar only): when a section is
+  // open, the main bar swaps for that section's sub-options and the
+  // in-page sub-nav rows hide, so the question frame owns the
+  // screen. Back goes up one level (section landing / dashboard),
+  // never straight home — Home stays one tap away in the main bar.
+  let teenContextState = null;
+  function setTeenContextBar(state) {
+    teenContextState = state;
+    const bar = document.getElementById('mobileTeenContextBar');
+    if (!bar) return;
+    if (!state) {
+      bar.innerHTML = '';
+      document.body.classList.remove('teen-context-bar');
+      return;
+    }
+    const item = (ico, label, fn, attrs) => `<button type="button" onclick="${fn}" ${attrs || ''}><span class="mtab-ico" aria-hidden="true">${ico}</span><span>${label}</span></button>`;
+    if (state === 'languages') {
+      bar.innerHTML =
+        item('←', 'Back', "teenContextBack('languages')") +
+        item('🔤', 'Alphabet', "setTeenLangSubMode('letters')", 'data-clang="letters"') +
+        item('📖', 'Words', "setTeenLangSubMode('words')", 'data-clang="words"') +
+        item('💬', 'Sentences', "setTeenLangSubMode('sentences')", 'data-clang="sentences"') +
+        item('🐝', 'Bee', "setTeenLangSubMode('spelling')", 'data-clang="spelling"');
+    } else if (state === 'spelling') {
+      bar.innerHTML =
+        item('←', 'Back', "teenContextBack('spelling')") +
+        item('⌨️', 'Builder', "setTeenSpellingMode('builder')", 'data-cspell="builder"') +
+        item('📝', 'Quiz', "setTeenSpellingMode('quiz')", 'data-cspell="quiz"') +
+        item('🃏', 'Flashcards', "setTeenSpellingMode('flashcards')", 'data-cspell="flashcards"');
+    } else if (state === 'sat') {
+      bar.innerHTML =
+        item('←', 'Exit', "teenContextBack('sat')") +
+        `<button type="button" id="btnBarEliminator" onclick="toggleEliminatorMode()"><span class="mtab-ico" aria-hidden="true">✂️</span><span>Eliminator</span></button>` +
+        item('📖', 'Passage', 'toggleSatPassageMobile()') +
+        item('🚩', 'Flag', 'toggleFlagSatQuestion()') +
+        item('📖', 'Dictionary', 'openDictionaryModal()');
+    }
+    document.body.classList.add('teen-context-bar');
+    syncTeenContextBar();
+  }
+  function syncTeenContextBar() {
+    document.querySelectorAll('#mobileTeenContextBar [data-clang]').forEach(b => {
+      b.classList.toggle('mtab-active', b.getAttribute('data-clang') === teenSubMode);
+    });
+    document.querySelectorAll('#mobileTeenContextBar [data-cspell]').forEach(b => {
+      b.classList.toggle('mtab-active', b.getAttribute('data-cspell') === teenSpellingMode);
+    });
+    const barElim = document.getElementById('btnBarEliminator');
+    if (barElim) barElim.classList.toggle('mtab-active', eliminatorMode);
+  }
+  function teenContextBack(from) {
+    if (from === 'sat') { openTeenTab('dashboard'); return; }
+    setTeenContextBar(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  window.setTeenContextBar = setTeenContextBar;
+  window.teenContextBack = teenContextBack;
   window.teenLangViewTab = teenLangViewTab;
   window.setTeenLangViewTab = setTeenLangViewTab;
   window.setTeenLangSubMode = setTeenLangSubMode;
